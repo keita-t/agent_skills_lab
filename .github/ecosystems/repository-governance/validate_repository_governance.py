@@ -4,8 +4,37 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass, field
 import re
 from pathlib import Path
+import sys
+
+ECOSYSTEMS_DIR = Path(__file__).resolve().parents[1]
+if str(ECOSYSTEMS_DIR) not in sys.path:
+    sys.path.insert(0, str(ECOSYSTEMS_DIR))
+
+try:
+    from mcp_models import (
+        ValidateRepositoryGovernanceInput,
+        ValidationIssue,
+        ValidationResult,
+    )
+except ModuleNotFoundError:
+    @dataclass(frozen=True)
+    class ValidateRepositoryGovernanceInput:
+        repo_root: str = "."
+        mode: str = "single-language"
+
+    @dataclass(frozen=True)
+    class ValidationIssue:
+        message: str
+        path: str | None = None
+
+    @dataclass(frozen=True)
+    class ValidationResult:
+        passed: bool
+        errors: list[ValidationIssue] = field(default_factory=list)
+        warnings: list[str] = field(default_factory=list)
 
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
@@ -178,6 +207,24 @@ def _mode_config(mode: str) -> tuple[list[str], dict[str, list[str]], list[str]]
     return required_paths, required_links, markdown_paths
 
 
+def validate_repository_governance(
+    request: ValidateRepositoryGovernanceInput,
+) -> ValidationResult:
+    repo_root = Path(request.repo_root).resolve()
+    required_paths, required_links, markdown_paths = _mode_config(request.mode)
+
+    errors: list[str] = []
+    errors.extend(_check_required_paths(repo_root, required_paths))
+    errors.extend(_check_required_links(repo_root, required_links))
+    errors.extend(_check_relative_links_exist(repo_root, markdown_paths))
+    errors.extend(_check_todo_structure(repo_root / "docs" / "TODO.md"))
+
+    return ValidationResult(
+        passed=not errors,
+        errors=[ValidationIssue(message=error) for error in errors],
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -193,24 +240,19 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    repo_root = Path(args.repo_root).resolve()
-    required_paths, required_links, markdown_paths = _mode_config(args.mode)
+    result = validate_repository_governance(
+        ValidateRepositoryGovernanceInput(repo_root=args.repo_root, mode=args.mode)
+    )
 
-    errors: list[str] = []
-    errors.extend(_check_required_paths(repo_root, required_paths))
-    errors.extend(_check_required_links(repo_root, required_links))
-    errors.extend(_check_relative_links_exist(repo_root, markdown_paths))
-    errors.extend(_check_todo_structure(repo_root / "docs" / "TODO.md"))
-
-    if errors:
+    if not result.passed:
         print("REPOSITORY GOVERNANCE VALIDATION FAILED")
-        for index, error in enumerate(errors, start=1):
-            print(f"{index}. {error}")
+        for index, error in enumerate(result.errors, start=1):
+            print(f"{index}. {error.message}")
         return 1
 
     print("REPOSITORY GOVERNANCE VALIDATION PASSED")
     print(f"Mode: {args.mode}")
-    print(f"Repository root: {repo_root}")
+    print(f"Repository root: {Path(args.repo_root).resolve()}")
     return 0
 
 

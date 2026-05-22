@@ -7,10 +7,14 @@ root-agent: governance-repository-context-manager.agent.md
 agents: [governance-repository-context-manager.agent.md]
 skills: [repository-governance-bootstrap, repository-doc-governance, todo-progress-governance]
 dependencies: []
-ecosystem-files: [.github/ecosystems/repository-governance/assets/templates, .github/ecosystems/repository-governance/validate_agent_skill_docs.py, .github/ecosystems/repository-governance/validate_agent_skill_docs.sh, .github/ecosystems/repository-governance/validate_repository_governance.py, .github/ecosystems/repository-governance/validate_repository_governance.sh]
+ecosystem-files: [.github/ecosystems/repository-governance/assets/templates, .github/ecosystems/repository-governance/MCP_TOOLS.json, .github/ecosystems/repository-governance/validate_agent_skill_docs.py, .github/ecosystems/repository-governance/validate_agent_skill_docs.sh, .github/ecosystems/repository-governance/validate_repository_governance.py, .github/ecosystems/repository-governance/validate_repository_governance.sh]
 managed-core-files: [.github/ECOSYSTEM_REGISTRY.md, .github/ecosystems/README.md, .github/AGENT_SKILL_ROUTING.md, .github/agents/README.md, .github/skills/README.md, .github/copilot-instructions.md]
 agent-skill-relations: [governance-repository-context-manager.agent.md=>repository-governance-bootstrap|repository-doc-governance|todo-progress-governance]
 post-install-validator: .github/ecosystems/repository-governance/validate_agent_skill_docs.sh
+mcp-enabled: true
+mcp-tool-registry: .github/ecosystems/repository-governance/MCP_TOOLS.json
+mcp-tool-names: [repository_governance.validate_repository, repository_governance.validate_agent_skill_docs]
+mcp-tool-groups: [validator, documentation-governance]
 ---
 
 # Repository Governance Ecosystem

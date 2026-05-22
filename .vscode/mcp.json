@@ -1,0 +1,20 @@
+{
+  "servers": {
+    "ecosystemTools": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "${workspaceFolder}/.github/ecosystems/mcp_server.py"
+      ],
+      "env": {
+        "MCP_REPO_ROOT": "${workspaceFolder}",
+        "MCP_DEFAULT_GOVERNANCE_MODE": "bilingual",
+        "MCP_LOG_LEVEL": "INFO",
+        "MCP_REQUIRE_CONFIRMATION_FOR_MUTATING_TOOLS": "true"
+      },
+      "dev": {
+        "watch": "${workspaceFolder}/.github/ecosystems/**/*.{py,json,md}"
+      }
+    }
+  }
+}

@@ -5,6 +5,31 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+import sys
+
+ECOSYSTEMS_DIR = Path(__file__).resolve().parents[1]
+if str(ECOSYSTEMS_DIR) not in sys.path:
+    sys.path.insert(0, str(ECOSYSTEMS_DIR))
+
+try:
+    from mcp_models import ValidateAgentSkillDocsInput, ValidationIssue, ValidationResult
+except ModuleNotFoundError:
+    from dataclasses import dataclass, field
+
+    @dataclass(frozen=True)
+    class ValidateAgentSkillDocsInput:
+        repo_root: str = "."
+
+    @dataclass(frozen=True)
+    class ValidationIssue:
+        message: str
+        path: str | None = None
+
+    @dataclass(frozen=True)
+    class ValidationResult:
+        passed: bool
+        errors: list[ValidationIssue] = field(default_factory=list)
+        warnings: list[str] = field(default_factory=list)
 
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
@@ -84,8 +109,8 @@ def _format_values(values: set[str]) -> str:
     return ", ".join(sorted(values)) if values else "(none)"
 
 
-def main() -> int:
-    repo_root = _find_repo_root(Path(__file__).resolve())
+def validate_agent_skill_docs(request: ValidateAgentSkillDocsInput) -> ValidationResult:
+    repo_root = _find_repo_root(Path(request.repo_root).resolve())
 
     agents_dir = repo_root / ".github" / "agents"
     skills_dir = repo_root / ".github" / "skills"
@@ -206,10 +231,21 @@ def main() -> int:
             + _format_values(set(missing_routing_links))
         )
 
-    if errors:
+    return ValidationResult(
+        passed=not errors,
+        errors=[ValidationIssue(message=error) for error in errors],
+    )
+
+
+def main() -> int:
+    result = validate_agent_skill_docs(
+        ValidateAgentSkillDocsInput(repo_root=str(_find_repo_root(Path(__file__).resolve())))
+    )
+
+    if not result.passed:
         print("AGENT/SKILL DOC VALIDATION FAILED")
-        for index, error in enumerate(errors, start=1):
-            print(f"{index}. {error}")
+        for index, error in enumerate(result.errors, start=1):
+            print(f"{index}. {error.message}")
         print("Fix the missing or stale entries in:")
         print("- .github/agents/README.md")
         print("- .github/skills/README.md")

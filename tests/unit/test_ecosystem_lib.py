@@ -51,6 +51,15 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
         "repository-doc-governance",
         "todo-progress-governance",
     ]
+    assert manifest.mcp_enabled is True
+    assert (
+        manifest.mcp_tool_registry
+        == ".github/ecosystems/repository-governance/MCP_TOOLS.json"
+    )
+    assert manifest.mcp_tool_names == [
+        "repository_governance.validate_repository",
+        "repository_governance.validate_agent_skill_docs",
+    ]
     assert ".github/ecosystems/repository-governance/assets/templates" in manifest.ecosystem_files
     assert (
         manifest.post_install_validator

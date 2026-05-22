@@ -78,6 +78,14 @@ def parse_relation_entries(entries: list[str]) -> dict[str, list[str]]:
     return relations
 
 
+def _coerce_bool(value: object, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(frozen=True)
 class EcosystemManifest:
     slug: str
@@ -92,6 +100,10 @@ class EcosystemManifest:
     managed_core_files: list[str]
     agent_skill_relations: dict[str, list[str]]
     post_install_validator: str | None
+    mcp_enabled: bool
+    mcp_tool_registry: str | None
+    mcp_tool_names: list[str]
+    mcp_tool_groups: list[str]
     manifest_path: Path
 
 
@@ -133,6 +145,14 @@ def load_ecosystem_manifest(path: Path) -> EcosystemManifest:
             if "post-install-validator" in metadata
             else None
         ),
+        mcp_enabled=_coerce_bool(metadata.get("mcp-enabled"), default=False),
+        mcp_tool_registry=(
+            str(metadata["mcp-tool-registry"])
+            if "mcp-tool-registry" in metadata
+            else None
+        ),
+        mcp_tool_names=list(metadata.get("mcp-tool-names", [])),
+        mcp_tool_groups=list(metadata.get("mcp-tool-groups", [])),
         manifest_path=path,
     )
 
