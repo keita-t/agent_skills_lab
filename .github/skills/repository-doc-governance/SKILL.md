@@ -32,12 +32,16 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
    delta.
 3. Before large rewrites, decide where each affected section will move and only
    then edit the prose.
-4. Update entry-point links in the same change when document structure or file
+4. When the repository already has a stable docs grouping such as `docs/en`
+   and `docs/ja`, place new repository-facing docs inside that structure and
+   reuse neighboring naming conventions. Add a new root-level `docs/` file only
+   when no clearer placement guidance exists.
+5. Update entry-point links in the same change when document structure or file
    names change.
-5. Keep rewritten sections at one clear granularity level such as snapshot,
+6. Keep rewritten sections at one clear granularity level such as snapshot,
    overview, table, flow, checklist, or reference.
-6. Validate links and structural alignment before finishing.
-7. When the repository uses the repository-governance ecosystem, run
+7. Validate links and structural alignment before finishing.
+8. When the repository uses the repository-governance ecosystem, run
    `bash .github/ecosystems/repository-governance/validate_repository_governance.sh`
    after major documentation edits.
 
@@ -47,11 +51,16 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
 2. Prefer implemented behavior over future-looking speculation in canonical
    docs.
 3. Do not leave stale summary sections behind after content has moved.
-4. If the repository uses paired languages, keep the counterparts structurally
+4. If the repository already has a clear docs directory structure, preserve it
+   for new repository-facing docs and follow neighboring file naming patterns.
+5. In bilingual repositories, keep shared navigation and governance files at
+   the root of `docs/` and place topical reference docs as paired language
+   files under the existing language directories.
+6. If the repository uses paired languages, keep the counterparts structurally
    aligned in the same change.
-5. Do not autonomously restructure TODO or progress documents here; delegate
+7. Do not autonomously restructure TODO or progress documents here; delegate
    those edits to `todo-progress-governance`.
-6. Keep project-charter files minimal unless explicit repository-specific
+8. Keep project-charter files minimal unless explicit repository-specific
    charter content was requested or approved by maintainers.
 
 ## Outputs

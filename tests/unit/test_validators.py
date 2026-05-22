@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 
 import validate_ecosystem_registry as ecosystem_registry_validator
 import validate_repository_governance as repository_governance_validator
@@ -168,3 +169,75 @@ def test_agent_skill_docs_validator_reports_missing_skill_entry(
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "skills/README.md is missing skill entries" in captured.out
+
+
+def test_repository_governance_validator_rejects_extra_root_reference_doc_in_bilingual_mode(
+    repo_root: Path,
+    tmp_path: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    template_root = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "assets"
+        / "templates"
+        / "bilingual"
+    )
+    working_copy = tmp_path / "bilingual-template"
+    shutil.copytree(template_root, working_copy)
+
+    (working_copy / "docs" / "extra-reference.md").write_text(
+        "# Extra Reference\n",
+        encoding="utf-8",
+    )
+
+    exit_code = invoke_main(
+        repository_governance_validator,
+        "--repo-root",
+        str(working_copy),
+        "--mode",
+        "bilingual",
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "root-level docs file is not allowed in bilingual mode" in captured.out
+
+
+def test_repository_governance_validator_rejects_unpaired_language_specific_doc(
+    repo_root: Path,
+    tmp_path: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    template_root = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "assets"
+        / "templates"
+        / "bilingual"
+    )
+    working_copy = tmp_path / "bilingual-template"
+    shutil.copytree(template_root, working_copy)
+
+    (working_copy / "docs" / "en" / "mcp-tools.md").write_text(
+        "# MCP Tools\n",
+        encoding="utf-8",
+    )
+
+    exit_code = invoke_main(
+        repository_governance_validator,
+        "--repo-root",
+        str(working_copy),
+        "--mode",
+        "bilingual",
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "missing Japanese counterpart" in captured.out

@@ -37,6 +37,8 @@ except ModuleNotFoundError:
         warnings: list[str] = field(default_factory=list)
 
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+EN_DOC_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*\.md$")
+JA_DOC_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*\.ja\.md$")
 
 
 def _normalize_target(target: str) -> str:
@@ -109,6 +111,57 @@ def _check_todo_structure(todo_path: Path) -> list[str]:
 
     missing = [fragment for fragment in required_fragments if fragment not in text]
     return [f"docs/TODO.md is missing required text: {fragment}" for fragment in missing]
+
+
+def _check_bilingual_docs_layout(repo_root: Path) -> list[str]:
+    docs_root = repo_root / "docs"
+    en_root = docs_root / "en"
+    ja_root = docs_root / "ja"
+    errors: list[str] = []
+
+    allowed_root_docs = {"README.md", "DOCUMENTATION_UPDATE_RULES.md", "TODO.md"}
+    for file_path in sorted(path for path in docs_root.glob("*.md") if path.is_file()):
+        if file_path.name not in allowed_root_docs:
+            errors.append(
+                "docs/"
+                f"{file_path.name} root-level docs file is not allowed in bilingual mode; "
+                "place repository-facing reference docs under docs/en and docs/ja"
+            )
+
+    english_docs = sorted(path for path in en_root.glob("*.md") if path.is_file())
+    japanese_docs = sorted(path for path in ja_root.glob("*.md") if path.is_file())
+
+    for file_path in english_docs:
+        if not EN_DOC_NAME_RE.match(file_path.name):
+            errors.append(
+                f"docs/en/{file_path.name} must use a lowercase kebab-case .md file name"
+            )
+            continue
+        if file_path.name == "project-charter.md":
+            continue
+        counterpart = ja_root / f"{file_path.stem}.ja.md"
+        if not counterpart.is_file():
+            errors.append(
+                f"docs/en/{file_path.name} is missing Japanese counterpart: "
+                f"docs/ja/{file_path.stem}.ja.md"
+            )
+
+    for file_path in japanese_docs:
+        if not JA_DOC_NAME_RE.match(file_path.name):
+            errors.append(
+                f"docs/ja/{file_path.name} must use a lowercase kebab-case .ja.md file name"
+            )
+            continue
+        if file_path.name == "project-charter.ja.md":
+            continue
+        stem = file_path.name.removesuffix(".ja.md")
+        counterpart = en_root / f"{stem}.md"
+        if not counterpart.is_file():
+            errors.append(
+                f"docs/ja/{file_path.name} is missing English counterpart: "
+                f"docs/en/{stem}.md"
+            )
+    return errors
 
 
 def _mode_config(mode: str) -> tuple[list[str], dict[str, list[str]], list[str]]:
@@ -218,6 +271,8 @@ def validate_repository_governance(
     errors.extend(_check_required_links(repo_root, required_links))
     errors.extend(_check_relative_links_exist(repo_root, markdown_paths))
     errors.extend(_check_todo_structure(repo_root / "docs" / "TODO.md"))
+    if request.mode == "bilingual":
+        errors.extend(_check_bilingual_docs_layout(repo_root))
 
     return ValidationResult(
         passed=not errors,

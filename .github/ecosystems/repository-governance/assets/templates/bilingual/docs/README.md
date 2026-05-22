@@ -3,6 +3,9 @@
 ## English
 
 This directory contains the canonical repository documents.
+In bilingual repositories, language-specific topical reference docs belong
+under `docs/en` and `docs/ja`; keep root `docs/` files for shared navigation
+and governance unless no clearer structure exists.
 
 Use the project charter for repository-specific scope, terminology, and
 explicit maintainer decisions.
@@ -31,6 +34,9 @@ the documentation update rules before editing prose.
 ## 日本語
 
 このディレクトリには、リポジトリの正本文書を集約します。
+英日対応 repository では、言語固有の参照文書は `docs/en` と `docs/ja` に配置し、
+root の `docs/` には共有の案内文書とガバナンス文書を残します。明確な配置指針が
+ない場合に限って、新しい root-level docs を追加します。
 
 プロジェクト憲章は、repository 固有の目的、用語、maintainer が明示した判断を確認するときに参照します。
 憲章がまだ最小限のままであれば、実装側の文書と文書更新ルールを優先して確認します。
