@@ -138,12 +138,20 @@ def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path
         / "SKILL.md"
     ).read_text(encoding="utf-8")
 
-    assert "bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root ." in manifest_agent
+    manifest_agent_normalized = " ".join(manifest_agent.split())
+    context_agent_normalized = " ".join(context_agent.split())
+    bootstrap_skill_normalized = " ".join(bootstrap_skill.split())
+
+    assert "source repository's own ecosystem-registry validation workflow" in manifest_agent_normalized
+    assert "validate_ecosystem_registry.sh --repo-root ." not in manifest_agent
     assert "--mode <single-language|bilingual>" in manifest_agent
     assert "Run the package validator" not in context_agent
     assert "bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>" in context_agent
     assert ".github/ecosystems/repository-governance/assets/templates/<mode>" in context_agent
-    assert "bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root ." in bootstrap_skill
+    assert "source repository's own ecosystem-registry validation workflow" in context_agent_normalized
+    assert "validate_ecosystem_registry.sh --repo-root ." not in context_agent
+    assert "source repository's own ecosystem-registry validation workflow" in bootstrap_skill_normalized
+    assert "validate_ecosystem_registry.sh --repo-root ." not in bootstrap_skill
     assert "canonical `docs/TODO.md` path used by the governance pack" in bootstrap_skill
     assert "--mode bilingual" in bootstrap_skill
     assert "--mode single-language" in bootstrap_skill

@@ -41,10 +41,11 @@ use to understand and maintain the repository.
    [Ecosystem Delivery Orchestrator](../../agents/governance-ecosystem-delivery.agent.md)
    or another source-side delivery workflow that copies only the
    manifest-owned payload into the target repository.
-7. When the ecosystem registry or manifests change in the source ecosystem
-   repository, run `bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root .`
-   before delivery, and keep installable artifacts free of links to source-only
-   shared helpers.
+7. When the ecosystem registry or manifests change in the upstream source
+   ecosystem repository, run that source repository's own ecosystem-registry
+   validation workflow before delivery; it is source-only and is not shipped
+   into target repositories. Keep installable artifacts free of links to
+   source-only shared helpers.
 8. Run [validate_repository_governance.sh](../../ecosystems/repository-governance/validate_repository_governance.sh)
    with `--mode bilingual` for bilingual repositories or `--mode single-language`
    otherwise. When validating a template pack or another checkout, pass

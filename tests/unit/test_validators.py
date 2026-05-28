@@ -234,6 +234,43 @@ def test_repository_governance_validator_passes_for_bilingual_templates(
     assert "REPOSITORY GOVERNANCE VALIDATION PASSED" in captured.out
 
 
+def test_repository_governance_validator_normalizes_equivalent_relative_required_links(
+    repo_root: Path,
+    tmp_path: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    template_root = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "assets"
+        / "templates"
+        / "bilingual"
+    )
+    working_copy = tmp_path / "bilingual-template-normalized-links"
+    shutil.copytree(template_root, working_copy)
+
+    rules_path = working_copy / "docs" / "DOCUMENTATION_UPDATE_RULES.md"
+    rules_path.write_text(
+        rules_path.read_text(encoding="utf-8").replace("(./README.md)", "(README.md)"),
+        encoding="utf-8",
+    )
+
+    exit_code = invoke_main(
+        repository_governance_validator,
+        "--repo-root",
+        str(working_copy),
+        "--mode",
+        "bilingual",
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "REPOSITORY GOVERNANCE VALIDATION PASSED" in captured.out
+
+
 def test_repository_governance_validator_reports_invalid_repo_root(
     tmp_path: Path,
     invoke_main,

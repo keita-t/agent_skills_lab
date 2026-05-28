@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass, field
+import posixpath
 import re
 from pathlib import Path
 
@@ -34,8 +35,13 @@ JA_DOC_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*\.ja\.md$")
 
 def _normalize_target(target: str) -> str:
     no_fragment = target.split("#", 1)[0]
-    no_query = no_fragment.split("?", 1)[0]
-    return no_query.strip()
+    no_query = no_fragment.split("?", 1)[0].strip()
+    if not no_query or "://" in no_query or no_query.startswith("mailto:"):
+        return no_query
+    normalized = posixpath.normpath(no_query)
+    if no_query.endswith("/") and normalized != ".":
+        return f"{normalized}/"
+    return normalized
 
 
 def _extract_targets(path: Path) -> list[str]:
@@ -72,7 +78,7 @@ def _check_required_links(repo_root: Path, required_links: dict[str, list[str]])
             continue
         targets = set(_extract_targets(file_path))
         for expected in expected_targets:
-            if expected not in targets:
+            if _normalize_target(expected) not in targets:
                 errors.append(f"{rel_path} is missing link target: {expected}")
     return errors
 
