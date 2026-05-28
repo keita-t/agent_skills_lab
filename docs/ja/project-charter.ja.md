@@ -21,7 +21,14 @@
   - この repository は、再利用可能な ecosystem の source repository と、
     repository-governance を self-host する target repository の両方として
     運用する。
-  - これ以上の広い project charter は、まだ記録していない。
+  - ecosystem operation と manifest governance は、それぞれ専用 agent の
+    責務として分離していく。
+  - ecosystem の install と remove は、shared script 中心ではなく
+    agent-driven かつ PR-based な workflow へ寄せる。
+  - manifest は ownership と dependency を表す structural contract へ縮小し、
+    runtime や delivery 用 metadata は段階的に外していく。
+  - legacy installer、updater、MCP runtime は削除し、delivery agent と
+    manifest governance agent、および薄い helper module に置き換える。
 - このファイルの編集ルール:
   - maintainer が明示的に示した、または承認した repository 固有の判断だけを
     追加する。
@@ -33,5 +40,5 @@
   ガバナンスと更新ポリシー。
 - [docs/TODO.md](../TODO.md): 現在の TODO と追跡メモ。
 - [docs/en/project-charter.md](../en/project-charter.md): 英語版の対応文書。
-- [.github/ECOSYSTEM_REGISTRY.md](../../.github/ECOSYSTEM_REGISTRY.md):
-  有効な ecosystem inventory。
+- [.github/ecosystems/README.md](../../.github/ecosystems/README.md):
+  implementation-facing ecosystem index。

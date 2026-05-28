@@ -33,7 +33,7 @@ def test_ecosystem_registry_validator_reports_missing_ecosystem_file(
         / ".github"
         / "ecosystems"
         / "repository-governance"
-        / "validate_agent_skill_docs.sh"
+        / "validate_repository_governance.sh"
     )
     missing_file.unlink()
 
@@ -46,6 +46,33 @@ def test_ecosystem_registry_validator_reports_missing_ecosystem_file(
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "references missing ecosystem file" in captured.out
+
+
+def test_ecosystem_registry_validator_allows_missing_metadata_docs(
+    isolated_repo: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    removable_paths = [
+        isolated_repo / ".github" / "ECOSYSTEM_REGISTRY.md",
+        isolated_repo / ".github" / "AGENT_SKILL_ROUTING.md",
+        isolated_repo / ".github" / "agents" / "README.md",
+        isolated_repo / ".github" / "skills" / "README.md",
+        isolated_repo / ".github" / "ecosystems" / "README.md",
+    ]
+    for path in removable_paths:
+        if path.exists():
+            path.unlink()
+
+    exit_code = invoke_main(
+        ecosystem_registry_validator,
+        "--repo-root",
+        str(isolated_repo),
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "ECOSYSTEM REGISTRY VALIDATION PASSED" in captured.out
 
 
 def test_repository_governance_validator_passes_for_bilingual_templates(
@@ -140,37 +167,6 @@ def test_project_charter_templates_default_to_minimal_content(repo_root: Path) -
         assert "Project-wide engineering rules." not in text
 
 
-def test_agent_skill_docs_validator_reports_missing_skill_entry(
-    isolated_repo: Path,
-    load_module_from_path,
-    capsys,
-) -> None:
-    skills_readme = isolated_repo / ".github" / "skills" / "README.md"
-    text = skills_readme.read_text(encoding="utf-8")
-    skills_readme.write_text(
-        text.replace(
-            "- [todo-progress-governance](todo-progress-governance/SKILL.md): Maintains\n  backlog and design-review tracking files under explicit routine-vs-structural\n  editing rules.\n",
-            "",
-        ),
-        encoding="utf-8",
-    )
-
-    validator_module = load_module_from_path(
-        "temp_validate_agent_skill_docs",
-        isolated_repo
-        / ".github"
-        / "ecosystems"
-        / "repository-governance"
-        / "validate_agent_skill_docs.py",
-    )
-
-    exit_code = validator_module.main()
-
-    captured = capsys.readouterr()
-    assert exit_code == 1
-    assert "skills/README.md is missing skill entries" in captured.out
-
-
 def test_repository_governance_validator_rejects_extra_root_reference_doc_in_bilingual_mode(
     repo_root: Path,
     tmp_path: Path,
@@ -225,8 +221,8 @@ def test_repository_governance_validator_rejects_unpaired_language_specific_doc(
     working_copy = tmp_path / "bilingual-template"
     shutil.copytree(template_root, working_copy)
 
-    (working_copy / "docs" / "en" / "mcp-tools.md").write_text(
-        "# MCP Tools\n",
+    (working_copy / "docs" / "en" / "delivery-workflows.md").write_text(
+        "# Delivery Workflows\n",
         encoding="utf-8",
     )
 

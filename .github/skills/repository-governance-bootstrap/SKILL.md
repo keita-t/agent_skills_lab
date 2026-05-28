@@ -37,18 +37,15 @@ use to understand and maintain the repository.
    or [bilingual templates](../../ecosystems/repository-governance/assets/templates/bilingual/README.md)
    and adapt it to the target repository. Keep project-charter files minimal
    unless explicit charter content was supplied by the user or maintainers.
-6. When importing this ecosystem into another repository, use
-   [../../ecosystems/install_ecosystem.sh](../../ecosystems/install_ecosystem.sh)
-   from the source lab repository so the agent, skills, manifest, and shared
-   core updater are installed together.
-7. After ecosystem import, regenerate target `.github` core files with
-   [../../ecosystems/update_ecosystem_core_files.sh](../../ecosystems/update_ecosystem_core_files.sh).
-8. Validate ecosystem metadata with
+6. When importing this ecosystem into another repository, use the
+   `Ecosystem Delivery Orchestrator` or
+   [../../ecosystems/deliver_ecosystem.py](../../ecosystems/deliver_ecosystem.py)
+   from the source lab repository so the agent, skills, manifest, and
+   ecosystem-owned files are delivered through the manifest-owned payload.
+7. Validate ecosystem metadata with
    [../../ecosystems/validate_ecosystem_registry.sh](../../ecosystems/validate_ecosystem_registry.sh)
    when the ecosystem registry or manifests change.
-9. Run [validate_agent_skill_docs.sh](../../ecosystems/repository-governance/validate_agent_skill_docs.sh)
-   after changing agents, skills, or routing docs.
-10. Run [validate_repository_governance.sh](../../ecosystems/repository-governance/validate_repository_governance.sh)
+8. Run [validate_repository_governance.sh](../../ecosystems/repository-governance/validate_repository_governance.sh)
    against the target repository or template pack.
 
 ## Rules

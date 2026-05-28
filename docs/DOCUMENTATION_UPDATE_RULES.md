@@ -10,8 +10,6 @@ Related canonical docs:
 [docs/README.md](./README.md)
 [docs/en/ecosystems.md](./en/ecosystems.md)
 [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md)
-[docs/en/mcp-tools.md](./en/mcp-tools.md)
-[docs/ja/mcp-tools.ja.md](./ja/mcp-tools.ja.md)
 [docs/en/project-charter.md](./en/project-charter.md)
 [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md)
 [docs/TODO.md](./TODO.md)
@@ -33,15 +31,13 @@ repository 固有の目的、用語、maintainer が明示した判断だけを�
 | docs/README.md | Documentation map | Entry point for readers and agents. |
 | docs/en/ecosystems.md | English ecosystem inventory reference | Repository-facing summary aligned with the English docs subtree. |
 | docs/ja/ecosystems.ja.md | 日本語 ecosystem inventory reference | `docs/en/ecosystems.md` の対応文書。 |
-| docs/en/mcp-tools.md | English MCP tools reference | Repository-facing summary aligned with the English docs subtree. |
-| docs/ja/mcp-tools.ja.md | 日本語 MCP tools reference | `docs/en/mcp-tools.md` の対応文書。 |
 | docs/TODO.md | Operational backlog | Routine maintenance is allowed; structural reorganization requires explicit in-session human instruction. |
 | docs/DOCUMENTATION_UPDATE_RULES.md | Documentation governance | Canonical policy source for docs updates. |
 | docs/en/project-charter.md | English charter | Repository-specific context and explicit maintainer decisions. It may intentionally remain minimal. |
 | docs/ja/project-charter.ja.md | 日本語版憲章 | repository 固有の前提と明示判断。意図的に最小限のままでもよい。 |
 
 The `.github/` ecosystem files remain the canonical implementation-facing
-source for manifests, routing, and installer behavior. Stable docs should
+source for manifests, routing, and delivery behavior. Stable docs should
 describe those artifacts clearly without duplicating their entire content.
 
 When the repository already has a clear stable docs grouping such as `docs/en`
@@ -62,17 +58,12 @@ under `docs/` when no clearer placement guidance exists.
   changed: update the charter in the same change. /
   repository 固有の目的、用語、maintainer が明示した判断が変わった場合は、
   同じ変更で憲章を更新する。
-- Ecosystem registry, manifest, installer, updater, or validator behavior
+- Ecosystem registry, manifest, delivery helper, or validator behavior
   changed: update the docs that explain that behavior in the same change, and
   update the charter only when project-specific decisions also changed. /
-  ecosystem registry、manifest、installer、updater、validator の挙動が変わった
+  ecosystem registry、manifest、delivery helper、validator の挙動が変わった
   場合は、その挙動を説明する文書を同じ変更で更新し、project 固有判断にも変更
   があるときだけ憲章を更新する。
-- MCP tool registry or MCP exposure behavior changed: update
-  the language-specific MCP tools docs in the same change, such as
-  `docs/en/mcp-tools.md` and `docs/ja/mcp-tools.ja.md`. /
-  MCP tool registry または MCP 公開挙動が変わった場合は、同じ変更で
-  `docs/en/mcp-tools.md` と `docs/ja/mcp-tools.ja.md` のような対応文書を更新する。
 - Current ecosystem inventory or manifest-scoped membership changed: update
   the language-specific ecosystem inventory docs in the same change, such as
   `docs/en/ecosystems.md` and `docs/ja/ecosystems.ja.md`. /
@@ -154,8 +145,8 @@ inventory や routing summary は、まず表を優先します。
 5. Relative links remain valid after file moves or renames.
 6. Additional bilingual reference docs follow the established language-specific
   directory structure unless the repository has no clearer placement guide.
-7. `.github/ECOSYSTEM_REGISTRY.md` and `.github/AGENT_SKILL_ROUTING.md` still
-   match the current installed ecosystems.
+7. `.github/ecosystems/README.md` and installed ecosystem manifests still
+  match the current installed ecosystems.
 
 ## Skill Compatibility Contract / Skill 互換契約
 

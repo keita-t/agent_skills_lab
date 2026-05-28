@@ -23,7 +23,15 @@ maintainer has explicitly requested them.
   - This repository intentionally serves both as a source repository for
     reusable ecosystems and as a self-hosted target for
     repository-governance.
-  - No broader project charter has been recorded yet.
+  - Ecosystem operations and manifest governance are being separated into two
+    dedicated agent responsibilities.
+  - Ecosystem install and remove workflows are expected to be agent-driven and
+    PR-based rather than centered on shared scripts.
+  - Manifests are being reduced to structural ownership and dependency
+    contracts; runtime and delivery metadata are being phased out.
+  - Legacy shared installer, updater, and MCP runtime surfaces have been
+    removed in favor of delivery and manifest-governance agents plus thin
+    helper modules.
 - Editing rule for this file:
   - Add content only when maintainers explicitly provide or approve
     repository-specific charter decisions.
@@ -36,5 +44,5 @@ maintainer has explicitly requested them.
 - [docs/TODO.md](../TODO.md): current backlog and follow-up design notes.
 - [docs/ja/project-charter.ja.md](../ja/project-charter.ja.md): Japanese
   counterpart.
-- [.github/ECOSYSTEM_REGISTRY.md](../../.github/ECOSYSTEM_REGISTRY.md):
-  installed ecosystem inventory.
+- [.github/ecosystems/README.md](../../.github/ecosystems/README.md):
+  implementation-facing ecosystem index.

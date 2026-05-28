@@ -67,25 +67,6 @@ def load_markdown(path: Path) -> tuple[dict[str, object], str]:
     return parse_frontmatter(text)
 
 
-def parse_relation_entries(entries: list[str]) -> dict[str, list[str]]:
-    relations: dict[str, list[str]] = {}
-    for entry in entries:
-        if "=>" not in entry:
-            continue
-        left, right = entry.split("=>", 1)
-        values = [item.strip() for item in right.split("|") if item.strip()]
-        relations[left.strip()] = values
-    return relations
-
-
-def _coerce_bool(value: object, default: bool = False) -> bool:
-    if value is None:
-        return default
-    if isinstance(value, bool):
-        return value
-    return str(value).strip().lower() in {"1", "true", "yes", "on"}
-
-
 @dataclass(frozen=True)
 class EcosystemManifest:
     slug: str
@@ -97,13 +78,6 @@ class EcosystemManifest:
     skills: list[str]
     dependencies: list[str]
     ecosystem_files: list[str]
-    managed_core_files: list[str]
-    agent_skill_relations: dict[str, list[str]]
-    post_install_validator: str | None
-    mcp_enabled: bool
-    mcp_tool_registry: str | None
-    mcp_tool_names: list[str]
-    mcp_tool_groups: list[str]
     manifest_path: Path
 
 
@@ -119,8 +93,6 @@ def load_ecosystem_manifest(path: Path) -> EcosystemManifest:
         "skills",
         "dependencies",
         "ecosystem-files",
-        "managed-core-files",
-        "agent-skill-relations",
     ]
     missing = [key for key in required_keys if key not in metadata]
     if missing:
@@ -136,23 +108,6 @@ def load_ecosystem_manifest(path: Path) -> EcosystemManifest:
         skills=list(metadata["skills"]),
         dependencies=list(metadata["dependencies"]),
         ecosystem_files=list(metadata["ecosystem-files"]),
-        managed_core_files=list(metadata["managed-core-files"]),
-        agent_skill_relations=parse_relation_entries(
-            list(metadata["agent-skill-relations"])
-        ),
-        post_install_validator=(
-            str(metadata["post-install-validator"])
-            if "post-install-validator" in metadata
-            else None
-        ),
-        mcp_enabled=_coerce_bool(metadata.get("mcp-enabled"), default=False),
-        mcp_tool_registry=(
-            str(metadata["mcp-tool-registry"])
-            if "mcp-tool-registry" in metadata
-            else None
-        ),
-        mcp_tool_names=list(metadata.get("mcp-tool-names", [])),
-        mcp_tool_groups=list(metadata.get("mcp-tool-groups", [])),
         manifest_path=path,
     )
 
@@ -187,18 +142,6 @@ def load_skill_metadata(repo_root: Path) -> dict[str, dict[str, object]]:
         frontmatter, _ = load_markdown(path)
         metadata[path.parent.name] = dict(frontmatter)
     return metadata
-
-
-def invert_agent_skill_relations(
-    relations: dict[str, list[str]],
-) -> dict[str, list[str]]:
-    inverse: dict[str, list[str]] = {}
-    for agent, skills in relations.items():
-        for skill in skills:
-            inverse.setdefault(skill, []).append(agent)
-    return {key: sorted(values) for key, values in sorted(inverse.items())}
-
-
 def merge_managed_block(existing_text: str, generated_text: str) -> str:
     block = (
         f"{MANAGED_BLOCK_START}\n{generated_text.rstrip()}\n{MANAGED_BLOCK_END}\n"

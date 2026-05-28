@@ -20,13 +20,11 @@ the documentation update rules before editing prose.
    canonical rules for documentation updates and bilingual sync.
 3. [docs/en/ecosystems.md](./en/ecosystems.md): current repository ecosystem
   inventory with manifest crosswalks.
-4. [docs/en/mcp-tools.md](./en/mcp-tools.md): MCP tool registry contract and
-  current exposed tools.
-5. [docs/TODO.md](./TODO.md): current backlog and design-review notes.
-6. [.github/ECOSYSTEM_REGISTRY.md](../.github/ECOSYSTEM_REGISTRY.md): active
-  ecosystem inventory.
-7. [.github/AGENT_SKILL_ROUTING.md](../.github/AGENT_SKILL_ROUTING.md):
-   ecosystem, agent, and skill routing map.
+4. [docs/TODO.md](./TODO.md): current backlog and design-review notes.
+5. [.github/ecosystems/README.md](../.github/ecosystems/README.md):
+  implementation-facing ecosystem index.
+6. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md):
+   active repository-governance manifest.
 
 ## Choose By Need
 
@@ -36,12 +34,12 @@ the documentation update rules before editing prose.
   [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md)
 - Need the current ecosystem inventory in repository-facing form:
   [docs/en/ecosystems.md](./en/ecosystems.md)
-- Need the MCP registry contract and current exposed tools:
-  [docs/en/mcp-tools.md](./en/mcp-tools.md)
 - Need the current backlog or follow-up design notes:
   [docs/TODO.md](./TODO.md)
 - Need the ecosystem inventory:
-  [.github/ECOSYSTEM_REGISTRY.md](../.github/ECOSYSTEM_REGISTRY.md)
+  [.github/ecosystems/README.md](../.github/ecosystems/README.md)
+- Need the implementation-facing manifest for one ecosystem:
+  [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md)
 - Need the Japanese charter:
   [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md)
 
@@ -60,10 +58,9 @@ root の `docs/` には共有の案内文書とガバナンス文書を残しま
 1. [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md): repository 固有の前提と明示された判断。
 2. [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md): docs 更新と英日同期の正本ルール。
 3. [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md): 現在の repository ecosystem inventory と manifest 対応表。
-4. [docs/ja/mcp-tools.ja.md](./ja/mcp-tools.ja.md): MCP tool registry 契約と現在の公開 tool。
-5. [docs/TODO.md](./TODO.md): 現在の TODO と設計レビューのメモ。
-6. [.github/ECOSYSTEM_REGISTRY.md](../.github/ECOSYSTEM_REGISTRY.md): 有効な ecosystem inventory。
-7. [.github/AGENT_SKILL_ROUTING.md](../.github/AGENT_SKILL_ROUTING.md): ecosystem / agent / skill の routing map。
+4. [docs/TODO.md](./TODO.md): 現在の TODO と設計レビューのメモ。
+5. [.github/ecosystems/README.md](../.github/ecosystems/README.md): implementation-facing ecosystem index。
+6. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md): 有効な repository-governance manifest。
 
 ## 目的別の参照先
 
@@ -73,11 +70,11 @@ root の `docs/` には共有の案内文書とガバナンス文書を残しま
   [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md)
 - 現在の ecosystem inventory を repository 向けの要約で見たい:
   [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md)
-- MCP registry 契約と公開 tool 一覧を見たい:
-  [docs/ja/mcp-tools.ja.md](./ja/mcp-tools.ja.md)
 - 現在の TODO や追跡メモを見たい:
   [docs/TODO.md](./TODO.md)
 - ecosystem inventory を確認したい:
-  [.github/ECOSYSTEM_REGISTRY.md](../.github/ECOSYSTEM_REGISTRY.md)
+  [.github/ecosystems/README.md](../.github/ecosystems/README.md)
+- 実装向け manifest を確認したい:
+  [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md)
 - 英語版憲章を確認したい:
   [docs/en/project-charter.md](./en/project-charter.md)

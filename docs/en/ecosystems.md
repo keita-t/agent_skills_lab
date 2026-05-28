@@ -1,8 +1,8 @@
 # Current Ecosystems
 
 This document summarizes the ecosystems currently managed in this repository.
-The canonical inventory of record remains
-[.github/ECOSYSTEM_REGISTRY.md](../../.github/ECOSYSTEM_REGISTRY.md), and each
+The implementation-facing inventory is anchored by
+[.github/ecosystems/README.md](../../.github/ecosystems/README.md), and each
 ecosystem definition is anchored by its manifest under `.github/ecosystems/`.
 The shared Python and shell files directly under `.github/ecosystems/` are
 support infrastructure, not separate ecosystems by themselves.
@@ -11,8 +11,6 @@ support infrastructure, not separate ecosystems by themselves.
 
 - [docs/README.md](../README.md): documentation map and reading order.
 - [docs/ja/ecosystems.ja.md](../ja/ecosystems.ja.md): Japanese counterpart.
-- [docs/en/mcp-tools.md](./mcp-tools.md): MCP tool registry contract and
-  current exposed tools.
 
 ## Snapshot
 
@@ -20,12 +18,13 @@ support infrastructure, not separate ecosystems by themselves.
 - Current ecosystem slug: `repository-governance`
 - Root responsibility: repository documentation governance, bootstrap, and TODO
   progress tracking.
+- Manifest direction: ownership and dependency contract first.
 
 ## Current Inventory
 
-| Slug | Status | Purpose | Root agent | Skills | MCP | Notes |
-|---|---|---|---|---|---|---|
-| `repository-governance` | `active` | Repository documentation governance, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`, `repository-doc-governance`, `todo-progress-governance` | Enabled | Self-hosted in this repository and installable into other repositories. |
+| Slug | Status | Purpose | Root agent | Skills | Notes |
+|---|---|---|---|---|---|
+| `repository-governance` | `active` | Repository documentation governance, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`, `repository-doc-governance`, `todo-progress-governance` | Self-hosted in this repository and installable into other repositories. Manifest-owned payload now excludes legacy MCP metadata. |
 
 ## Ecosystem Details
 
@@ -37,11 +36,11 @@ Canonical manifest:
 | Area | Current implementation |
 |---|---|
 | Root agent | [.github/agents/governance-repository-context-manager.agent.md](../../.github/agents/governance-repository-context-manager.agent.md) |
+| Specialized agents | [.github/agents/governance-ecosystem-manifest.agent.md](../../.github/agents/governance-ecosystem-manifest.agent.md), [.github/agents/governance-ecosystem-delivery.agent.md](../../.github/agents/governance-ecosystem-delivery.agent.md) |
 | Skills | [.github/skills/repository-governance-bootstrap/SKILL.md](../../.github/skills/repository-governance-bootstrap/SKILL.md), [.github/skills/repository-doc-governance/SKILL.md](../../.github/skills/repository-doc-governance/SKILL.md), [.github/skills/todo-progress-governance/SKILL.md](../../.github/skills/todo-progress-governance/SKILL.md) |
-| Managed core files | `.github/ECOSYSTEM_REGISTRY.md`, `.github/ecosystems/README.md`, `.github/AGENT_SKILL_ROUTING.md`, `.github/agents/README.md`, `.github/skills/README.md`, `.github/copilot-instructions.md` |
-| Ecosystem-owned files | Template assets, MCP tool registry, and repository-governance validators under `.github/ecosystems/repository-governance/` |
-| Post-install validator | `.github/ecosystems/repository-governance/validate_agent_skill_docs.sh` |
-| MCP tools | `repository_governance.validate_repository`, `repository_governance.validate_agent_skill_docs` |
+| Ownership contract | Agents, skills, listed ecosystem-owned files, and the manifest itself |
+| Ecosystem-owned files | Template assets and repository-governance validators under `.github/ecosystems/repository-governance/` |
+| Delivery helper | [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) drives PR-oriented install and remove workflows against target repositories |
 
 ## Shared Ecosystem Infrastructure
 
@@ -50,7 +49,5 @@ ecosystem entries.
 
 | Path | Role |
 |---|---|
-| [.github/ecosystems/install_ecosystem.sh](../../.github/ecosystems/install_ecosystem.sh) | Import a selected ecosystem into another repository. |
-| [.github/ecosystems/update_ecosystem_core_files.sh](../../.github/ecosystems/update_ecosystem_core_files.sh) | Regenerate ecosystem-managed `.github` core files from installed manifests. |
-| [.github/ecosystems/validate_ecosystem_registry.sh](../../.github/ecosystems/validate_ecosystem_registry.sh) | Validate manifests, registry entries, routing links, and ecosystem metadata. |
-| [.github/ecosystems/mcp_server.py](../../.github/ecosystems/mcp_server.py) | Expose shared and ecosystem-scoped tools over FastMCP. |
+| [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) | Execute manifest-owned install or remove workflows against a target `owner/repo` and prepare a PR-based delivery flow. |
+| [.github/ecosystems/validate_ecosystem_registry.sh](../../.github/ecosystems/validate_ecosystem_registry.sh) | Validate manifests, frontmatter alignment, and structural ecosystem membership. |

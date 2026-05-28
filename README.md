@@ -13,13 +13,12 @@ documentation governance, and current follow-up work.
 
 - [docs/README.md](docs/README.md) - Bilingual documentation map
 - [docs/en/ecosystems.md](docs/en/ecosystems.md) - Current ecosystem inventory
-- [docs/en/mcp-tools.md](docs/en/mcp-tools.md) - MCP tool registry contract and current tool inventory
 - [docs/en/project-charter.md](docs/en/project-charter.md) - English charter
 - [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) - Japanese charter
 - [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) - Documentation governance
 - [docs/TODO.md](docs/TODO.md) - Current backlog and design-review notes
-- [.github/ECOSYSTEM_REGISTRY.md](.github/ECOSYSTEM_REGISTRY.md) - Installed ecosystem inventory
-- [.github/AGENT_SKILL_ROUTING.md](.github/AGENT_SKILL_ROUTING.md) - Ecosystem, agent, and skill routing map
+- [.github/ecosystems/README.md](.github/ecosystems/README.md) - Implementation-facing ecosystem index
+- [.github/ecosystems/repository-governance/ECOSYSTEM.md](.github/ecosystems/repository-governance/ECOSYSTEM.md) - Current repository-governance manifest
 
 ## 日本語
 
@@ -31,10 +30,9 @@ documentation governance, and current follow-up work.
 
 - [docs/README.md](docs/README.md) - 英日対応のドキュメント案内
 - [docs/ja/ecosystems.ja.md](docs/ja/ecosystems.ja.md) - 現在の ecosystem inventory
-- [docs/ja/mcp-tools.ja.md](docs/ja/mcp-tools.ja.md) - MCP tool registry 契約と現在の tool 一覧
 - [docs/en/project-charter.md](docs/en/project-charter.md) - 英語版憲章
 - [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) - 日本語版憲章
 - [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) - 文書更新ルール
 - [docs/TODO.md](docs/TODO.md) - 現在の TODO とレビュー用メモ
-- [.github/ECOSYSTEM_REGISTRY.md](.github/ECOSYSTEM_REGISTRY.md) - ecosystem inventory
-- [.github/AGENT_SKILL_ROUTING.md](.github/AGENT_SKILL_ROUTING.md) - ecosystem / agent / skill の routing map
+- [.github/ecosystems/README.md](.github/ecosystems/README.md) - implementation-facing ecosystem index
+- [.github/ecosystems/repository-governance/ECOSYSTEM.md](.github/ecosystems/repository-governance/ECOSYSTEM.md) - 現在の repository-governance manifest

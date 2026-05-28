@@ -7,7 +7,6 @@ from ecosystem_lib import (
     MANAGED_BLOCK_START,
     copy_path,
     find_repo_root,
-    invert_agent_skill_relations,
     load_ecosystem_manifest,
     merge_managed_block,
     parse_frontmatter,
@@ -46,39 +45,18 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
 
     assert manifest.slug == "repository-governance"
     assert manifest.root_agent == "governance-repository-context-manager.agent.md"
+    assert manifest.agents == [
+        "governance-repository-context-manager.agent.md",
+        "governance-ecosystem-manifest.agent.md",
+        "governance-ecosystem-delivery.agent.md",
+    ]
     assert manifest.skills == [
         "repository-governance-bootstrap",
         "repository-doc-governance",
         "todo-progress-governance",
     ]
-    assert manifest.mcp_enabled is True
-    assert (
-        manifest.mcp_tool_registry
-        == ".github/ecosystems/repository-governance/MCP_TOOLS.json"
-    )
-    assert manifest.mcp_tool_names == [
-        "repository_governance.validate_repository",
-        "repository_governance.validate_agent_skill_docs",
-    ]
     assert ".github/ecosystems/repository-governance/assets/templates" in manifest.ecosystem_files
-    assert (
-        manifest.post_install_validator
-        == ".github/ecosystems/repository-governance/validate_agent_skill_docs.sh"
-    )
-
-
-def test_invert_agent_skill_relations_groups_agents_per_skill() -> None:
-    inverse = invert_agent_skill_relations(
-        {
-            "agent-a": ["skill-a", "skill-b"],
-            "agent-b": ["skill-b"],
-        }
-    )
-
-    assert inverse == {
-        "skill-a": ["agent-a"],
-        "skill-b": ["agent-a", "agent-b"],
-    }
+    assert ".github/ecosystems/repository-governance/MCP_TOOLS.json" not in manifest.ecosystem_files
 
 
 def test_merge_managed_block_replaces_existing_managed_content() -> None:
