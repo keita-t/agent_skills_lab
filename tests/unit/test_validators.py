@@ -75,6 +75,104 @@ def test_ecosystem_registry_validator_allows_missing_metadata_docs(
     assert "ECOSYSTEM REGISTRY VALIDATION PASSED" in captured.out
 
 
+def test_ecosystem_registry_validator_rejects_source_only_link_in_installable_markdown(
+    isolated_repo: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    skill_path = (
+        isolated_repo
+        / ".github"
+        / "skills"
+        / "repository-governance-bootstrap"
+        / "SKILL.md"
+    )
+    skill_path.write_text(
+        skill_path.read_text(encoding="utf-8")
+        + "\nSource-only link: [deliver](../../ecosystems/deliver_ecosystem.py)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = invoke_main(
+        ecosystem_registry_validator,
+        "--repo-root",
+        str(isolated_repo),
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "links outside its manifest-owned payload" in captured.out
+    assert ".github/ecosystems/deliver_ecosystem.py" in captured.out
+
+
+def test_ecosystem_registry_validator_applies_portability_rule_to_any_installable_ecosystem(
+    isolated_repo: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    manifest_dir = isolated_repo / ".github" / "ecosystems" / "demo-installable"
+    manifest_dir.mkdir(parents=True)
+    (manifest_dir / "ECOSYSTEM.md").write_text(
+        """---
+slug: demo-installable
+name: Demo Installable
+description: Synthetic ecosystem for validator regression coverage.
+status: active
+root-agent: demo-root.agent.md
+agents: [demo-root.agent.md]
+skills: [demo-skill]
+dependencies: []
+ecosystem-files: []
+---
+
+# Demo Installable
+""",
+        encoding="utf-8",
+    )
+
+    (isolated_repo / ".github" / "agents" / "demo-root.agent.md").write_text(
+        """---
+name: Demo Root
+description: Synthetic root agent.
+ecosystem: demo-installable
+tools: [read]
+---
+
+# Demo Root
+""",
+        encoding="utf-8",
+    )
+
+    skill_dir = isolated_repo / ".github" / "skills" / "demo-skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        """---
+name: demo-skill
+description: Synthetic installable skill.
+ecosystem: demo-installable
+argument-hint: Demo.
+---
+
+# Demo Skill
+
+Source-only link: [deliver](../../ecosystems/deliver_ecosystem.py)
+""",
+        encoding="utf-8",
+    )
+
+    exit_code = invoke_main(
+        ecosystem_registry_validator,
+        "--repo-root",
+        str(isolated_repo),
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert ".github/skills/demo-skill/SKILL.md" in captured.out
+    assert "links outside its manifest-owned payload" in captured.out
+    assert ".github/ecosystems/deliver_ecosystem.py" in captured.out
+
+
 def test_repository_governance_validator_passes_for_bilingual_templates(
     repo_root: Path,
     invoke_main,

@@ -8,7 +8,12 @@ import subprocess
 import tempfile
 from typing import Literal
 
-from ecosystem_lib import EcosystemManifest, find_repo_root, load_ecosystem_manifest
+from ecosystem_lib import (
+    EcosystemManifest,
+    find_repo_root,
+    load_ecosystem_manifest,
+    manifest_owned_relative_paths,
+)
 
 
 @dataclass(frozen=True)
@@ -86,14 +91,6 @@ def _resolve_manifest(source_root: Path, ecosystem_slug: str) -> EcosystemManife
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Ecosystem manifest not found: {manifest_path}")
     return load_ecosystem_manifest(manifest_path)
-
-
-def _manifest_owned_relative_paths(manifest: EcosystemManifest) -> list[str]:
-    relative_paths = [f".github/agents/{agent}" for agent in manifest.agents]
-    relative_paths.extend(f".github/skills/{skill}" for skill in manifest.skills)
-    relative_paths.extend(manifest.ecosystem_files)
-    relative_paths.append(f".github/ecosystems/{manifest.slug}/ECOSYSTEM.md")
-    return relative_paths
 
 
 def _resolve_source_root(source_root: Path | None) -> Path:
@@ -296,7 +293,7 @@ def build_install_changeset(
     manifest = _resolve_manifest(resolved_source_root, ecosystem_slug)
 
     changes: list[DeliveryChange] = []
-    for relative_path in sorted(_manifest_owned_relative_paths(manifest)):
+    for relative_path in sorted(manifest_owned_relative_paths(manifest)):
         source_path = resolved_source_root / relative_path
         if not source_path.exists():
             raise FileNotFoundError(f"Manifest-owned source path not found: {source_path}")
@@ -326,7 +323,7 @@ def build_remove_changeset(
     manifest = _resolve_manifest(resolved_source_root, ecosystem_slug)
     changes: list[DeliveryChange] = []
     for relative_path in sorted(
-        _manifest_owned_relative_paths(manifest),
+        manifest_owned_relative_paths(manifest),
         key=lambda value: (value.count("/"), value),
         reverse=True,
     ):

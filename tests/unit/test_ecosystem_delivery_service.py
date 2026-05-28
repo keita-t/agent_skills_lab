@@ -88,6 +88,16 @@ def test_apply_delivery_changes_copies_manifest_owned_paths(tmp_path) -> None:
     assert (target_root / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").is_file()
     assert (target_root / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").is_file()
     assert (target_root / ".github" / "ecosystems" / "repository-governance" / "assets" / "templates").is_dir()
+    installed_skill = (
+        target_root
+        / ".github"
+        / "skills"
+        / "repository-governance-bootstrap"
+        / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "deliver_ecosystem.py" not in installed_skill
+    assert "validate_ecosystem_registry.sh" not in installed_skill
+    assert "../../agents/governance-ecosystem-delivery.agent.md" in installed_skill
     assert not (target_root / ".github" / "ecosystems" / "ecosystem_lib.py").exists()
 
 

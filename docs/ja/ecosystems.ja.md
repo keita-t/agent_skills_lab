@@ -39,6 +39,7 @@
 | Skills | [.github/skills/repository-governance-bootstrap/SKILL.md](../../.github/skills/repository-governance-bootstrap/SKILL.md), [.github/skills/repository-doc-governance/SKILL.md](../../.github/skills/repository-doc-governance/SKILL.md), [.github/skills/todo-progress-governance/SKILL.md](../../.github/skills/todo-progress-governance/SKILL.md) |
 | Ownership contract | agents、skills、listed ecosystem-owned files、および manifest 自体 |
 | Ecosystem 固有 files | `.github/ecosystems/repository-governance/` 配下の template assets と validator 群 |
+| Install portability rule | installable markdown 内の repository-local link は manifest-owned payload の内側で解決できなければならず、install 後の artifact は target repository 内で self-contained に保つ。 |
 | Delivery helper | [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) が target repository 向けの PR ベース install/remove workflow を駆動する |
 
 ## 共有 Ecosystem Infrastructure

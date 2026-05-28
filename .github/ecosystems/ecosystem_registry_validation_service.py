@@ -2,13 +2,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 
 from ecosystem_lib import (
+    EcosystemManifest,
     find_repo_root,
     load_agent_metadata,
     load_ecosystem_manifests,
+    load_markdown,
     load_skill_metadata,
+    manifest_owned_relative_paths,
 )
+
+
+LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 try:
     from mcp_models import ValidateRegistryInput, ValidationIssue, ValidationResult
@@ -58,6 +65,105 @@ def detect_cycle(graph: dict[str, list[str]]) -> list[str] | None:
     return None
 
 
+def _normalize_markdown_target(target: str) -> str:
+    no_fragment = target.split("#", 1)[0]
+    no_query = no_fragment.split("?", 1)[0]
+    return no_query.strip()
+
+
+def _is_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _iter_manifest_owned_markdown_paths(
+    repo_root: Path,
+    manifest: EcosystemManifest,
+) -> list[Path]:
+    markdown_paths: list[Path] = []
+    for relative_path in manifest_owned_relative_paths(manifest):
+        source_path = repo_root / relative_path
+        if source_path.is_dir():
+            markdown_paths.extend(
+                path for path in sorted(source_path.rglob("*.md")) if path.is_file()
+            )
+        elif source_path.is_file() and source_path.suffix == ".md":
+            markdown_paths.append(source_path)
+    return markdown_paths
+
+
+def _extract_repository_local_targets(markdown_path: Path) -> list[str]:
+    _, body = load_markdown(markdown_path)
+    targets: list[str] = []
+    for raw_target in LINK_RE.findall(body):
+        target = _normalize_markdown_target(raw_target)
+        if not target or target.startswith("#"):
+            continue
+        if "://" in target or target.startswith("mailto:") or target.startswith("data:"):
+            continue
+        targets.append(target)
+    return targets
+
+
+def _resolve_markdown_target(repo_root: Path, markdown_path: Path, target: str) -> Path:
+    if target.startswith("/"):
+        return (repo_root / target.lstrip("/")).resolve()
+    return (markdown_path.parent / target).resolve()
+
+
+def _relative_repo_path(path: Path, repo_root: Path) -> str:
+    return path.relative_to(repo_root).as_posix()
+
+
+def _is_manifest_owned_target(
+    target_path: Path,
+    repo_root: Path,
+    owned_paths: list[Path],
+) -> bool:
+    if not _is_within(target_path, repo_root):
+        return False
+
+    relative_target = target_path.relative_to(repo_root)
+    return any(_is_within(relative_target, owned_path) for owned_path in owned_paths)
+
+
+def _check_manifest_owned_markdown_links(
+    repo_root: Path,
+    manifest: EcosystemManifest,
+) -> list[str]:
+    errors: list[str] = []
+    owned_paths = [Path(relative_path) for relative_path in manifest_owned_relative_paths(manifest)]
+
+    for markdown_path in _iter_manifest_owned_markdown_paths(repo_root, manifest):
+        source_relative_path = markdown_path.relative_to(repo_root).as_posix()
+        for target in _extract_repository_local_targets(markdown_path):
+            resolved_target = _resolve_markdown_target(repo_root, markdown_path, target)
+            if not _is_within(resolved_target, repo_root):
+                errors.append(
+                    "Installable markdown "
+                    f"{source_relative_path} links outside repository root: {target}"
+                )
+                continue
+            if not resolved_target.exists():
+                errors.append(
+                    "Installable markdown "
+                    f"{source_relative_path} has broken relative link: "
+                    f"{_relative_repo_path(resolved_target, repo_root)}"
+                )
+                continue
+            if not _is_manifest_owned_target(resolved_target, repo_root, owned_paths):
+                errors.append(
+                    "Installable markdown "
+                    f"{source_relative_path} links outside its manifest-owned payload: "
+                    f"{_relative_repo_path(resolved_target, repo_root)}"
+                )
+
+    return errors
+
+
 def validate_registry(request: ValidateRegistryInput) -> ValidationResult:
     repo_root = find_repo_root(Path(request.repo_root).resolve())
     manifests = load_ecosystem_manifests(repo_root)
@@ -85,6 +191,8 @@ def validate_registry(request: ValidateRegistryInput) -> ValidationResult:
                 errors.append(
                     f"Ecosystem {manifest.slug} references missing ecosystem file: {rel_path}"
                 )
+
+        errors.extend(_check_manifest_owned_markdown_links(repo_root, manifest))
 
         for agent in manifest.agents:
             if agent not in agents:

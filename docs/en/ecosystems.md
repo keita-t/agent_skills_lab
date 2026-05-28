@@ -40,6 +40,7 @@ Canonical manifest:
 | Skills | [.github/skills/repository-governance-bootstrap/SKILL.md](../../.github/skills/repository-governance-bootstrap/SKILL.md), [.github/skills/repository-doc-governance/SKILL.md](../../.github/skills/repository-doc-governance/SKILL.md), [.github/skills/todo-progress-governance/SKILL.md](../../.github/skills/todo-progress-governance/SKILL.md) |
 | Ownership contract | Agents, skills, listed ecosystem-owned files, and the manifest itself |
 | Ecosystem-owned files | Template assets and repository-governance validators under `.github/ecosystems/repository-governance/` |
+| Install portability rule | Repository-local links inside installable markdown must resolve within the manifest-owned payload so installed artifacts stay self-contained in target repositories. |
 | Delivery helper | [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) drives PR-oriented install and remove workflows against target repositories |
 
 ## Shared Ecosystem Infrastructure

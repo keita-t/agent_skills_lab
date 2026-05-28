@@ -15,7 +15,8 @@ helpers for ecosystems managed in this repository.
   or remove workflows against a target `owner/repo` and prepare a PR-based
   delivery flow.
 - [validate_ecosystem_registry.sh](validate_ecosystem_registry.sh): Validate the
-  manifests, frontmatter alignment, and structural ecosystem membership.
+  manifests, frontmatter alignment, structural ecosystem membership, and
+  install-payload link portability across installable ecosystems.
 
 ## Installed Ecosystems
 - [repository-governance/ECOSYSTEM.md](repository-governance/ECOSYSTEM.md):
@@ -26,5 +27,8 @@ helpers for ecosystems managed in this repository.
 - Keep one ecosystem per subdirectory under `.github/ecosystems/`.
 - Keep human-readable policy in Markdown manifests and machine-readable fields
   in manifest frontmatter.
+- For installable ecosystems, keep repository-local links inside
+  manifest-owned Markdown self-contained to the manifest-owned payload unless
+  the manifest explicitly lists the target path.
 - Keep this file as a thin index and use the manifests as the detailed source
   of truth.

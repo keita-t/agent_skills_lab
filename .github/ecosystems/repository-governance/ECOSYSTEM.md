@@ -34,6 +34,9 @@ for repository documentation governance.
 - Copy this manifest into the target project's `.github/ecosystems/` tree.
 - Treat the listed agents, skills, ecosystem-owned files, and this manifest as
   the full install/remove ownership contract.
+- Keep installable markdown artifacts self-contained to that manifest-owned
+  payload. Relative repository-local links inside installed agents, skills,
+  template docs, and this manifest must resolve to manifest-owned paths.
 
 ## Notes
 - Template packs and repository-governance-specific validation assets are owned
@@ -41,3 +44,6 @@ for repository documentation governance.
   stay explicit in the manifest.
 - Legacy shared automation is being phased out and is not part of this
   manifest-owned payload.
+- Source-only shared helpers under `.github/ecosystems/` may be mentioned as
+  operational context, but installable artifacts must not link to them unless
+  the manifest explicitly owns them.

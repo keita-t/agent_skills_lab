@@ -38,13 +38,12 @@ use to understand and maintain the repository.
    and adapt it to the target repository. Keep project-charter files minimal
    unless explicit charter content was supplied by the user or maintainers.
 6. When importing this ecosystem into another repository, use the
-   `Ecosystem Delivery Orchestrator` or
-   [../../ecosystems/deliver_ecosystem.py](../../ecosystems/deliver_ecosystem.py)
-   from the source lab repository so the agent, skills, manifest, and
-   ecosystem-owned files are delivered through the manifest-owned payload.
-7. Validate ecosystem metadata with
-   [../../ecosystems/validate_ecosystem_registry.sh](../../ecosystems/validate_ecosystem_registry.sh)
-   when the ecosystem registry or manifests change.
+   [Ecosystem Delivery Orchestrator](../../agents/governance-ecosystem-delivery.agent.md)
+   or another source-side delivery workflow that copies only the
+   manifest-owned payload into the target repository.
+7. Validate ecosystem metadata in the source repository when the ecosystem
+   registry or manifests change, and keep installable artifacts free of links
+   to source-only shared helpers.
 8. Run [validate_repository_governance.sh](../../ecosystems/repository-governance/validate_repository_governance.sh)
    against the target repository or template pack.
 

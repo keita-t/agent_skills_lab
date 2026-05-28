@@ -8,6 +8,7 @@ from ecosystem_lib import (
     copy_path,
     find_repo_root,
     load_ecosystem_manifest,
+    manifest_owned_relative_paths,
     merge_managed_block,
     parse_frontmatter,
 )
@@ -57,6 +58,25 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
     ]
     assert ".github/ecosystems/repository-governance/assets/templates" in manifest.ecosystem_files
     assert ".github/ecosystems/repository-governance/MCP_TOOLS.json" not in manifest.ecosystem_files
+
+
+def test_manifest_owned_relative_paths_match_repository_governance_contract() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    manifest_path = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "ECOSYSTEM.md"
+    )
+
+    manifest = load_ecosystem_manifest(manifest_path)
+    relative_paths = manifest_owned_relative_paths(manifest)
+
+    assert ".github/agents/governance-repository-context-manager.agent.md" in relative_paths
+    assert ".github/skills/repository-governance-bootstrap" in relative_paths
+    assert ".github/ecosystems/repository-governance/ECOSYSTEM.md" in relative_paths
+    assert ".github/ecosystems/deliver_ecosystem.py" not in relative_paths
 
 
 def test_merge_managed_block_replaces_existing_managed_content() -> None:

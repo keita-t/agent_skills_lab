@@ -81,6 +81,14 @@ class EcosystemManifest:
     manifest_path: Path
 
 
+def manifest_owned_relative_paths(manifest: EcosystemManifest) -> list[str]:
+    relative_paths = [f".github/agents/{agent}" for agent in manifest.agents]
+    relative_paths.extend(f".github/skills/{skill}" for skill in manifest.skills)
+    relative_paths.extend(manifest.ecosystem_files)
+    relative_paths.append(f".github/ecosystems/{manifest.slug}/ECOSYSTEM.md")
+    return relative_paths
+
+
 def load_ecosystem_manifest(path: Path) -> EcosystemManifest:
     metadata, _ = load_markdown(path)
     required_keys = [
