@@ -144,9 +144,11 @@ def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path
     assert "bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>" in context_agent
     assert ".github/ecosystems/repository-governance/assets/templates/<mode>" in context_agent
     assert "bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root ." in bootstrap_skill
+    assert "canonical `docs/TODO.md` path used by the governance pack" in bootstrap_skill
     assert "--mode bilingual" in bootstrap_skill
     assert "--mode single-language" in bootstrap_skill
     assert "ecosystem registry validator" not in bootstrap_skill
+    assert "another canonical path" not in bootstrap_skill
     assert "bootstrap output has been applied" in docs_skill
     assert "--mode bilingual" in docs_skill
     assert "--mode single-language" in docs_skill

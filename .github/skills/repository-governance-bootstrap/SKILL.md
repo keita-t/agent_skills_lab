@@ -22,8 +22,8 @@ use to understand and maintain the repository.
 - Current repository entry points such as `README.md`, `CLAUDE.md`, or `docs/`.
 - Desired language mode: single-language or bilingual.
 - Whether existing docs should be preserved, merged, or replaced.
-- Whether progress tracking should live in `docs/TODO.md` or another canonical
-  path.
+- Whether existing backlog or TODO content should be migrated into the
+   canonical `docs/TODO.md` path used by the governance pack.
 
 ## Procedure
 1. Inspect the repository entry points and current documentation structure.
@@ -55,8 +55,10 @@ use to understand and maintain the repository.
    clear migration plan.
 2. Preserve project-specific contracts and terminology when adapting the
    generic governance structure.
-3. If the repository already has a stable TODO or backlog file, merge rules
-   into it instead of creating a conflicting second canonical progress file.
+3. If the repository already has a stable TODO or backlog file, migrate or
+   merge its canonical progress-tracking content into `docs/TODO.md`, and keep
+   any legacy path as a pointer or auxiliary note rather than as a competing
+   canonical tracker.
 4. Keep the bootstrap output minimal and editable by future maintainers.
 5. Do not invent project charter policy. If no explicit charter content is
    supplied, keep project-charter files limited to repository purpose, known
