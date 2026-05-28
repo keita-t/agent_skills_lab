@@ -24,7 +24,7 @@ redefining their policy text.
 2. If a requested change would structurally reorganize a TODO or progress file,
    ask for explicit in-session approval before editing.
 3. Prefer the smallest set of repository changes needed to restore alignment.
-4. Run the package validator after changing agents, skills, or routing docs.
+4. Run `bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>` after changing installed governance docs, templates, or validator entry points. If manifest, agent, or skill metadata changes are being made in the source ecosystem repository, run `bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root .` there before delivery.
 
 ## Output Format
 1. Selected workflow

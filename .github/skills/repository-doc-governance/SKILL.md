@@ -42,8 +42,9 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
    overview, table, flow, checklist, or reference.
 7. Validate links and structural alignment before finishing.
 8. When the repository uses the repository-governance ecosystem, run
-   `bash .github/ecosystems/repository-governance/validate_repository_governance.sh`
-   after major documentation edits.
+   `bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode bilingual`
+   for bilingual repositories, or use `--mode single-language` otherwise.
+   When validating a template pack or another checkout, pass `--repo-root <path>`.
 
 ## Rules
 1. Keep overview documents about what the system is and implementation

@@ -16,7 +16,7 @@ You are a thin orchestration agent for ecosystem manifest governance.
 ## Rules
 1. Keep manifests focused on ownership, membership, and dependencies.
 2. Prefer helper-module changes over duplicating validation policy in this file.
-3. Run the ecosystem registry validator after changing manifests, agents, skills, or validator helpers.
+3. In the source ecosystem repository, run `bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root .` after changing manifests, agents, skills, or validator helpers. In installed target repositories, limit validation to shipped repository-governance checks such as `bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>`.
 4. Keep English and Japanese repository-facing docs aligned when manifest behavior changes.
 
 ## Output Format

@@ -96,9 +96,59 @@ def test_apply_delivery_changes_copies_manifest_owned_paths(tmp_path) -> None:
         / "SKILL.md"
     ).read_text(encoding="utf-8")
     assert "deliver_ecosystem.py" not in installed_skill
-    assert "validate_ecosystem_registry.sh" not in installed_skill
+    assert "](../../ecosystems/validate_ecosystem_registry.sh)" not in installed_skill
     assert "../../agents/governance-ecosystem-delivery.agent.md" in installed_skill
     assert not (target_root / ".github" / "ecosystems" / "ecosystem_lib.py").exists()
+
+
+def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path) -> None:
+    target_root = tmp_path / "target-repo"
+
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=target_root,
+            ecosystem_slug="repository-governance",
+        )
+    )
+
+    manifest_agent = (
+        target_root
+        / ".github"
+        / "agents"
+        / "governance-ecosystem-manifest.agent.md"
+    ).read_text(encoding="utf-8")
+    context_agent = (
+        target_root
+        / ".github"
+        / "agents"
+        / "governance-repository-context-manager.agent.md"
+    ).read_text(encoding="utf-8")
+    bootstrap_skill = (
+        target_root
+        / ".github"
+        / "skills"
+        / "repository-governance-bootstrap"
+        / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    docs_skill = (
+        target_root
+        / ".github"
+        / "skills"
+        / "repository-doc-governance"
+        / "SKILL.md"
+    ).read_text(encoding="utf-8")
+
+    assert "bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root ." in manifest_agent
+    assert "--mode <single-language|bilingual>" in manifest_agent
+    assert "Run the package validator" not in context_agent
+    assert "bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>" in context_agent
+    assert "bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root ." in bootstrap_skill
+    assert "--mode bilingual" in bootstrap_skill
+    assert "--mode single-language" in bootstrap_skill
+    assert "ecosystem registry validator" not in bootstrap_skill
+    assert "--mode bilingual" in docs_skill
+    assert "--mode single-language" in docs_skill
+    assert "--repo-root <path>" in docs_skill
 
 
 def test_apply_delivery_changes_removes_existing_manifest_owned_paths(tmp_path) -> None:
