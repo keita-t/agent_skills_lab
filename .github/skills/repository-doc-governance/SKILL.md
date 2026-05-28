@@ -41,10 +41,14 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
 6. Keep rewritten sections at one clear granularity level such as snapshot,
    overview, table, flow, checklist, or reference.
 7. Validate links and structural alignment before finishing.
-8. When the repository uses the repository-governance ecosystem, run
+8. After the governance doc pack or bootstrap output has been applied to the
+   target repository, run
    `bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode bilingual`
    for bilingual repositories, or use `--mode single-language` otherwise.
-   When validating a template pack or another checkout, pass `--repo-root <path>`.
+   Before bootstrap, or when validating a shipped template pack or another
+   checkout, point `--repo-root` at
+   `.github/ecosystems/repository-governance/assets/templates/<mode>` or the
+   equivalent target path.
 
 ## Rules
 1. Keep overview documents about what the system is and implementation

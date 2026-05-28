@@ -142,13 +142,15 @@ def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path
     assert "--mode <single-language|bilingual>" in manifest_agent
     assert "Run the package validator" not in context_agent
     assert "bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>" in context_agent
+    assert ".github/ecosystems/repository-governance/assets/templates/<mode>" in context_agent
     assert "bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root ." in bootstrap_skill
     assert "--mode bilingual" in bootstrap_skill
     assert "--mode single-language" in bootstrap_skill
     assert "ecosystem registry validator" not in bootstrap_skill
+    assert "bootstrap output has been applied" in docs_skill
     assert "--mode bilingual" in docs_skill
     assert "--mode single-language" in docs_skill
-    assert "--repo-root <path>" in docs_skill
+    assert ".github/ecosystems/repository-governance/assets/templates/<mode>" in docs_skill
 
 
 def test_apply_delivery_changes_removes_existing_manifest_owned_paths(tmp_path) -> None:

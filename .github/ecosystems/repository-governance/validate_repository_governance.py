@@ -43,11 +43,24 @@ def _extract_targets(path: Path) -> list[str]:
     return [_normalize_target(match) for match in LINK_RE.findall(text)]
 
 
-def _check_required_paths(repo_root: Path, required_paths: list[str]) -> list[str]:
+def _template_pack_root(mode: str) -> str:
+    return f".github/ecosystems/repository-governance/assets/templates/{mode}"
+
+
+def _missing_required_file_message(repo_root: Path, rel_path: str, mode: str) -> str:
+    return (
+        f"Missing required file: {rel_path}. Expected the repository-governance "
+        f"{mode} doc layout under {repo_root}. Install the governance doc pack first, "
+        "or validate the shipped template pack by pointing "
+        f"--repo-root at {_template_pack_root(mode)}."
+    )
+
+
+def _check_required_paths(repo_root: Path, required_paths: list[str], mode: str) -> list[str]:
     errors: list[str] = []
     for rel_path in required_paths:
         if not (repo_root / rel_path).is_file():
-            errors.append(f"Missing required file: {rel_path}")
+            errors.append(_missing_required_file_message(repo_root, rel_path, mode))
     return errors
 
 
@@ -255,10 +268,20 @@ def validate_repository_governance(
     request: ValidateRepositoryGovernanceInput,
 ) -> ValidationResult:
     repo_root = Path(request.repo_root).resolve()
+    if not repo_root.is_dir():
+        return ValidationResult(
+            passed=False,
+            errors=[
+                ValidationIssue(
+                    message=f"Repository root does not exist or is not a directory: {repo_root}"
+                )
+            ],
+        )
+
     required_paths, required_links, markdown_paths = _mode_config(request.mode)
 
     errors: list[str] = []
-    errors.extend(_check_required_paths(repo_root, required_paths))
+    errors.extend(_check_required_paths(repo_root, required_paths, request.mode))
     errors.extend(_check_required_links(repo_root, required_links))
     errors.extend(_check_relative_links_exist(repo_root, markdown_paths))
     errors.extend(_check_todo_structure(repo_root / "docs" / "TODO.md"))

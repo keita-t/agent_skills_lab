@@ -233,6 +233,43 @@ def test_repository_governance_validator_passes_for_bilingual_templates(
     assert "REPOSITORY GOVERNANCE VALIDATION PASSED" in captured.out
 
 
+def test_repository_governance_validator_reports_invalid_repo_root(
+    tmp_path: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    missing_root = tmp_path / "missing-repo-root"
+
+    exit_code = invoke_main(
+        repository_governance_validator,
+        "--repo-root",
+        str(missing_root),
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Repository root does not exist or is not a directory" in captured.out
+
+
+def test_repository_governance_validator_missing_required_file_includes_layout_hint(
+    blank_repo: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    exit_code = invoke_main(
+        repository_governance_validator,
+        "--repo-root",
+        str(blank_repo),
+        "--mode",
+        "bilingual",
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Install the governance doc pack first" in captured.out
+    assert ".github/ecosystems/repository-governance/assets/templates/bilingual" in captured.out
+
+
 def test_repository_governance_validator_uses_local_models_even_if_mcp_models_exists(
     repo_root: Path,
     monkeypatch,
