@@ -220,7 +220,7 @@ def _mode_config(mode: str) -> tuple[list[str], dict[str, list[str]], list[str]]
             ],
             "docs/TODO.md": ["./DOCUMENTATION_UPDATE_RULES.md"],
         }
-    else:
+    elif mode == "single-language":
         required_paths = [
             "README.md",
             "CLAUDE.md",
@@ -259,6 +259,8 @@ def _mode_config(mode: str) -> tuple[list[str], dict[str, list[str]], list[str]]
             ],
             "docs/TODO.md": ["./DOCUMENTATION_UPDATE_RULES.md"],
         }
+    else:
+        raise ValueError(f"Unsupported repository-governance mode: {mode}")
 
     markdown_paths = list(required_links)
     return required_paths, required_links, markdown_paths

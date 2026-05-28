@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import sys
 import types
+import pytest
 
 import validate_ecosystem_registry as ecosystem_registry_validator
 import validate_repository_governance as repository_governance_validator
@@ -249,6 +250,18 @@ def test_repository_governance_validator_reports_invalid_repo_root(
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "Repository root does not exist or is not a directory" in captured.out
+
+
+def test_repository_governance_validator_rejects_unknown_mode_as_library_call(
+    blank_repo: Path,
+) -> None:
+    with pytest.raises(ValueError, match="Unsupported repository-governance mode"):
+        repository_governance_validator.validate_repository_governance(
+            repository_governance_validator.ValidateRepositoryGovernanceInput(
+                repo_root=str(blank_repo),
+                mode="unexpected-mode",
+            )
+        )
 
 
 def test_repository_governance_validator_missing_required_file_includes_layout_hint(
