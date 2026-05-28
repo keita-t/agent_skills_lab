@@ -17,23 +17,23 @@ from ecosystem_lib import (
 
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
-try:
-    from mcp_models import ValidateRegistryInput, ValidationIssue, ValidationResult
-except ModuleNotFoundError:
-    @dataclass(frozen=True)
-    class ValidateRegistryInput:
-        repo_root: str = "."
 
-    @dataclass(frozen=True)
-    class ValidationIssue:
-        message: str
-        path: str | None = None
+@dataclass(frozen=True)
+class ValidateRegistryInput:
+    repo_root: str = "."
 
-    @dataclass(frozen=True)
-    class ValidationResult:
-        passed: bool
-        errors: list[ValidationIssue] = field(default_factory=list)
-        warnings: list[str] = field(default_factory=list)
+
+@dataclass(frozen=True)
+class ValidationIssue:
+    message: str
+    path: str | None = None
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    passed: bool
+    errors: list[ValidationIssue] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 def detect_cycle(graph: dict[str, list[str]]) -> list[str] | None:

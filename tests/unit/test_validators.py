@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
 import shutil
+import sys
+import types
 
 import validate_ecosystem_registry as ecosystem_registry_validator
 import validate_repository_governance as repository_governance_validator
@@ -173,6 +176,35 @@ Source-only link: [deliver](../../ecosystems/deliver_ecosystem.py)
     assert ".github/ecosystems/deliver_ecosystem.py" in captured.out
 
 
+def test_ecosystem_registry_validation_service_uses_local_models_even_if_mcp_models_exists(
+    repo_root: Path,
+    monkeypatch,
+) -> None:
+    fake_mcp_models = types.ModuleType("mcp_models")
+    fake_mcp_models.ValidateRegistryInput = type("ValidateRegistryInput", (), {})
+    fake_mcp_models.ValidationIssue = type("ValidationIssue", (), {})
+    fake_mcp_models.ValidationResult = type("ValidationResult", (), {})
+    monkeypatch.setitem(sys.modules, "mcp_models", fake_mcp_models)
+
+    module_path = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "ecosystem_registry_validation_service.py"
+    )
+    module_name = "ecosystem_registry_validation_service_local_models_test"
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, module_name, module)
+    spec.loader.exec_module(module)
+
+    assert module.ValidateRegistryInput.__module__ == module.__name__
+    assert module.ValidationIssue.__module__ == module.__name__
+    assert module.ValidationResult.__module__ == module.__name__
+
+
 def test_repository_governance_validator_passes_for_bilingual_templates(
     repo_root: Path,
     invoke_main,
@@ -199,6 +231,40 @@ def test_repository_governance_validator_passes_for_bilingual_templates(
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "REPOSITORY GOVERNANCE VALIDATION PASSED" in captured.out
+
+
+def test_repository_governance_validator_uses_local_models_even_if_mcp_models_exists(
+    repo_root: Path,
+    monkeypatch,
+) -> None:
+    fake_mcp_models = types.ModuleType("mcp_models")
+    fake_mcp_models.ValidateRepositoryGovernanceInput = type(
+        "ValidateRepositoryGovernanceInput",
+        (),
+        {},
+    )
+    fake_mcp_models.ValidationIssue = type("ValidationIssue", (), {})
+    fake_mcp_models.ValidationResult = type("ValidationResult", (), {})
+    monkeypatch.setitem(sys.modules, "mcp_models", fake_mcp_models)
+
+    module_path = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "validate_repository_governance.py"
+    )
+    module_name = "validate_repository_governance_local_models_test"
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, module_name, module)
+    spec.loader.exec_module(module)
+
+    assert module.ValidateRepositoryGovernanceInput.__module__ == module.__name__
+    assert module.ValidationIssue.__module__ == module.__name__
+    assert module.ValidationResult.__module__ == module.__name__
 
 
 def test_project_charter_templates_default_to_minimal_content(repo_root: Path) -> None:

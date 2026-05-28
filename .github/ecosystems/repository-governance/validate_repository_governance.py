@@ -7,34 +7,25 @@ import argparse
 from dataclasses import dataclass, field
 import re
 from pathlib import Path
-import sys
 
-ECOSYSTEMS_DIR = Path(__file__).resolve().parents[1]
-if str(ECOSYSTEMS_DIR) not in sys.path:
-    sys.path.insert(0, str(ECOSYSTEMS_DIR))
 
-try:
-    from mcp_models import (
-        ValidateRepositoryGovernanceInput,
-        ValidationIssue,
-        ValidationResult,
-    )
-except ModuleNotFoundError:
-    @dataclass(frozen=True)
-    class ValidateRepositoryGovernanceInput:
-        repo_root: str = "."
-        mode: str = "single-language"
+@dataclass(frozen=True)
+class ValidateRepositoryGovernanceInput:
+    repo_root: str = "."
+    mode: str = "single-language"
 
-    @dataclass(frozen=True)
-    class ValidationIssue:
-        message: str
-        path: str | None = None
 
-    @dataclass(frozen=True)
-    class ValidationResult:
-        passed: bool
-        errors: list[ValidationIssue] = field(default_factory=list)
-        warnings: list[str] = field(default_factory=list)
+@dataclass(frozen=True)
+class ValidationIssue:
+    message: str
+    path: str | None = None
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    passed: bool
+    errors: list[ValidationIssue] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 EN_DOC_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*\.md$")

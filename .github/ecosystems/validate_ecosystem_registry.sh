@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VALIDATOR_PY="${SCRIPT_DIR}/validate_ecosystem_registry.py"
+PYTHON_CMD=""
 
 if [[ ! -f "${VALIDATOR_PY}" ]]; then
   echo "Validator script not found: ${VALIDATOR_PY}" >&2
