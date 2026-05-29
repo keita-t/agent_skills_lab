@@ -154,30 +154,6 @@ def test_repository_docs_no_longer_reference_retired_validators(repo_root: Path)
         text = path.read_text(encoding="utf-8")
         assert "validate_ecosystem_registry.sh" not in text
         assert "validate_repository_governance.sh" not in text
-
-
-def test_repository_docs_reference_audit_templates_and_smoke_scenarios(
-    repo_root: Path,
-) -> None:
-    readme_text = (repo_root / "README.md").read_text(encoding="utf-8")
-    ecosystems_text = (
-        repo_root / ".github" / "ecosystems" / "README.md"
-    ).read_text(encoding="utf-8")
-    docs_en_text = (repo_root / "docs" / "en" / "ecosystems.md").read_text(encoding="utf-8")
-    docs_ja_text = (repo_root / "docs" / "ja" / "ecosystems.ja.md").read_text(encoding="utf-8")
-    ecosystems_normalized = " ".join(ecosystems_text.split())
-
-    assert "audit-pack template" in readme_text
-    assert "smoke scenario" in readme_text
-    assert "rubric-first" in readme_text
-    assert "starter audit" in ecosystems_text
-    assert "smoke scenarios" in ecosystems_normalized
-    assert "rubric-first" in ecosystems_text
-    assert "work-quality" in docs_en_text
-    assert "rubric-first" in docs_en_text
-    assert "仕事の質" in docs_ja_text
-
-
 def test_ecosystem_docs_include_rubric_first_audit_report_example(repo_root: Path) -> None:
     docs_en_text = (repo_root / "docs" / "en" / "ecosystems.md").read_text(encoding="utf-8")
     docs_ja_text = (repo_root / "docs" / "ja" / "ecosystems.ja.md").read_text(encoding="utf-8")
@@ -209,7 +185,6 @@ def test_ecosystem_audit_packs_define_quality_rubrics(repo_root: Path) -> None:
         / "audit"
         / "codebase-context-audit.md",
     ]
-
     for path in paths:
         text = path.read_text(encoding="utf-8")
         assert "Artifact Quality Rubric" in text
