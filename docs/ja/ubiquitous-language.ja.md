@@ -1,0 +1,43 @@
+# ユビキタス言語
+
+この文書は、agent_skills_lab で maintainer と agent が文脈をそろえるために
+使う共有語彙を記録します。
+プロジェクト憲章とは異なり、このファイルは現在の repository の挙動、現行
+docs、manifest、workflow に根拠がある限り agent が更新できます。
+ただし、この文書を使って方針、maintainer の判断、推測したローカルルールを
+増やしてはいけません。repository の scope や policy を変える内容は、
+maintainer が明示的に憲章編集を指示した場合にのみ憲章へ反映します。
+
+## 編集ルール
+
+- agent は、この repository で現に使われている用語が実装、docs、manifest、
+  agent 名、skill 名、または運用 workflow に現れているときに、その用語を
+  追加または更新できる。
+- agent は、この文書を approval requirement、隠れたローカルルール、推測の
+  taxonomy を作る場所として使ってはならない。
+- 各項目は記述的かつ現行状態に保つ。基盤となる概念が使われなくなったら削除
+  または改稿する。
+- ある用語が repository 固有の scope や maintainer の明示判断を含む場合は、
+  maintainer が明示的に指示したときだけ憲章へ記録する。
+
+## 現在の語彙
+
+| 用語 | この repository における意味 |
+|---|---|
+| agent_skills_lab | custom agents、skills、installable ecosystems の開発と実験のためのラボ。 |
+| ecosystem | manifest が ownership を持つ agent、skill、helper file をひとまとまりで target repository に届ける再利用可能なパッケージ。 |
+| manifest | `.github/ecosystems/<slug>/ECOSYSTEM.md` にある、ecosystem の ownership、dependency、install payload を定義する Markdown contract。 |
+| ownership contract | install と remove の対象として manifest が所有を宣言するファイル集合。 |
+| source repository | reusable ecosystem asset を authoring し、delivery 前に validation する側の repository。 |
+| target repository | ecosystem の manifest-owned payload を install または remove workflow で受け取る側の repository。 |
+| repository-governance | repository docs、更新ルール、validator、template、関連オーケストレーション guidance を扱う ecosystem。 |
+| ユビキタス言語 | 方針文書ではなく、maintainer と agent の文脈合わせを助ける共有語彙レイヤー。 |
+
+## Related Documents
+
+- [docs/ja/project-charter.ja.md](./project-charter.ja.md): repository 固有の
+  前提と maintainer の明示判断。
+- [docs/DOCUMENTATION_UPDATE_RULES.md](../DOCUMENTATION_UPDATE_RULES.md): stable
+  docs 更新の正本ルール。
+- [docs/en/ubiquitous-language.md](../en/ubiquitous-language.md): 英語版の対応
+  文書。

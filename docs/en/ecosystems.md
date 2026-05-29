@@ -14,9 +14,10 @@ support infrastructure, not separate ecosystems by themselves.
 
 ## Snapshot
 
-- Active ecosystem count: 1
-- Current ecosystem slug: `repository-governance`
-- Root responsibility: repository documentation governance, bootstrap, and TODO
+- Active ecosystem count: 2
+- Current ecosystem slugs: `codebase-context`, `repository-governance`
+- Current root responsibilities: repository codebase export for large-context
+  models, plus repository documentation governance, bootstrap, and TODO
   progress tracking.
 - Manifest direction: ownership and dependency contract first.
 
@@ -24,9 +25,25 @@ support infrastructure, not separate ecosystems by themselves.
 
 | Slug | Status | Purpose | Root agent | Skills | Notes |
 |---|---|---|---|---|---|
+| `codebase-context` | `active` | Export a repository into one markdown context file for large-context models. | `codebase-context.agent.md` | `codebase-context-export` | Installable into other repositories. The default export includes the full filtered source code plus useful supporting files, while explicit user pickup rules can narrow or override that scope. |
 | `repository-governance` | `active` | Repository documentation governance, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`, `repository-doc-governance`, `todo-progress-governance` | Self-hosted in this repository and installable into other repositories. Manifest-owned payload now excludes legacy MCP metadata. |
 
 ## Ecosystem Details
+
+### `codebase-context`
+
+Canonical manifest:
+[.github/ecosystems/codebase-context/ECOSYSTEM.md](../../.github/ecosystems/codebase-context/ECOSYSTEM.md)
+
+| Area | Current implementation |
+|---|---|
+| Root agent | [.github/agents/codebase-context.agent.md](../../.github/agents/codebase-context.agent.md) |
+| Skills | [.github/skills/codebase-context-export/SKILL.md](../../.github/skills/codebase-context-export/SKILL.md) |
+| Ownership contract | Agent, skill, listed ecosystem-owned files, and the manifest itself |
+| Ecosystem-owned files | The generator and shell wrapper under `.github/ecosystems/codebase-context/` |
+| Default export behavior | Generates `CODEBASE_CONTEXT.md` at the repository root, exporting the full filtered source code plus useful supporting files in one markdown snapshot |
+| User override rule | Explicit user pickup rules such as include, exclude, or source-only constraints override the default broad export policy |
+| Runtime output | The generated markdown snapshot is runtime output and is not part of the manifest-owned install payload |
 
 ### `repository-governance`
 

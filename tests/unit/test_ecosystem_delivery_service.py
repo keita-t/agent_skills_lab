@@ -55,6 +55,23 @@ def test_build_install_changeset_uses_manifest_owned_paths_only(tmp_path) -> Non
     assert ".github/ECOSYSTEM_REGISTRY.md" not in relative_destinations
 
 
+def test_build_install_changeset_uses_manifest_owned_paths_only_for_codebase_context(tmp_path) -> None:
+    result = build_install_changeset(
+        target_root=tmp_path / "target-repo",
+        ecosystem_slug="codebase-context",
+    )
+
+    relative_destinations = {change.relative_destination for change in result}
+
+    assert all(change.action == "copy" for change in result)
+    assert ".github/agents/codebase-context.agent.md" in relative_destinations
+    assert ".github/skills/codebase-context-export" in relative_destinations
+    assert ".github/ecosystems/codebase-context/ECOSYSTEM.md" in relative_destinations
+    assert ".github/ecosystems/codebase-context/generate_codebase_context.py" in relative_destinations
+    assert ".github/ecosystems/codebase-context/generate_codebase_context.sh" in relative_destinations
+    assert ".github/ecosystems/ecosystem_lib.py" not in relative_destinations
+
+
 def test_build_remove_changeset_lists_only_existing_manifest_owned_paths(isolated_repo) -> None:
     result = build_remove_changeset(
         target_root=isolated_repo,
@@ -161,6 +178,65 @@ def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path
     assert "--mode bilingual" in docs_skill
     assert "--mode single-language" in docs_skill
     assert ".github/ecosystems/repository-governance/assets/templates/<mode>" in docs_skill
+
+
+def test_apply_delivery_changes_installs_codebase_context_payload(tmp_path) -> None:
+    target_root = tmp_path / "target-repo"
+
+    actions = apply_delivery_changes(
+        build_install_changeset(
+            target_root=target_root,
+            ecosystem_slug="codebase-context",
+        )
+    )
+
+    assert actions
+    assert (target_root / ".github" / "agents" / "codebase-context.agent.md").is_file()
+    assert (target_root / ".github" / "skills" / "codebase-context-export" / "SKILL.md").is_file()
+    assert (
+        target_root
+        / ".github"
+        / "ecosystems"
+        / "codebase-context"
+        / "generate_codebase_context.py"
+    ).is_file()
+    assert (
+        target_root
+        / ".github"
+        / "ecosystems"
+        / "codebase-context"
+        / "generate_codebase_context.sh"
+    ).is_file()
+
+    installed_skill = (
+        target_root / ".github" / "skills" / "codebase-context-export" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+
+    assert "../../ecosystems/codebase-context/generate_codebase_context.sh" in installed_skill
+    assert "../../ecosystems/deliver_ecosystem.py" not in installed_skill
+
+
+def test_apply_delivery_changes_removes_codebase_context_manifest_owned_paths(tmp_path) -> None:
+    target_root = tmp_path / "target-repo"
+
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=target_root,
+            ecosystem_slug="codebase-context",
+        )
+    )
+
+    actions = apply_delivery_changes(
+        build_remove_changeset(
+            target_root=target_root,
+            ecosystem_slug="codebase-context",
+        )
+    )
+
+    assert actions
+    assert not (target_root / ".github" / "agents" / "codebase-context.agent.md").exists()
+    assert not (target_root / ".github" / "skills" / "codebase-context-export").exists()
+    assert not (target_root / ".github" / "ecosystems" / "codebase-context").exists()
 
 
 def test_apply_delivery_changes_removes_existing_manifest_owned_paths(tmp_path) -> None:

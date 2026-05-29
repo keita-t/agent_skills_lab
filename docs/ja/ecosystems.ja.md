@@ -14,18 +14,34 @@
 
 ## スナップショット
 
-- Active ecosystem 数: 1
-- 現在の ecosystem slug: `repository-governance`
-- 主責務: repository documentation governance、bootstrap、TODO progress tracking。
+- Active ecosystem 数: 2
+- 現在の ecosystem slug: `codebase-context`、`repository-governance`
+- 現在の主責務: large-context model 向けの repository codebase export と、repository documentation governance、bootstrap、TODO progress tracking。
 - manifest の方向性: ownership と dependency の structural contract を優先する。
 
 ## 現在の Inventory
 
 | Slug | Status | Purpose | Root agent | Skills | Notes |
 |---|---|---|---|---|---|
+| `codebase-context` | `active` | repository を large-context model 向けの単一 markdown context file に export する。 | `codebase-context.agent.md` | `codebase-context-export` | 他 repository へ install できる。既定では full filtered source code と useful supporting files を export し、ユーザーの明示 pickup rule がある場合はその指定で scope を上書きする。 |
 | `repository-governance` | `active` | repository documentation governance、bootstrap、TODO progress tracking。 | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`、`repository-doc-governance`、`todo-progress-governance` | この repository 自身で self-host しつつ、他 repository へ install できる。manifest-owned payload からは legacy MCP metadata を外した。 |
 
 ## Ecosystem Details
+
+### `codebase-context`
+
+正本 manifest:
+[.github/ecosystems/codebase-context/ECOSYSTEM.md](../../.github/ecosystems/codebase-context/ECOSYSTEM.md)
+
+| 項目 | 現在の実装 |
+|---|---|
+| Root agent | [.github/agents/codebase-context.agent.md](../../.github/agents/codebase-context.agent.md) |
+| Skills | [.github/skills/codebase-context-export/SKILL.md](../../.github/skills/codebase-context-export/SKILL.md) |
+| Ownership contract | agent、skill、listed ecosystem-owned files、および manifest 自体 |
+| Ecosystem 固有 files | `.github/ecosystems/codebase-context/` 配下の generator と shell wrapper |
+| 既定の export 挙動 | repository root の `CODEBASE_CONTEXT.md` を生成し、full filtered source code と useful supporting files を 1 つの markdown snapshot にまとめる |
+| ユーザー override rule | include、exclude、source-only などの明示 pickup rule がある場合は、既定の broad export policy よりその指定を優先する |
+| Runtime output | 生成された markdown snapshot は runtime output であり、manifest-owned install payload には含めない |
 
 ### `repository-governance`
 

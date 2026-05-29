@@ -27,7 +27,7 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
 ## Procedure
 1. Read the repository charter, documentation update rules, and docs map before
    editing prose. Treat the charter as project-specific context, not as a
-   place to invent generic rules.
+   place to invent generic rules or terminology catalogs.
 2. Determine which canonical documents must change based on the implementation
    delta.
 3. Before large rewrites, decide where each affected section will move and only
@@ -65,8 +65,11 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
    aligned in the same change.
 7. Do not autonomously restructure TODO or progress documents here; delegate
    those edits to `todo-progress-governance`.
-8. Keep project-charter files minimal unless explicit repository-specific
-   charter content was requested or approved by maintainers.
+8. Edit project-charter files only when a maintainer explicitly instructs
+   editing the charter.
+9. Route shared vocabulary and context-alignment updates into the
+   ubiquitous-language docs, and keep those docs descriptive rather than
+   policy-setting.
 
 ## Outputs
 - Updated canonical documentation files

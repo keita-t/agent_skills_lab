@@ -36,7 +36,9 @@ use to understand and maintain the repository.
 5. Choose a pack from [single-language templates](../../ecosystems/repository-governance/assets/templates/single-language/README.md)
    or [bilingual templates](../../ecosystems/repository-governance/assets/templates/bilingual/README.md)
    and adapt it to the target repository. Keep project-charter files minimal
-   unless explicit charter content was supplied by the user or maintainers.
+   unless explicit charter content was supplied by the user or maintainers,
+   and install or adapt the ubiquitous-language doc as the editable home for
+   shared terminology.
 6. When importing this ecosystem into another repository, use the
    [Ecosystem Delivery Orchestrator](../../agents/governance-ecosystem-delivery.agent.md)
    or another source-side delivery workflow that copies only the
@@ -62,8 +64,10 @@ use to understand and maintain the repository.
    canonical tracker.
 4. Keep the bootstrap output minimal and editable by future maintainers.
 5. Do not invent project charter policy. If no explicit charter content is
-   supplied, keep project-charter files limited to repository purpose, known
-   terminology, and explicit human-approved decisions.
+   supplied, keep project-charter files limited to repository purpose,
+   repository-specific context, and explicit human-approved decisions.
+6. Put evolving shared terminology in the ubiquitous-language doc, not in the
+   charter, and keep that terminology descriptive rather than policy-setting.
 
 ## Outputs
 - Installed or repaired governance files

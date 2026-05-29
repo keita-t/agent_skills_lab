@@ -1,44 +1,37 @@
 # Project Charter
 
-This document records only repository-specific scope, terminology, and
-explicit maintainer decisions for agent_skills_lab.
+This document records only repository-specific scope and explicit
+maintainer decisions for agent_skills_lab.
 It is intentionally minimal by default.
-Do not add generic engineering rules or inferred policy here unless a
-maintainer has explicitly requested them.
+Do not add terminology lists, generic engineering rules, or inferred policy
+here unless a maintainer has explicitly instructed editing this charter.
 
 ## Recommended Reading Order
 
 1. This document: repository-specific context and explicit decisions, if any.
-2. [docs/DOCUMENTATION_UPDATE_RULES.md](../DOCUMENTATION_UPDATE_RULES.md):
-   canonical policy for docs structure and bilingual sync.
-3. [docs/TODO.md](../TODO.md): current backlog and follow-up design notes.
-4. [docs/ja/project-charter.ja.md](../ja/project-charter.ja.md): Japanese
+2. [docs/en/ubiquitous-language.md](./ubiquitous-language.md): shared
+  project vocabulary that agents may maintain for context alignment.
+3. [docs/DOCUMENTATION_UPDATE_RULES.md](../DOCUMENTATION_UPDATE_RULES.md):
+  canonical policy for docs structure and bilingual sync.
+4. [docs/TODO.md](../TODO.md): current backlog and follow-up design notes.
+5. [docs/ja/project-charter.ja.md](../ja/project-charter.ja.md): Japanese
    counterpart.
 
 ## Current Charter State
 
 - Repository purpose: agent_skills_lab is a development and experimentation
   lab for custom agents, skills, and installable ecosystems.
-- Explicit maintainer decisions:
-  - This repository intentionally serves both as a source repository for
-    reusable ecosystems and as a self-hosted target for
-    repository-governance.
-  - Ecosystem operations and manifest governance are being separated into two
-    dedicated agent responsibilities.
-  - Ecosystem install and remove workflows are expected to be agent-driven and
-    PR-based rather than centered on shared scripts.
-  - Manifests are being reduced to structural ownership and dependency
-    contracts; runtime and delivery metadata are being phased out.
-  - Legacy shared installer, updater, and MCP runtime surfaces have been
-    removed in favor of delivery and manifest-governance agents plus thin
-    helper modules.
 - Editing rule for this file:
-  - Add content only when maintainers explicitly provide or approve
-    repository-specific charter decisions.
+  - Edit this file only when a maintainer explicitly instructs editing the
+    project charter.
+  - Do not add terminology here; maintain shared vocabulary in
+    [docs/en/ubiquitous-language.md](./ubiquitous-language.md).
 
 ## Related Documents
 
 - [docs/README.md](../README.md): documentation map and reading order.
+- [docs/en/ubiquitous-language.md](./ubiquitous-language.md): shared project
+  vocabulary for maintainer-agent context alignment.
 - [docs/DOCUMENTATION_UPDATE_RULES.md](../DOCUMENTATION_UPDATE_RULES.md): docs
   governance and update policy.
 - [docs/TODO.md](../TODO.md): current backlog and follow-up design notes.

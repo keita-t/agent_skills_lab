@@ -10,7 +10,9 @@ Read these first when operating as an AI coding or documentation agent.
 [docs/README.md](docs/README.md)
 [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md)
 [docs/en/project-charter.md](docs/en/project-charter.md)
+[docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md)
 [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md)
+[docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md)
 [docs/TODO.md](docs/TODO.md)
 
 ## 日本語
@@ -22,5 +24,7 @@ AI が実装や文書更新を行うときは、まず次を読みます。
 [docs/README.md](docs/README.md)
 [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md)
 [docs/en/project-charter.md](docs/en/project-charter.md)
+[docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md)
 [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md)
+[docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md)
 [docs/TODO.md](docs/TODO.md)

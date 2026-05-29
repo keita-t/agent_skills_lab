@@ -7,29 +7,36 @@ In bilingual repositories, language-specific topical reference docs belong
 under `docs/en` and `docs/ja`; keep root `docs/` files for shared navigation
 and governance unless no clearer structure exists.
 
-Use the project charter for repository-specific scope, terminology, and
-explicit maintainer decisions.
-If the charter is still minimal, rely on the implementation-facing docs and
-the documentation update rules before editing prose.
+Use the project charter for repository-specific scope and explicit
+maintainer decisions.
+Use the ubiquitous-language docs for shared project vocabulary and
+maintainer-agent context alignment.
+If the charter is still minimal, rely on the ubiquitous-language docs, the
+implementation-facing docs, and the documentation update rules before
+editing prose.
 
 ## Recommended Reading Order
 
 1. [docs/en/project-charter.md](./en/project-charter.md): project-wide
   context and explicit decisions, if any.
-2. [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md):
-   canonical rules for documentation updates and bilingual sync.
-3. [docs/en/ecosystems.md](./en/ecosystems.md): current repository ecosystem
+2. [docs/en/ubiquitous-language.md](./en/ubiquitous-language.md): shared
+  project vocabulary and context-alignment reference.
+3. [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md):
+  canonical rules for documentation updates and bilingual sync.
+4. [docs/en/ecosystems.md](./en/ecosystems.md): current repository ecosystem
   inventory with manifest crosswalks.
-4. [docs/TODO.md](./TODO.md): current backlog and design-review notes.
-5. [.github/ecosystems/README.md](../.github/ecosystems/README.md):
+5. [docs/TODO.md](./TODO.md): current backlog and design-review notes.
+6. [.github/ecosystems/README.md](../.github/ecosystems/README.md):
   implementation-facing ecosystem index.
-6. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md):
+7. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md):
    active repository-governance manifest.
 
 ## Choose By Need
 
-- Need repository-specific scope, terminology, or explicit maintainer decisions:
+- Need repository-specific scope or explicit maintainer decisions:
   [docs/en/project-charter.md](./en/project-charter.md)
+- Need shared project vocabulary or context alignment:
+  [docs/en/ubiquitous-language.md](./en/ubiquitous-language.md)
 - Need rules for rewriting documentation:
   [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md)
 - Need the current ecosystem inventory in repository-facing form:
@@ -50,22 +57,26 @@ the documentation update rules before editing prose.
 root の `docs/` には共有の案内文書とガバナンス文書を残します。明確な配置指針が
 ない場合に限って、新しい root-level docs を追加します。
 
-プロジェクト憲章は、repository 固有の目的、用語、maintainer が明示した判断を確認するときに参照します。
-憲章がまだ最小限のままであれば、実装側の文書と文書更新ルールを優先して確認します。
+プロジェクト憲章は、repository 固有の目的や前提、maintainer が明示した判断を確認するときに参照します。
+ユビキタス言語文書は、共有語彙と maintainer-agent 間の文脈合わせを確認するときに参照します。
+憲章がまだ最小限のままであれば、ユビキタス言語文書、実装側の文書、文書更新ルールを優先して確認します。
 
 ## 推奨読書順
 
 1. [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md): repository 固有の前提と明示された判断。
-2. [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md): docs 更新と英日同期の正本ルール。
-3. [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md): 現在の repository ecosystem inventory と manifest 対応表。
-4. [docs/TODO.md](./TODO.md): 現在の TODO と設計レビューのメモ。
-5. [.github/ecosystems/README.md](../.github/ecosystems/README.md): implementation-facing ecosystem index。
-6. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md): 有効な repository-governance manifest。
+2. [docs/ja/ubiquitous-language.ja.md](./ja/ubiquitous-language.ja.md): 共有語彙と文脈合わせの参照文書。
+3. [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md): docs 更新と英日同期の正本ルール。
+4. [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md): 現在の repository ecosystem inventory と manifest 対応表。
+5. [docs/TODO.md](./TODO.md): 現在の TODO と設計レビューのメモ。
+6. [.github/ecosystems/README.md](../.github/ecosystems/README.md): implementation-facing ecosystem index。
+7. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md): 有効な repository-governance manifest。
 
 ## 目的別の参照先
 
 - repository 固有の前提や明示判断を確認したい:
   [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md)
+- 共有語彙や文脈合わせを確認したい:
+  [docs/ja/ubiquitous-language.ja.md](./ja/ubiquitous-language.ja.md)
 - docs の改稿ルールを確認したい:
   [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md)
 - 現在の ecosystem inventory を repository 向けの要約で見たい:

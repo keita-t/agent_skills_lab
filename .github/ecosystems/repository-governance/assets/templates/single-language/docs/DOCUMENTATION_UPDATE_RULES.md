@@ -9,11 +9,12 @@ stable files under `docs/`.
 Related canonical docs:
 [docs/README.md](./README.md)
 [docs/project-charter.md](./project-charter.md)
+[docs/ubiquitous-language.md](./ubiquitous-language.md)
 [docs/TODO.md](./TODO.md)
 
 The project charter is not a generic rules catalog. By default it stays
-minimal and records only repository-specific scope, terminology, and explicit
-maintainer decisions.
+minimal and records only repository-specific scope and explicit maintainer
+decisions. Shared vocabulary belongs in the ubiquitous-language doc.
 
 ## Canonical Document Set
 
@@ -23,14 +24,19 @@ maintainer decisions.
 | docs/TODO.md | Operational backlog | Routine maintenance is allowed; structural reorganization requires an explicit in-session human instruction. |
 | docs/DOCUMENTATION_UPDATE_RULES.md | Documentation governance | Canonical policy source for docs updates. |
 | docs/project-charter.md | Project charter | Repository-specific context and explicit maintainer decisions. It may intentionally remain minimal. |
+| docs/ubiquitous-language.md | Ubiquitous language | Shared project vocabulary that agents may maintain for context alignment without adding policy. |
 
 If the repository needs additional permanent docs, extend `docs/README.md` and
 describe each new file's responsibility in the same change.
 
 ## Update Triggers
 
-- Project-specific scope, terminology, or explicit maintainer decisions
-  changed: update the charter in the same change.
+- Project-specific scope or explicit maintainer decisions changed and a
+  maintainer explicitly instructed charter edits: update the charter in the
+  same change.
+- Shared project vocabulary or context-alignment terminology changed:
+  update the ubiquitous-language doc in the same change. Update the charter
+  only if a maintainer explicitly instructs editing it.
 - Public contract changed: update the affected reference or overview docs in
   the same change.
 - Implementation behavior or developer workflow changed: update the docs that
@@ -38,8 +44,9 @@ describe each new file's responsibility in the same change.
 - Documentation structure changed: update `docs/README.md`, `README.md`,
   `CLAUDE.md`, and any `docs/TODO.md` references in the same change.
 - Before any docs-only rewrite, read the charter when repository-specific
-  context matters. If the charter is minimal, rely on this file and the
-  implementation-facing docs first.
+  context matters and read the ubiquitous-language doc when terminology or
+  context alignment matters. If the charter is minimal, rely on this file,
+  the ubiquitous-language doc, and the implementation-facing docs first.
 
 ## Placement And Rewrite Rules
 
@@ -49,6 +56,8 @@ describe each new file's responsibility in the same change.
   section moves before editing prose.
 - Do not leave stale summary sections behind after content has moved.
 - Keep claims anchored to implemented behavior, not future intent.
+- Keep ubiquitous-language docs descriptive. They may help align terminology,
+  but they must not become a backdoor policy surface.
 - `docs/TODO.md` may receive routine maintenance as normal work. Structural
   reorganization is allowed only on an explicit in-session human instruction.
 
@@ -75,10 +84,11 @@ families before adding new ones.
 
 1. `docs/README.md` still routes readers to the canonical docs.
 2. `README.md` and `CLAUDE.md` still link to `docs/README.md` and this file.
-3. `docs/TODO.md` edits are either routine maintenance or explicitly approved
+3. `docs/ubiquitous-language.md` stays aligned with the current terminology contract.
+4. `docs/TODO.md` edits are either routine maintenance or explicitly approved
    structural reorganization.
-4. Rewritten sections match one clear granularity label.
-5. Relative links remain valid after file moves or renames.
+5. Rewritten sections match one clear granularity label.
+6. Relative links remain valid after file moves or renames.
 
 ## Skill Compatibility Contract
 

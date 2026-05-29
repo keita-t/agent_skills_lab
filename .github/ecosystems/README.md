@@ -19,6 +19,10 @@ helpers for ecosystems managed in this repository.
   install-payload link portability across installable ecosystems.
 
 ## Installed Ecosystems
+- [codebase-context/ECOSYSTEM.md](codebase-context/ECOSYSTEM.md):
+  Export a repository into a single markdown context file for large-context
+  models, with default broad coverage and explicit user pickup rules when
+  needed.
 - [repository-governance/ECOSYSTEM.md](repository-governance/ECOSYSTEM.md):
   Repository documentation governance, bootstrap, TODO progress tracking, and
   ecosystem manifest and delivery orchestration.

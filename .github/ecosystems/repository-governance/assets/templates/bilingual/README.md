@@ -8,7 +8,9 @@ work.
 
 - [docs/README.md](docs/README.md) - Bilingual documentation map
 - [docs/en/project-charter.md](docs/en/project-charter.md) - English charter
+- [docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md) - English ubiquitous language
 - [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) - Japanese charter
+- [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md) - Japanese ubiquitous language
 - [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) - Documentation governance
 - [docs/TODO.md](docs/TODO.md) - Current backlog and design-review notes
 
@@ -19,6 +21,8 @@ work.
 
 - [docs/README.md](docs/README.md) - 英日対応のドキュメント案内
 - [docs/en/project-charter.md](docs/en/project-charter.md) - 英語版憲章
+- [docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md) - 英語版ユビキタス言語
 - [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) - 日本語版憲章
+- [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md) - 日本語版ユビキタス言語
 - [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) - 文書更新ルール
 - [docs/TODO.md](docs/TODO.md) - 現在の TODO とレビュー用メモ

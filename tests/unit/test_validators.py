@@ -382,8 +382,11 @@ def test_project_charter_templates_default_to_minimal_content(repo_root: Path) -
         text = charter_path.read_text(encoding="utf-8")
         assert "intentionally minimal" in text
         assert "generic engineering rules" in text
+        assert "explicitly instructs editing the" in text
         assert "shared rule set" not in text
         assert "project-wide engineering rules" not in text
+        assert "scope, terminology, and explicit maintainer decisions" not in text
+        assert "provide or approve" not in text
 
     rules_paths = [
         repo_root / "docs" / "DOCUMENTATION_UPDATE_RULES.md",
@@ -410,12 +413,77 @@ def test_project_charter_templates_default_to_minimal_content(repo_root: Path) -
     for rules_path in rules_paths:
         text = rules_path.read_text(encoding="utf-8")
         normalized_text = " ".join(text.split())
-        assert (
-            "repository-specific scope, terminology, and explicit maintainer decisions"
-            in normalized_text
-        )
+        assert "repository-specific scope and explicit maintainer decisions" in normalized_text
+        assert "Shared vocabulary belongs in the ubiquitous-language" in normalized_text
         assert "higher-level engineering policy" not in text
         assert "Project-wide engineering rules." not in text
+        assert "scope, terminology, and explicit maintainer decisions" not in normalized_text
+
+
+def test_repository_governance_validator_requires_bilingual_ubiquitous_language_docs(
+    repo_root: Path,
+    tmp_path: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    template_root = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "assets"
+        / "templates"
+        / "bilingual"
+    )
+    working_copy = tmp_path / "bilingual-template-missing-ubiquitous-language"
+    shutil.copytree(template_root, working_copy)
+
+    (working_copy / "docs" / "en" / "ubiquitous-language.md").unlink()
+
+    exit_code = invoke_main(
+        repository_governance_validator,
+        "--repo-root",
+        str(working_copy),
+        "--mode",
+        "bilingual",
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Missing required file: docs/en/ubiquitous-language.md" in captured.out
+
+
+def test_repository_governance_validator_requires_single_language_ubiquitous_language_doc(
+    repo_root: Path,
+    tmp_path: Path,
+    invoke_main,
+    capsys,
+) -> None:
+    template_root = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "assets"
+        / "templates"
+        / "single-language"
+    )
+    working_copy = tmp_path / "single-language-template-missing-ubiquitous-language"
+    shutil.copytree(template_root, working_copy)
+
+    (working_copy / "docs" / "ubiquitous-language.md").unlink()
+
+    exit_code = invoke_main(
+        repository_governance_validator,
+        "--repo-root",
+        str(working_copy),
+        "--mode",
+        "single-language",
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Missing required file: docs/ubiquitous-language.md" in captured.out
 
 
 def test_repository_governance_validator_rejects_extra_root_reference_doc_in_bilingual_mode(
