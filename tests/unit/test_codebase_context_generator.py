@@ -36,6 +36,13 @@ def init_git_repo(path: Path) -> None:
     subprocess.run([git_path, "init", "-q", str(path)], check=True, capture_output=True)
 
 
+def git_add_all(path: Path) -> None:
+    git_path = shutil.which("git")
+    if git_path is None:
+        pytest.skip("git is required for this test")
+    subprocess.run([git_path, "-C", str(path), "add", "-A"], check=True, capture_output=True)
+
+
 def test_generator_renders_required_template_and_excludes_noise(
     tmp_path: Path,
     codebase_context_generator,
@@ -86,6 +93,7 @@ def test_generator_respects_gitignore_by_default(
     write_text(repo_root / ".gitignore", "ignored.txt\n")
     write_text(repo_root / "src" / "app.py", "print('ok')\n")
     write_text(repo_root / "ignored.txt", "ignore me\n")
+    git_add_all(repo_root)
 
     output_path = repo_root / "default.md"
     codebase_context_generator.main(
@@ -96,6 +104,34 @@ def test_generator_respects_gitignore_by_default(
 
     assert "### src/app.py" in output
     assert "### ignored.txt" not in output
+
+
+def test_generator_default_git_export_excludes_nonignored_untracked_files(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "git-repo-tracked-only-default"
+    repo_root.mkdir()
+    init_git_repo(repo_root)
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "README.md", "# Tracked\n")
+    write_text(repo_root / "src" / "app.py", "print('untracked')\n")
+    git_add_all(repo_root)
+    subprocess.run(
+        [shutil.which("git"), "-C", str(repo_root), "reset", "-q", "src/app.py"],
+        check=True,
+        capture_output=True,
+    )
+
+    output_path = repo_root / "default.md"
+    codebase_context_generator.main(
+        ["--repo-root", str(repo_root), "--output", str(output_path)]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "### README.md\n" in output
+    assert "### src/app.py\n" not in output
 
 
 def test_generator_skips_sensitive_env_files_by_default(
@@ -123,7 +159,7 @@ def test_generator_skips_sensitive_env_files_by_default(
     assert "### .env.local\n" not in output
 
 
-def test_generator_explicit_include_can_override_sensitive_env_default(
+def test_generator_explicit_include_does_not_override_zero_trust_sensitive_env_policy(
     tmp_path: Path,
     codebase_context_generator,
 ) -> None:
@@ -134,12 +170,37 @@ def test_generator_explicit_include_can_override_sensitive_env_default(
     write_text(repo_root / ".env.local", "LOCAL_SECRET=value\n")
 
     output_path = repo_root / "env-only.md"
+    with pytest.raises(RuntimeError, match="No repository files matched the selected export scope"):
+        codebase_context_generator.main(
+            [
+                "--repo-root",
+                str(repo_root),
+                "--include",
+                ".env.local",
+                "--output",
+                str(output_path),
+            ]
+        )
+
+
+def test_generator_wildcard_include_keeps_zero_trust_sensitive_env_files_excluded(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "plain-repo-sensitive-env-wildcard"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('ok')\n")
+    write_text(repo_root / ".env.local", "LOCAL_SECRET=value\n")
+    write_text(repo_root / ".env.example", "EXAMPLE=value\n")
+
+    output_path = repo_root / "wildcard.md"
     codebase_context_generator.main(
         [
             "--repo-root",
             str(repo_root),
             "--include",
-            ".env.local",
+            "*",
             "--output",
             str(output_path),
         ]
@@ -147,8 +208,9 @@ def test_generator_explicit_include_can_override_sensitive_env_default(
 
     output = output_path.read_text(encoding="utf-8")
 
-    assert "### .env.local\n" in output
-    assert "### src/app.py\n" not in output
+    assert "### .env.local\n" not in output
+    assert "### .env.example\n" in output
+    assert "### src/app.py\n" in output
 
 
 def test_generator_explicit_include_does_not_override_default_exclusions(
@@ -219,7 +281,7 @@ def test_list_repo_files_applies_include_scope_before_reading_text_files(
     write_text(repo_root / "README.md", "# Skip me\n")
 
     output_path = repo_root / "scoped.md"
-    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["src/**"])
+    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["src/**"], [])
 
     assert [codebase_context_generator.relative_posix_path(path, repo_root) for path in paths] == [
         "src/app.py"
@@ -239,7 +301,7 @@ def test_list_repo_files_keeps_ignored_files_excluded_even_with_include(
     write_text(repo_root / "docs" / "private.md", "# Ignore me\n")
 
     output_path = repo_root / "docs-only.md"
-    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["docs/**"])
+    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["docs/**"], [])
 
     assert [codebase_context_generator.relative_posix_path(path, repo_root) for path in paths] == [
         "docs/public.md"
@@ -259,7 +321,7 @@ def test_include_scope_keeps_excluded_directories_filtered_in_git_mode(
     write_text(repo_root / "build" / "secret.py", "print('skip me')\n")
 
     output_path = repo_root / "python-only.md"
-    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["*.py"])
+    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["*.py"], [])
 
     assert [codebase_context_generator.relative_posix_path(path, repo_root) for path in paths] == [
         "src/app.py"
@@ -310,10 +372,73 @@ def test_fallback_include_prunes_excluded_directories(
         )
 
 
+def test_list_repo_files_applies_exclude_scope_before_reading_text_files(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "plain-repo-exclude-scope"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('keep me')\n")
+    write_text(repo_root / "README.md", "# Skip me\n")
+
+    output_path = repo_root / "excluded.md"
+    paths = codebase_context_generator.list_repo_files(repo_root, output_path, [], ["README.md"])
+
+    assert [codebase_context_generator.relative_posix_path(path, repo_root) for path in paths] == [
+        "src/app.py"
+    ]
+
+
+def test_fallback_include_prunes_unrelated_directories(
+    tmp_path: Path,
+    codebase_context_generator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo_root = tmp_path / "fallback-pattern-pruning"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "docs" / "project-charter.md", "# Charter\n")
+    write_text(repo_root / "unrelated" / "nested" / "note.md", "# Skip\n")
+
+    visited_roots: list[Path] = []
+    real_walk = codebase_context_generator.os.walk
+
+    def recording_walk(*args, **kwargs):
+        for current_root, dir_names, file_names in real_walk(*args, **kwargs):
+            visited_roots.append(Path(current_root).resolve())
+            yield current_root, dir_names, file_names
+
+    monkeypatch.setattr(codebase_context_generator, "list_git_files", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(codebase_context_generator.os, "walk", recording_walk)
+
+    output_path = repo_root / "docs-only.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--include",
+            "docs/project-charter.md",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert repo_root.resolve() in visited_roots
+    assert (repo_root / "docs").resolve() in visited_roots
+    assert (repo_root / "unrelated").resolve() not in visited_roots
+
+
 def test_should_descend_into_directory_keeps_excluded_dirs_filtered(
     codebase_context_generator,
 ) -> None:
     assert codebase_context_generator.should_descend_into_directory("src", ["src/**"])
+    assert not codebase_context_generator.should_descend_into_directory(
+        "src", ["docs/project-charter.md"]
+    )
+    assert codebase_context_generator.should_descend_into_directory(
+        "docs", ["docs/project-charter.md"]
+    )
     assert not codebase_context_generator.should_descend_into_directory(".git", ["src/**"])
     assert not codebase_context_generator.should_descend_into_directory("build", ["build/**"])
 
