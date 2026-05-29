@@ -62,6 +62,10 @@ Both smoke tests spin up a repo-contained Docker sandbox built from
 GitHub Actions CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs
 all of the above on every push.
 
+### Operational Precautions
+
+The agents that make up the ecosystem are powered by AI and therefore can make critical mistakes. While the installation and removal workflows are designed to only affect files declared in the manifest, there is a non-zero risk of unexpected file changes due to AI errors. If you install the ecosystem in a critical repository, do so at your own risk and carefully review any changes.
+
 ### Where to go next
 
 - [docs/en/ecosystems.md](docs/en/ecosystems.md) — Full ecosystem inventory with implementation details
@@ -127,6 +131,10 @@ tests/sandbox/run_repository_governance_container_smoke.sh
 [tests/sandbox/base/Dockerfile](tests/sandbox/base/Dockerfile)
 をベースにした repo 内 Docker sandbox 上で動きます。
 GitHub Actions CI（[.github/workflows/ci.yml](.github/workflows/ci.yml)）は、プッシュごとにすべてのテストを実行します。
+
+### 運用上の注意
+
+ecosystem を構成するエージェントは、 AI によって動作しているため、致命的なミスをする可能性があります。インストールや削除のワークフローは、マニフェストで宣言されたファイルにのみ作用するように設計されていますが、AI の判断ミスによって予期せぬファイルが変更されるリスクはゼロではありません。重要なリポジトリに ecosystem をインストールする場合は、自己責任で、変更内容を注意深くレビューしてください。
 
 ### 次に読む
 
