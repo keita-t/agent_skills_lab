@@ -157,6 +157,25 @@ def test_generator_explicit_include_keeps_nonignored_untracked_files_in_git_repo
     assert "### README.md" not in output
 
 
+def test_list_repo_files_applies_include_scope_before_reading_text_files(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "git-repo-list-scope"
+    repo_root.mkdir()
+    init_git_repo(repo_root)
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('keep me')\n")
+    write_text(repo_root / "README.md", "# Skip me\n")
+
+    output_path = repo_root / "scoped.md"
+    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["src/**"])
+
+    assert [codebase_context_generator.relative_posix_path(path, repo_root) for path in paths] == [
+        "src/app.py"
+    ]
+
+
 def test_fallback_include_prunes_excluded_directories_without_losing_explicit_targets(
     tmp_path: Path,
     codebase_context_generator,

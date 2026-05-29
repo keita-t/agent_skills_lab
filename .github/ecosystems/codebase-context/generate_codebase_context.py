@@ -204,21 +204,21 @@ def should_skip_path_for_scope(
     output_path: Path,
     include_patterns: list[str],
 ) -> bool:
-    if not should_skip_path(path, repo_root, output_path):
-        return False
-    if not include_patterns:
-        return True
-
     resolved_path = path.resolve()
     if resolved_path == output_path:
         return True
     try:
-        relative_path = relative_posix_path(resolved_path, repo_root)
+        relative_path_obj = resolved_path.relative_to(repo_root)
     except ValueError:
         return True
-    if any(part in EXCLUDED_DIR_NAMES for part in resolved_path.relative_to(repo_root).parts[:-1]):
+    if not resolved_path.is_file():
+        return True
+
+    relative_path = relative_path_obj.as_posix()
+    if include_patterns:
         return not matches_any_pattern(relative_path, include_patterns)
-    return not resolved_path.is_file()
+
+    return any(part in EXCLUDED_DIR_NAMES for part in relative_path_obj.parts[:-1])
 
 
 def list_repo_files(repo_root: Path, output_path: Path, include_patterns: list[str]) -> list[Path]:
