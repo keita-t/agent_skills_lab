@@ -78,6 +78,24 @@ LANGUAGE_BY_NAME = {
     "Dockerfile": "dockerfile",
     "Makefile": "makefile",
 }
+_OUTPUT_TEMPLATES: dict[str, dict[str, str]] = {
+    "ja": {
+        "instruction_header": "【指示】",
+        "instruction_body": "これから提示するソースコード全体の依存関係を解析し、ユーザーのプロンプトで提示された内容の解決を行ってください。",
+        "index_header": "【インデックス】",
+        "codebase_header": "【コードベース】",
+        "reminder_header": "【念押しの指示（最後に小さく）】",
+        "reminder_body": "以上がコードベースです。上記【指示】に従って、まずは全体の方針から提示してください。",
+    },
+    "en": {
+        "instruction_header": "[Instructions]",
+        "instruction_body": "Analyse the full dependency graph of the codebase shown below and resolve the task described in the user prompt.",
+        "index_header": "[Index]",
+        "codebase_header": "[Codebase]",
+        "reminder_header": "[Reminder]",
+        "reminder_body": "The full codebase is above. Following the [Instructions], start by describing your overall approach before diving into changes.",
+    },
+}
 LANGUAGE_BY_SUFFIX = {
     ".bash": "bash",
     ".c": "c",
@@ -161,6 +179,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=int,
         default=DEFAULT_INDEX_DEPTH,
         help="Maximum directory depth shown in the index tree.",
+    )
+    parser.add_argument(
+        "--output-lang",
+        choices=tuple(_OUTPUT_TEMPLATES),
+        default="ja",
+        help="Language of the output headers and instructions (default: ja).",
     )
     return parser.parse_args(argv)
 
@@ -253,6 +277,12 @@ def list_git_files(
                 "-z",
             ]
         ]
+        # Only scan untracked files when the caller explicitly narrowed the scope
+        # with --include. In that case the user is targeting specific paths and
+        # should see newly-created files that match before they are committed.
+        # Without --include the export covers the full repository; adding untracked
+        # files there would introduce workspace noise (build artifacts, temp files)
+        # that git intentionally omits from its committed file set.
         if include_patterns:
             commands.append(
                 [
@@ -422,39 +452,30 @@ def should_descend_into_directory(relative_path: str, patterns: list[str]) -> bo
 
 def select_paths(
     text_files: dict[str, str],
-    include_patterns: list[str],
-    exclude_patterns: list[str],
+    has_include_scope: bool,
     auxiliary_policy: str,
 ) -> list[str]:
+    # list_repo_files already applied include/exclude pattern filtering.
+    # This function is responsible solely for auxiliary-file policy: when the
+    # caller did not supply --include, decide which supporting files to keep.
     all_paths = sorted(text_files)
-    if include_patterns:
-        selected = [
-            relative_path
-            for relative_path in all_paths
-            if matches_any_pattern(relative_path, include_patterns)
-        ]
-    else:
-        selected = []
-        for relative_path in all_paths:
-            pure_path = PurePosixPath(relative_path)
-            auxiliary = is_auxiliary_file(pure_path)
-            if auxiliary_policy == "all":
+    if has_include_scope:
+        # Explicit scope provided — all candidates are already include-filtered
+        # upstream, so return them as-is regardless of auxiliary status.
+        return all_paths
+    selected = []
+    for relative_path in all_paths:
+        pure_path = PurePosixPath(relative_path)
+        auxiliary = is_auxiliary_file(pure_path)
+        if auxiliary_policy == "all":
+            selected.append(relative_path)
+            continue
+        if auxiliary_policy == "none":
+            if not auxiliary:
                 selected.append(relative_path)
-                continue
-            if auxiliary_policy == "none":
-                if not auxiliary:
-                    selected.append(relative_path)
-                continue
-            if not auxiliary or is_useful_auxiliary_file(pure_path):
-                selected.append(relative_path)
-
-    if exclude_patterns:
-        selected = [
-            relative_path
-            for relative_path in selected
-            if not matches_any_pattern(relative_path, exclude_patterns)
-        ]
-
+            continue
+        if not auxiliary or is_useful_auxiliary_file(pure_path):
+            selected.append(relative_path)
     return sorted(selected)
 
 
@@ -540,23 +561,24 @@ def render_codebase_section(selected_paths: list[str], text_files: dict[str, str
     return "\n\n".join(sections)
 
 
-def build_markdown(index_text: str, codebase_text: str) -> str:
+def build_markdown(index_text: str, codebase_text: str, lang: str = "ja") -> str:
+    t = _OUTPUT_TEMPLATES[lang]
     parts = [
-        "【指示】",
-        "これから提示するソースコード全体の依存関係を解析し、ユーザーのプロンプトで提示された内容の解決を行ってください。",
+        t["instruction_header"],
+        t["instruction_body"],
         "",
-        "【インデックス】",
+        t["index_header"],
         "```text",
         index_text,
         "```",
         "",
-        "【コードベース】",
+        t["codebase_header"],
         codebase_text,
         "",
         "<small>",
         "",
-        "【念押しの指示（最後に小さく）】",
-        "以上がコードベースです。上記【指示】に従って、まずは全体の方針から提示してください。",
+        t["reminder_header"],
+        t["reminder_body"],
         "",
         "</small>",
         "",
@@ -582,8 +604,7 @@ def main(argv: list[str] | None = None) -> int:
 
     selected_paths = select_paths(
         text_files,
-        include_patterns=args.include,
-        exclude_patterns=args.exclude,
+        has_include_scope=bool(args.include),
         auxiliary_policy=auxiliary_policy,
     )
     if not selected_paths:
@@ -591,7 +612,7 @@ def main(argv: list[str] | None = None) -> int:
 
     index_text = build_index(selected_paths, args.index_depth)
     codebase_text = render_codebase_section(selected_paths, text_files)
-    markdown_text = build_markdown(index_text, codebase_text)
+    markdown_text = build_markdown(index_text, codebase_text, lang=args.output_lang)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(markdown_text, encoding="utf-8")
