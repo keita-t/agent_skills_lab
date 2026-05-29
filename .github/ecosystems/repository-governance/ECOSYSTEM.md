@@ -6,8 +6,9 @@ status: active
 root-agent: governance-repository-context-manager.agent.md
 agents: [governance-repository-context-manager.agent.md, governance-ecosystem-manifest.agent.md, governance-ecosystem-delivery.agent.md]
 skills: [repository-governance-bootstrap, repository-doc-governance, todo-progress-governance]
-dependencies: []
-ecosystem-files: [.github/ecosystems/repository-governance/assets/templates, .github/ecosystems/repository-governance/validate_repository_governance.py, .github/ecosystems/repository-governance/validate_repository_governance.sh]
+dependencies: [ecosystem-audit]
+ecosystem-files: [.github/ecosystems/repository-governance/assets/templates]
+audit-files: [.github/ecosystems/repository-governance/audit/repository-governance-audit.md]
 ---
 
 # Repository Governance Ecosystem
@@ -31,9 +32,11 @@ for repository documentation governance.
 - Copy the listed skill directories from `.github/skills/`.
 - Copy the ecosystem-owned files listed in frontmatter from
   `.github/ecosystems/repository-governance/`.
+- Copy the audit files listed in frontmatter from
+  `.github/ecosystems/repository-governance/`.
 - Copy this manifest into the target project's `.github/ecosystems/` tree.
-- Treat the listed agents, skills, ecosystem-owned files, and this manifest as
-  the full install/remove ownership contract.
+- Treat the listed agents, skills, ecosystem-owned files, audit files, and this
+  manifest as the full install/remove ownership contract.
 - Keep installable markdown artifacts self-contained to that manifest-owned
   payload. Relative repository-local links inside installed agents, skills,
   template docs, and this manifest must resolve to manifest-owned paths.
@@ -42,8 +45,10 @@ for repository documentation governance.
 - Template packs and repository-governance-specific validation assets are owned
   by this ecosystem directory so install payload and validation dependencies
   stay explicit in the manifest.
-- Legacy shared automation is being phased out and is not part of this
-  manifest-owned payload.
+- Repository-governance-specific audits now live in manifest-declared audit
+  files and are applied through the shared `ecosystem-audit` platform.
+- Legacy validator scripts may remain in the source repository during
+  migration, but they are not part of the shipped manifest-owned payload.
 - Source-only shared helpers under `.github/ecosystems/` may be mentioned as
   operational context, but installable artifacts must not link to them unless
   the manifest explicitly owns them.

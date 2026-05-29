@@ -12,7 +12,7 @@ redefining their policy text.
 
 ## Responsibilities
 - Use `repository-governance-bootstrap` when the repository needs initial
-  scaffolding, template installation, or validator repair.
+  scaffolding, template installation, or audit guidance repair.
 - Use `repository-doc-governance` when implementation changes require updates
   to canonical documents, document maps, or repository navigation.
 - Use `todo-progress-governance` when backlog or design-review tracking files
@@ -24,7 +24,7 @@ redefining their policy text.
 2. If a requested change would structurally reorganize a TODO or progress file,
    ask for explicit in-session approval before editing.
 3. Prefer the smallest set of repository changes needed to restore alignment.
-4. After the governance doc pack or bootstrap templates have been applied to a target repository, run `bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>`. Before bootstrap, validate the shipped templates by pointing `--repo-root` at `.github/ecosystems/repository-governance/assets/templates/<mode>`. If manifest, agent, or skill metadata changes are being made in the upstream ecosystem source repository, run that source repository's own ecosystem-registry validation workflow there before delivery; it is source-only and is not shipped into target repositories.
+4. After the governance doc pack or bootstrap templates have been applied to a target repository, ask the Ecosystem Audit Agent to audit the repository with the shared core rules and the shipped repository-governance audit pack. Before bootstrap, review the matching template pack under `.github/ecosystems/repository-governance/assets/templates/<mode>` together with the repository-governance audit file. If manifest, agent, skill, dependency, or audit metadata changes are made in the upstream ecosystem source repository, ask the Ecosystem Audit Agent to audit the source repository before delivery.
 
 ## Output Format
 1. Selected workflow

@@ -1,6 +1,6 @@
 ---
 name: repository-governance-bootstrap
-description: 'Bootstrap or repair repository documentation governance, documentation maps, TODO progress governance, and validation entry points. Use for initial setup, policy installation, or reusable repository context scaffolding.'
+description: 'Bootstrap or repair repository documentation governance, documentation maps, TODO progress governance, and audit entry points. Use for initial setup, policy installation, or reusable repository context scaffolding.'
 ecosystem: repository-governance
 argument-hint: 'Describe the target repository, current docs state, and whether you want single-language or bilingual governance.'
 ---
@@ -9,7 +9,7 @@ argument-hint: 'Describe the target repository, current docs state, and whether 
 
 ## When To Use
 - Initialize a repository with reusable documentation-governance scaffolding.
-- Repair missing governance files, missing routing docs, or missing validators.
+- Repair missing governance files, missing routing docs, or missing audit guidance.
 - Introduce a TODO/progress-management model that distinguishes routine updates
   from structural reorganization.
 
@@ -30,7 +30,7 @@ use to understand and maintain the repository.
 2. Decide whether to merge with existing docs or install the package structure
    as a new canonical set.
 3. Add or repair the shared governance artifacts, including document maps,
-   routing docs, template-based canonical files, and validators.
+   routing docs, template-based canonical files, and audit guidance.
 4. Ensure repository-level entry points link to the canonical docs map and the
    documentation update rules.
 5. Choose a pack from [single-language templates](../../ecosystems/repository-governance/assets/templates/single-language/README.md)
@@ -43,15 +43,16 @@ use to understand and maintain the repository.
    [Ecosystem Delivery Orchestrator](../../agents/governance-ecosystem-delivery.agent.md)
    or another source-side delivery workflow that copies only the
    manifest-owned payload into the target repository.
-7. When the ecosystem registry or manifests change in the upstream source
-   ecosystem repository, run that source repository's own ecosystem-registry
-   validation workflow before delivery; it is source-only and is not shipped
-   into target repositories. Keep installable artifacts free of links to
-   source-only shared helpers.
-8. Run [validate_repository_governance.sh](../../ecosystems/repository-governance/validate_repository_governance.sh)
-   with `--mode bilingual` for bilingual repositories or `--mode single-language`
-   otherwise. When validating a template pack or another checkout, pass
-   `--repo-root <path>`.
+7. When ecosystem manifests, dependencies, or audit files change in the
+   upstream source repository, ask the Ecosystem Audit Agent to audit the
+   current ecosystems before delivery. Keep installable artifacts free of links
+   to source-only shared helpers.
+8. After bootstrap or repair, ask the Ecosystem Audit Agent to audit the target
+   repository using the shared core rules and the shipped
+   `repository-governance` audit pack. State whether the repository should be
+   checked in bilingual or single-language mode. When reviewing a template pack
+   or another checkout before bootstrap, inspect the matching template pack path
+   together with the repository-governance audit file.
 
 ## Rules
 1. Do not overwrite repository-specific documentation wholesale without a

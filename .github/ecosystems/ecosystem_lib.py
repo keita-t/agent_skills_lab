@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import shutil
 
@@ -79,12 +79,14 @@ class EcosystemManifest:
     dependencies: list[str]
     ecosystem_files: list[str]
     manifest_path: Path
+    audit_files: list[str] = field(default_factory=list)
 
 
 def manifest_owned_relative_paths(manifest: EcosystemManifest) -> list[str]:
     relative_paths = [f".github/agents/{agent}" for agent in manifest.agents]
     relative_paths.extend(f".github/skills/{skill}" for skill in manifest.skills)
     relative_paths.extend(manifest.ecosystem_files)
+    relative_paths.extend(manifest.audit_files)
     relative_paths.append(f".github/ecosystems/{manifest.slug}/ECOSYSTEM.md")
     return relative_paths
 
@@ -116,6 +118,7 @@ def load_ecosystem_manifest(path: Path) -> EcosystemManifest:
         skills=list(metadata["skills"]),
         dependencies=list(metadata["dependencies"]),
         ecosystem_files=list(metadata["ecosystem-files"]),
+        audit_files=list(metadata.get("audit-files", [])),
         manifest_path=path,
     )
 
@@ -128,6 +131,57 @@ def load_ecosystem_manifests(repo_root: Path) -> list[EcosystemManifest]:
     for path in sorted(ecosystems_dir.glob("*/ECOSYSTEM.md")):
         manifests.append(load_ecosystem_manifest(path))
     return manifests
+
+
+def load_ecosystem_manifest_map(repo_root: Path) -> dict[str, EcosystemManifest]:
+    return {manifest.slug: manifest for manifest in load_ecosystem_manifests(repo_root)}
+
+
+def resolve_manifest_dependency_closure_from_map(
+    manifests_by_slug: dict[str, EcosystemManifest],
+    ecosystem_slug: str,
+) -> list[EcosystemManifest]:
+    if ecosystem_slug not in manifests_by_slug:
+        raise FileNotFoundError(f"Ecosystem manifest not found for slug: {ecosystem_slug}")
+
+    ordered_manifests: list[EcosystemManifest] = []
+    visited: set[str] = set()
+    visiting: list[str] = []
+
+    def walk(slug: str) -> None:
+        if slug in visited:
+            return
+        if slug in visiting:
+            cycle_start = visiting.index(slug)
+            cycle = visiting[cycle_start:] + [slug]
+            raise RuntimeError(
+                "Circular ecosystem dependency detected: " + " -> ".join(cycle)
+            )
+
+        manifest = manifests_by_slug.get(slug)
+        if manifest is None:
+            parent = visiting[-1] if visiting else ecosystem_slug
+            raise RuntimeError(
+                f"Ecosystem {parent} references unknown dependency: {slug}"
+            )
+
+        visiting.append(slug)
+        for dependency in manifest.dependencies:
+            walk(dependency)
+        visiting.pop()
+        visited.add(slug)
+        ordered_manifests.append(manifest)
+
+    walk(ecosystem_slug)
+    return ordered_manifests
+
+
+def resolve_manifest_dependency_closure(
+    repo_root: Path,
+    ecosystem_slug: str,
+) -> list[EcosystemManifest]:
+    manifests_by_slug = load_ecosystem_manifest_map(repo_root)
+    return resolve_manifest_dependency_closure_from_map(manifests_by_slug, ecosystem_slug)
 
 
 def load_agent_metadata(repo_root: Path) -> dict[str, dict[str, object]]:
@@ -150,6 +204,8 @@ def load_skill_metadata(repo_root: Path) -> dict[str, dict[str, object]]:
         frontmatter, _ = load_markdown(path)
         metadata[path.parent.name] = dict(frontmatter)
     return metadata
+
+
 def merge_managed_block(existing_text: str, generated_text: str) -> str:
     block = (
         f"{MANAGED_BLOCK_START}\n{generated_text.rstrip()}\n{MANAGED_BLOCK_END}\n"

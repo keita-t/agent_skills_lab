@@ -28,9 +28,16 @@ maintainer が明示的に憲章編集を指示した場合にのみ憲章へ反
 | ecosystem | manifest が ownership を持つ agent、skill、helper file をひとまとまりで target repository に届ける再利用可能なパッケージ。 |
 | manifest | `.github/ecosystems/<slug>/ECOSYSTEM.md` にある、ecosystem の ownership、dependency、install payload を定義する Markdown contract。 |
 | ownership contract | install と remove の対象として manifest が所有を宣言するファイル集合。 |
-| source repository | reusable ecosystem asset を authoring し、delivery 前に validation する側の repository。 |
+| audit-files | shared audit platform を各 ecosystem から拡張するために manifest で宣言する ecosystem 固有の audit 文書。所有権はその ecosystem が持つ。 |
+| ecosystem-audit | 共通 audit agent、cross-ecosystem な core rules、audit report contract を提供する shared ecosystem。 |
+| work-quality audit | structural conformance だけでなく、成果物の質と振る舞い品質のシグナルも評価する監査レイヤー。 |
+| rubric summary | 品質次元、rating、evidence basis、confidence を detailed finding より先に要約する audit section。 |
+| evidence basis | finding が artifact-observed、runtime-observed、definition-inferred のどれに基づくかを示すラベル。 |
+| upstream improvement feedback | local repair だけでなく、source ecosystem 側へ返す改善提案。 |
+| sandbox smoke | 隔離した container 内の一時 git repository に対して installed-target ecosystem smoke test を回す、repo 同梱の Docker workflow。 |
+| source repository | reusable ecosystem asset を authoring し、delivery 前に監査する側の repository。 |
 | target repository | ecosystem の manifest-owned payload を install または remove workflow で受け取る側の repository。 |
-| repository-governance | repository docs、更新ルール、validator、template、関連オーケストレーション guidance を扱う ecosystem。 |
+| repository-governance | repository docs、更新ルール、template、audit guidance、関連オーケストレーション guidance を扱う ecosystem。 |
 | ユビキタス言語 | 方針文書ではなく、maintainer と agent の文脈合わせを助ける共有語彙レイヤー。 |
 
 ## Related Documents

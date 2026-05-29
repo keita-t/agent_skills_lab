@@ -233,40 +233,56 @@ def list_git_files(
     output_path: Path,
     include_patterns: list[str],
 ) -> list[Path] | None:
-    command = [
-        "git",
-        "-C",
-        str(repo_root),
-        "ls-files",
-        "--cached",
-        "--others",
+    commands = [
+        [
+            "git",
+            "-C",
+            str(repo_root),
+            "ls-files",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "-z",
+        ]
     ]
     if include_patterns:
-        command.append("--ignored")
-    command.extend(["--exclude-standard", "-z"])
-    try:
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            check=False,
+        commands.append(
+            [
+                "git",
+                "-C",
+                str(repo_root),
+                "ls-files",
+                "--others",
+                "--ignored",
+                "--exclude-standard",
+                "-z",
+            ]
         )
-    except FileNotFoundError:
-        return None
-    if result.returncode != 0:
-        return None
 
     files: list[Path] = []
     seen: set[Path] = set()
-    for raw_path in result.stdout.split(b"\0"):
-        if not raw_path:
-            continue
-        candidate = (repo_root / raw_path.decode("utf-8")).resolve()
-        if should_skip_path_for_scope(candidate, repo_root, output_path, include_patterns):
-            continue
-        if candidate in seen:
-            continue
-        seen.add(candidate)
-        files.append(candidate)
+    try:
+        for command in commands:
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                return None
+            for raw_path in result.stdout.split(b"\0"):
+                if not raw_path:
+                    continue
+                candidate = (repo_root / raw_path.decode("utf-8")).resolve()
+                if should_skip_path_for_scope(candidate, repo_root, output_path, include_patterns):
+                    continue
+                if candidate in seen:
+                    continue
+                seen.add(candidate)
+                files.append(candidate)
+    except FileNotFoundError:
+        return None
+
     return sorted(files, key=lambda path: relative_posix_path(path, repo_root))
 
 

@@ -11,8 +11,10 @@ from typing import Literal
 from ecosystem_lib import (
     EcosystemManifest,
     find_repo_root,
-    load_ecosystem_manifest,
+    load_ecosystem_manifest_map,
     manifest_owned_relative_paths,
+    resolve_manifest_dependency_closure,
+    resolve_manifest_dependency_closure_from_map,
 )
 
 
@@ -36,6 +38,7 @@ class CommandResult:
 class DeliveryExecutionResult:
     action: Literal["install", "remove"]
     ecosystem_slug: str
+    resolved_ecosystems: list[str]
     target_repo: str
     base_branch: str
     branch_name: str
@@ -86,13 +89,6 @@ class ShellCommandRunner:
         )
 
 
-def _resolve_manifest(source_root: Path, ecosystem_slug: str) -> EcosystemManifest:
-    manifest_path = source_root / ".github" / "ecosystems" / ecosystem_slug / "ECOSYSTEM.md"
-    if not manifest_path.is_file():
-        raise FileNotFoundError(f"Ecosystem manifest not found: {manifest_path}")
-    return load_ecosystem_manifest(manifest_path)
-
-
 def _resolve_source_root(source_root: Path | None) -> Path:
     return source_root or find_repo_root(Path(__file__).resolve())
 
@@ -127,18 +123,97 @@ def generate_pr_title(
 def generate_pr_body(
     ecosystem_slug: str,
     action: Literal["install", "remove"],
+    resolved_ecosystems: list[str],
     file_actions: list[str],
 ) -> str:
     lines = [
         f"## Ecosystem {action}",
         "",
-        f"- Ecosystem: `{ecosystem_slug}`",
+        f"- Requested ecosystem: `{ecosystem_slug}`",
+        f"- Resolved ecosystems: `{', '.join(resolved_ecosystems)}`",
         f"- Action: `{action}`",
         "",
         "## Manifest-owned file changes",
     ]
     lines.extend(f"- `{entry}`" for entry in file_actions)
     return "\n".join(lines)
+
+
+def _resolve_install_manifests(
+    source_root: Path,
+    ecosystem_slug: str,
+) -> list[EcosystemManifest]:
+    return resolve_manifest_dependency_closure(source_root, ecosystem_slug)
+
+
+def _resolve_remove_manifests(
+    source_root: Path,
+    target_root: Path,
+    ecosystem_slug: str,
+) -> list[EcosystemManifest]:
+    requested_manifests = resolve_manifest_dependency_closure(source_root, ecosystem_slug)
+    installed_manifests = load_ecosystem_manifest_map(target_root)
+    requested_slugs = {manifest.slug for manifest in requested_manifests}
+    preserved_dependencies: set[str] = set()
+    blocking_dependents: list[str] = []
+
+    for installed_slug in sorted(installed_manifests):
+        if installed_slug == ecosystem_slug:
+            continue
+        if installed_slug in requested_slugs:
+            continue
+        installed_closure = resolve_manifest_dependency_closure_from_map(
+            installed_manifests,
+            installed_slug,
+        )
+        installed_closure_slugs = {manifest.slug for manifest in installed_closure}
+        if ecosystem_slug in installed_closure_slugs:
+            blocking_dependents.append(installed_slug)
+            continue
+        preserved_dependencies.update(installed_closure_slugs & requested_slugs)
+
+    if blocking_dependents:
+        raise RuntimeError(
+            f"Cannot remove ecosystem {ecosystem_slug} because installed ecosystems depend on it: "
+            + ", ".join(blocking_dependents)
+        )
+
+    return [
+        manifest
+        for manifest in requested_manifests
+        if manifest.slug == ecosystem_slug or manifest.slug not in preserved_dependencies
+    ]
+
+
+def _iter_manifest_owned_paths(
+    manifests: list[EcosystemManifest],
+    *,
+    remove_mode: bool,
+) -> list[tuple[EcosystemManifest, str]]:
+    entries: list[tuple[EcosystemManifest, str]] = []
+    seen_paths: dict[str, str] = {}
+
+    for manifest in manifests:
+        if remove_mode:
+            relative_paths = sorted(
+                manifest_owned_relative_paths(manifest),
+                key=lambda value: (value.count("/"), value),
+                reverse=True,
+            )
+        else:
+            relative_paths = sorted(manifest_owned_relative_paths(manifest))
+
+        for relative_path in relative_paths:
+            owner = seen_paths.get(relative_path)
+            if owner is not None and owner != manifest.slug:
+                raise RuntimeError(
+                    "Manifest-owned path conflict between ecosystems "
+                    f"{owner} and {manifest.slug}: {relative_path}"
+                )
+            seen_paths[relative_path] = manifest.slug
+            entries.append((manifest, relative_path))
+
+    return entries
 
 
 def execute_delivery_plan(
@@ -181,21 +256,33 @@ def execute_delivery_plan(
 
     if dry_run:
         if action == "install":
+            resolved_manifests = _resolve_install_manifests(
+                resolved_source_root,
+                ecosystem_slug,
+            )
             changes = build_install_changeset(
                 target_root=clone_path,
                 ecosystem_slug=ecosystem_slug,
                 source_root=resolved_source_root,
+                manifests=resolved_manifests,
             )
         else:
+            resolved_manifests = _resolve_remove_manifests(
+                resolved_source_root,
+                clone_path,
+                ecosystem_slug,
+            )
             changes = build_remove_changeset(
                 target_root=clone_path,
                 ecosystem_slug=ecosystem_slug,
                 source_root=resolved_source_root,
+                manifests=resolved_manifests,
             )
         file_actions = apply_delivery_changes(changes, dry_run=True)
         return DeliveryExecutionResult(
             action=action,
             ecosystem_slug=ecosystem_slug,
+            resolved_ecosystems=[manifest.slug for manifest in resolved_manifests],
             target_repo=target_repo,
             base_branch=resolved_base_branch,
             branch_name=prepare_branch_name(ecosystem_slug, action, branch_name),
@@ -203,7 +290,12 @@ def execute_delivery_plan(
             clone_path=str(clone_path),
             file_actions=file_actions,
             pr_title=generate_pr_title(ecosystem_slug, action),
-            pr_body=generate_pr_body(ecosystem_slug, action, file_actions),
+            pr_body=generate_pr_body(
+                ecosystem_slug,
+                action,
+                [manifest.slug for manifest in resolved_manifests],
+                file_actions,
+            ),
             pr_url=None,
             committed=False,
         )
@@ -212,21 +304,37 @@ def execute_delivery_plan(
         runner.run(["git", "switch", resolved_base_branch], cwd=clone_path)
 
     if action == "install":
+        resolved_manifests = _resolve_install_manifests(
+            resolved_source_root,
+            ecosystem_slug,
+        )
         changes = build_install_changeset(
             target_root=clone_path,
             ecosystem_slug=ecosystem_slug,
             source_root=resolved_source_root,
+            manifests=resolved_manifests,
         )
     else:
+        resolved_manifests = _resolve_remove_manifests(
+            resolved_source_root,
+            clone_path,
+            ecosystem_slug,
+        )
         changes = build_remove_changeset(
             target_root=clone_path,
             ecosystem_slug=ecosystem_slug,
             source_root=resolved_source_root,
+            manifests=resolved_manifests,
         )
 
     file_actions = apply_delivery_changes(changes)
     pr_title = generate_pr_title(ecosystem_slug, action)
-    pr_body = generate_pr_body(ecosystem_slug, action, file_actions)
+    pr_body = generate_pr_body(
+        ecosystem_slug,
+        action,
+        [manifest.slug for manifest in resolved_manifests],
+        file_actions,
+    )
     resolved_branch_name = prepare_branch_name(ecosystem_slug, action, branch_name)
 
     status_result = runner.run(["git", "status", "--short"], cwd=clone_path)
@@ -234,6 +342,7 @@ def execute_delivery_plan(
         return DeliveryExecutionResult(
             action=action,
             ecosystem_slug=ecosystem_slug,
+            resolved_ecosystems=[manifest.slug for manifest in resolved_manifests],
             target_repo=target_repo,
             base_branch=resolved_base_branch,
             branch_name=resolved_branch_name,
@@ -270,6 +379,7 @@ def execute_delivery_plan(
     return DeliveryExecutionResult(
         action=action,
         ecosystem_slug=ecosystem_slug,
+        resolved_ecosystems=[manifest.slug for manifest in resolved_manifests],
         target_repo=target_repo,
         base_branch=resolved_base_branch,
         branch_name=resolved_branch_name,
@@ -287,13 +397,17 @@ def build_install_changeset(
     target_root: Path | str,
     ecosystem_slug: str,
     source_root: Path | None = None,
+    manifests: list[EcosystemManifest] | None = None,
 ) -> list[DeliveryChange]:
     resolved_source_root = _resolve_source_root(source_root)
     resolved_target_root = Path(target_root).resolve()
-    manifest = _resolve_manifest(resolved_source_root, ecosystem_slug)
+    resolved_manifests = manifests or _resolve_install_manifests(
+        resolved_source_root,
+        ecosystem_slug,
+    )
 
     changes: list[DeliveryChange] = []
-    for relative_path in sorted(manifest_owned_relative_paths(manifest)):
+    for _, relative_path in _iter_manifest_owned_paths(resolved_manifests, remove_mode=False):
         source_path = resolved_source_root / relative_path
         if not source_path.exists():
             raise FileNotFoundError(f"Manifest-owned source path not found: {source_path}")
@@ -314,18 +428,22 @@ def build_remove_changeset(
     target_root: Path | str,
     ecosystem_slug: str,
     source_root: Path | None = None,
+    manifests: list[EcosystemManifest] | None = None,
 ) -> list[DeliveryChange]:
     resolved_source_root = _resolve_source_root(source_root)
     resolved_target_root = Path(target_root).resolve()
     if not resolved_target_root.exists():
         raise FileNotFoundError(f"Target repository path does not exist: {resolved_target_root}")
 
-    manifest = _resolve_manifest(resolved_source_root, ecosystem_slug)
+    resolved_manifests = manifests or _resolve_remove_manifests(
+        resolved_source_root,
+        resolved_target_root,
+        ecosystem_slug,
+    )
     changes: list[DeliveryChange] = []
-    for relative_path in sorted(
-        manifest_owned_relative_paths(manifest),
-        key=lambda value: (value.count("/"), value),
-        reverse=True,
+    for _, relative_path in _iter_manifest_owned_paths(
+        list(reversed(resolved_manifests)),
+        remove_mode=True,
     ):
         source_path = resolved_source_root / relative_path
         if not source_path.exists():

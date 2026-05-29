@@ -42,13 +42,13 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
    overview, table, flow, checklist, or reference.
 7. Validate links and structural alignment before finishing.
 8. After the governance doc pack or bootstrap output has been applied to the
-   target repository, run
-   `bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode bilingual`
-   for bilingual repositories, or use `--mode single-language` otherwise.
-   Before bootstrap, or when validating a shipped template pack or another
-   checkout, point `--repo-root` at
-   `.github/ecosystems/repository-governance/assets/templates/<mode>` or the
-   equivalent target path.
+   target repository, ask the Ecosystem Audit Agent to audit the repository
+   using the shared core rules and the shipped repository-governance audit
+   pack. State whether the repository should be checked in bilingual or
+   single-language mode. Before bootstrap, or when reviewing a shipped template
+   pack or another checkout, inspect the matching template path under
+   `.github/ecosystems/repository-governance/assets/templates/<mode>` together
+   with the repository-governance audit file.
 
 ## Rules
 1. Keep overview documents about what the system is and implementation

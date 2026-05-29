@@ -126,6 +126,35 @@ def test_generator_explicit_include_can_override_default_exclusions(
     assert "### src/app.py" not in output
 
 
+def test_generator_explicit_include_keeps_nonignored_untracked_files_in_git_repo(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "git-repo-include-nonignored"
+    repo_root.mkdir()
+    init_git_repo(repo_root)
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('keep me')\n")
+    write_text(repo_root / "README.md", "# Doc\n")
+
+    output_path = repo_root / "explicit-nonignored.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--include",
+            "src/**",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "### src/app.py" in output
+    assert "### README.md" not in output
+
+
 def test_generator_source_only_excludes_auxiliary_files(
     tmp_path: Path,
     codebase_context_generator,

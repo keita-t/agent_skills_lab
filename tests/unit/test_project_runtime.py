@@ -30,17 +30,11 @@ def test_validator_shell_wrappers_require_python_3_10_or_newer(
         fake_interpreter.chmod(0o755)
 
     scripts = [
-        repo_root / ".github" / "ecosystems" / "validate_ecosystem_registry.sh",
         repo_root
         / ".github"
         / "ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh",
-        repo_root
-        / ".github"
-        / "ecosystems"
-        / "repository-governance"
-        / "validate_repository_governance.sh",
     ]
 
     for script_path in scripts:

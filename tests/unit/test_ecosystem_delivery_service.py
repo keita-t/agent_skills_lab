@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import pytest
 
@@ -48,9 +49,17 @@ def test_build_install_changeset_uses_manifest_owned_paths_only(tmp_path) -> Non
     assert ".github/agents/governance-repository-context-manager.agent.md" in relative_destinations
     assert ".github/agents/governance-ecosystem-manifest.agent.md" in relative_destinations
     assert ".github/agents/governance-ecosystem-delivery.agent.md" in relative_destinations
+    assert ".github/agents/ecosystem-audit.agent.md" in relative_destinations
     assert ".github/skills/repository-governance-bootstrap" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/ECOSYSTEM.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/audit/core-rules.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/audit/report-contract.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/audit/work-quality-rubric.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/assets/templates" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/assets/smoke-scenarios" in relative_destinations
     assert ".github/ecosystems/repository-governance/ECOSYSTEM.md" in relative_destinations
     assert ".github/ecosystems/repository-governance/assets/templates" in relative_destinations
+    assert ".github/ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_destinations
     assert ".github/ecosystems/ecosystem_lib.py" not in relative_destinations
     assert ".github/ECOSYSTEM_REGISTRY.md" not in relative_destinations
 
@@ -64,9 +73,15 @@ def test_build_install_changeset_uses_manifest_owned_paths_only_for_codebase_con
     relative_destinations = {change.relative_destination for change in result}
 
     assert all(change.action == "copy" for change in result)
+    assert ".github/agents/ecosystem-audit.agent.md" in relative_destinations
     assert ".github/agents/codebase-context.agent.md" in relative_destinations
     assert ".github/skills/codebase-context-export" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/ECOSYSTEM.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/audit/core-rules.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/audit/work-quality-rubric.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/assets/templates" in relative_destinations
     assert ".github/ecosystems/codebase-context/ECOSYSTEM.md" in relative_destinations
+    assert ".github/ecosystems/codebase-context/audit/codebase-context-audit.md" in relative_destinations
     assert ".github/ecosystems/codebase-context/generate_codebase_context.py" in relative_destinations
     assert ".github/ecosystems/codebase-context/generate_codebase_context.sh" in relative_destinations
     assert ".github/ecosystems/ecosystem_lib.py" not in relative_destinations
@@ -84,9 +99,13 @@ def test_build_remove_changeset_lists_only_existing_manifest_owned_paths(isolate
     assert all(change.action == "remove" for change in result)
     assert ".github/ecosystems/repository-governance/ECOSYSTEM.md" in relative_destinations
     assert ".github/ecosystems/repository-governance/assets/templates" in relative_destinations
+    assert ".github/ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_destinations
     assert ".github/agents/governance-repository-context-manager.agent.md" in relative_destinations
     assert ".github/agents/governance-ecosystem-manifest.agent.md" in relative_destinations
     assert ".github/agents/governance-ecosystem-delivery.agent.md" in relative_destinations
+    assert ".github/ecosystems/ecosystem-audit/ECOSYSTEM.md" not in relative_destinations
+    assert ".github/agents/ecosystem-audit.agent.md" not in relative_destinations
+    assert ".github/ecosystems/codebase-context/ECOSYSTEM.md" not in relative_destinations
     assert ".github/ecosystems/ecosystem_lib.py" not in relative_destinations
     assert ".github/AGENT_SKILL_ROUTING.md" not in relative_destinations
 
@@ -102,8 +121,12 @@ def test_apply_delivery_changes_copies_manifest_owned_paths(tmp_path) -> None:
     )
 
     assert actions
+    assert (target_root / ".github" / "agents" / "ecosystem-audit.agent.md").is_file()
     assert (target_root / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").is_file()
     assert (target_root / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").is_file()
+    assert (target_root / ".github" / "ecosystems" / "ecosystem-audit" / "audit" / "core-rules.md").is_file()
+    assert (target_root / ".github" / "ecosystems" / "ecosystem-audit" / "audit" / "work-quality-rubric.md").is_file()
+    assert (target_root / ".github" / "ecosystems" / "ecosystem-audit" / "assets" / "templates" / "audit-pack-template.md").is_file()
     assert (target_root / ".github" / "ecosystems" / "repository-governance" / "assets" / "templates").is_dir()
     installed_skill = (
         target_root
@@ -114,6 +137,8 @@ def test_apply_delivery_changes_copies_manifest_owned_paths(tmp_path) -> None:
     ).read_text(encoding="utf-8")
     assert "deliver_ecosystem.py" not in installed_skill
     assert "](../../ecosystems/validate_ecosystem_registry.sh)" not in installed_skill
+    assert "validate_repository_governance.sh" not in installed_skill
+    assert "Ecosystem Audit Agent" in installed_skill
     assert "../../agents/governance-ecosystem-delivery.agent.md" in installed_skill
     assert not (target_root / ".github" / "ecosystems" / "ecosystem_lib.py").exists()
 
@@ -159,25 +184,25 @@ def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path
     context_agent_normalized = " ".join(context_agent.split())
     bootstrap_skill_normalized = " ".join(bootstrap_skill.split())
 
-    assert "source repository's own ecosystem-registry validation workflow" in manifest_agent_normalized
+    assert "Ecosystem Audit Agent" in manifest_agent
     assert "validate_ecosystem_registry.sh --repo-root ." not in manifest_agent
-    assert "--mode <single-language|bilingual>" in manifest_agent
+    assert "validate_repository_governance.sh" not in manifest_agent
     assert "Run the package validator" not in context_agent
-    assert "bash .github/ecosystems/repository-governance/validate_repository_governance.sh --repo-root . --mode <single-language|bilingual>" in context_agent
+    assert "Ecosystem Audit Agent" in context_agent
     assert ".github/ecosystems/repository-governance/assets/templates/<mode>" in context_agent
-    assert "source repository's own ecosystem-registry validation workflow" in context_agent_normalized
     assert "validate_ecosystem_registry.sh --repo-root ." not in context_agent
-    assert "source repository's own ecosystem-registry validation workflow" in bootstrap_skill_normalized
+    assert "validate_repository_governance.sh" not in context_agent
+    assert "Ecosystem Audit Agent" in bootstrap_skill
     assert "validate_ecosystem_registry.sh --repo-root ." not in bootstrap_skill
+    assert "validate_repository_governance.sh" not in bootstrap_skill
     assert "canonical `docs/TODO.md` path used by the governance pack" in bootstrap_skill
-    assert "--mode bilingual" in bootstrap_skill
-    assert "--mode single-language" in bootstrap_skill
+    assert "bilingual or single-language mode" in bootstrap_skill_normalized
     assert "ecosystem registry validator" not in bootstrap_skill
     assert "another canonical path" not in bootstrap_skill
     assert "bootstrap output has been applied" in docs_skill
-    assert "--mode bilingual" in docs_skill
-    assert "--mode single-language" in docs_skill
+    assert "Ecosystem Audit Agent" in docs_skill
     assert ".github/ecosystems/repository-governance/assets/templates/<mode>" in docs_skill
+    assert "validate_repository_governance.sh" not in docs_skill
 
 
 def test_apply_delivery_changes_installs_codebase_context_payload(tmp_path) -> None:
@@ -191,8 +216,26 @@ def test_apply_delivery_changes_installs_codebase_context_payload(tmp_path) -> N
     )
 
     assert actions
+    assert (target_root / ".github" / "agents" / "ecosystem-audit.agent.md").is_file()
     assert (target_root / ".github" / "agents" / "codebase-context.agent.md").is_file()
     assert (target_root / ".github" / "skills" / "codebase-context-export" / "SKILL.md").is_file()
+    assert (
+        target_root
+        / ".github"
+        / "ecosystems"
+        / "ecosystem-audit"
+        / "assets"
+        / "smoke-scenarios"
+        / "new-ecosystem-audit-smoke-scenario.md"
+    ).is_file()
+    assert (
+        target_root
+        / ".github"
+        / "ecosystems"
+        / "codebase-context"
+        / "audit"
+        / "codebase-context-audit.md"
+    ).is_file()
     assert (
         target_root
         / ".github"
@@ -211,9 +254,17 @@ def test_apply_delivery_changes_installs_codebase_context_payload(tmp_path) -> N
     installed_skill = (
         target_root / ".github" / "skills" / "codebase-context-export" / "SKILL.md"
     ).read_text(encoding="utf-8")
+    installed_wrapper = (
+        target_root
+        / ".github"
+        / "ecosystems"
+        / "codebase-context"
+        / "generate_codebase_context.sh"
+    )
 
     assert "../../ecosystems/codebase-context/generate_codebase_context.sh" in installed_skill
     assert "../../ecosystems/deliver_ecosystem.py" not in installed_skill
+    assert os.access(installed_wrapper, os.X_OK)
 
 
 def test_apply_delivery_changes_removes_codebase_context_manifest_owned_paths(tmp_path) -> None:
@@ -237,6 +288,8 @@ def test_apply_delivery_changes_removes_codebase_context_manifest_owned_paths(tm
     assert not (target_root / ".github" / "agents" / "codebase-context.agent.md").exists()
     assert not (target_root / ".github" / "skills" / "codebase-context-export").exists()
     assert not (target_root / ".github" / "ecosystems" / "codebase-context").exists()
+    assert not (target_root / ".github" / "agents" / "ecosystem-audit.agent.md").exists()
+    assert not (target_root / ".github" / "ecosystems" / "ecosystem-audit").exists()
 
 
 def test_apply_delivery_changes_removes_existing_manifest_owned_paths(tmp_path) -> None:
@@ -260,10 +313,43 @@ def test_apply_delivery_changes_removes_existing_manifest_owned_paths(tmp_path) 
     )
 
     assert actions
+    assert not (target_root / ".github" / "agents" / "ecosystem-audit.agent.md").exists()
     assert not (target_root / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").exists()
     assert not (target_root / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").exists()
+    assert not (target_root / ".github" / "ecosystems" / "ecosystem-audit").exists()
     assert not (target_root / ".github" / "ecosystems" / "repository-governance").exists()
     assert preserved_file.read_text(encoding="utf-8") == "keep me\n"
+
+
+def test_remove_preserves_shared_dependency_needed_by_other_installed_ecosystem(
+    tmp_path,
+) -> None:
+    target_root = tmp_path / "target-repo"
+
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=target_root,
+            ecosystem_slug="repository-governance",
+        )
+    )
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=target_root,
+            ecosystem_slug="codebase-context",
+        )
+    )
+
+    actions = apply_delivery_changes(
+        build_remove_changeset(
+            target_root=target_root,
+            ecosystem_slug="repository-governance",
+        )
+    )
+
+    assert actions
+    assert not (target_root / ".github" / "ecosystems" / "repository-governance").exists()
+    assert (target_root / ".github" / "ecosystems" / "ecosystem-audit").exists()
+    assert (target_root / ".github" / "ecosystems" / "codebase-context").exists()
 
 
 def test_apply_delivery_changes_skips_identical_existing_manifest_payload(tmp_path) -> None:
@@ -350,11 +436,13 @@ def test_generate_pr_body_lists_file_actions() -> None:
     body = generate_pr_body(
         "repository-governance",
         "install",
+        ["ecosystem-audit", "repository-governance"],
         ["copy /tmp/target/.github/agents/governance-ecosystem-delivery.agent.md"],
     )
 
     assert "Ecosystem install" in body
     assert "repository-governance" in body
+    assert "ecosystem-audit, repository-governance" in body
     assert "copy /tmp/target/.github/agents/governance-ecosystem-delivery.agent.md" in body
 
 
@@ -373,6 +461,7 @@ def test_execute_delivery_plan_runs_clone_branch_commit_push_and_pr(tmp_path) ->
 
     assert result.pr_url == "https://example.com/pr/123"
     assert result.branch_name == "ecosystem-repository-governance-install"
+    assert result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
     assert command_prefixes == [
         ("gh", "repo", "clone", "octo/example-repo", str(tmp_path / "example-repo")),
         ("gh", "repo", "view", "octo/example-repo", "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name"),
@@ -402,6 +491,7 @@ def test_execute_delivery_plan_dry_run_skips_branch_and_pr(tmp_path) -> None:
 
     assert result.pr_url is None
     assert result.committed is False
+    assert result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
     assert command_prefixes == [
         ("gh", "repo", "clone", "octo/example-repo", str(tmp_path / "example-repo")),
         ("gh", "repo", "view", "octo/example-repo", "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name"),

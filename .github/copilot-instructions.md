@@ -11,15 +11,16 @@ this workspace:
 - Prefer `Ecosystem Delivery Orchestrator` for ecosystem install or remove
   workflows that target another repository.
 - Prefer `repository-governance-bootstrap` for initial setup, repair, or
-  validator installation.
+  audit-guidance installation.
 - Prefer `repository-doc-governance` for canonical docs updates after code or
   workflow changes.
 - Prefer `todo-progress-governance` for TODO, backlog, or design-review
   maintenance.
 - For local smoke checks or automation, use
   `python .github/ecosystems/deliver_ecosystem.py install|remove --target-repo owner/repo --ecosystem <slug>`.
-- Run `bash .github/ecosystems/validate_ecosystem_registry.sh --repo-root .`
-  after changing ecosystem manifests or ecosystem-aware core files.
+- Ask the `Ecosystem Audit Agent` to audit the current ecosystems after
+  changing ecosystem manifests, dependencies, audit files, or ecosystem-aware
+  core files.
 - If `docs/README.md` and `docs/DOCUMENTATION_UPDATE_RULES.md` exist, read them
   before rewriting prose.
 - Keep repository entry points such as `README.md`, `CLAUDE.md`, and

@@ -19,6 +19,7 @@ def test_deliver_ecosystem_cli_prints_dry_run_summary(
         return DeliveryExecutionResult(
             action="install",
             ecosystem_slug="repository-governance",
+            resolved_ecosystems=["ecosystem-audit", "repository-governance"],
             target_repo="octo/example-repo",
             base_branch="main",
             branch_name="ecosystem-repository-governance-install",

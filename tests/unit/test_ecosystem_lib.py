@@ -5,12 +5,14 @@ from pathlib import Path
 from ecosystem_lib import (
     MANAGED_BLOCK_END,
     MANAGED_BLOCK_START,
+    EcosystemManifest,
     copy_path,
     find_repo_root,
     load_ecosystem_manifest,
     manifest_owned_relative_paths,
     merge_managed_block,
     parse_frontmatter,
+    resolve_manifest_dependency_closure,
 )
 
 
@@ -56,8 +58,41 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
         "repository-doc-governance",
         "todo-progress-governance",
     ]
+    assert manifest.dependencies == ["ecosystem-audit"]
     assert ".github/ecosystems/repository-governance/assets/templates" in manifest.ecosystem_files
+    assert ".github/ecosystems/repository-governance/validate_repository_governance.py" not in manifest.ecosystem_files
+    assert manifest.audit_files == [
+        ".github/ecosystems/repository-governance/audit/repository-governance-audit.md"
+    ]
     assert ".github/ecosystems/repository-governance/MCP_TOOLS.json" not in manifest.ecosystem_files
+
+
+def test_load_ecosystem_manifest_reads_optional_audit_files(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "ECOSYSTEM.md"
+    manifest_path.write_text(
+        """---
+slug: ecosystem-audit
+name: Ecosystem Audit
+description: Shared ecosystem audit platform.
+status: active
+root-agent: ecosystem-audit.agent.md
+agents: [ecosystem-audit.agent.md]
+skills: []
+dependencies: []
+ecosystem-files: []
+audit-files: [.github/ecosystems/ecosystem-audit/audit/core-rules.md]
+---
+
+# Ecosystem Audit
+""",
+        encoding="utf-8",
+    )
+
+    manifest = load_ecosystem_manifest(manifest_path)
+
+    assert manifest.audit_files == [
+        ".github/ecosystems/ecosystem-audit/audit/core-rules.md"
+    ]
 
 
 def test_manifest_owned_relative_paths_match_repository_governance_contract() -> None:
@@ -75,8 +110,69 @@ def test_manifest_owned_relative_paths_match_repository_governance_contract() ->
 
     assert ".github/agents/governance-repository-context-manager.agent.md" in relative_paths
     assert ".github/skills/repository-governance-bootstrap" in relative_paths
+    assert ".github/ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_paths
     assert ".github/ecosystems/repository-governance/ECOSYSTEM.md" in relative_paths
     assert ".github/ecosystems/deliver_ecosystem.py" not in relative_paths
+
+
+def test_manifest_owned_relative_paths_include_audit_files() -> None:
+    manifest = EcosystemManifest(
+        slug="ecosystem-audit",
+        name="Ecosystem Audit",
+        description="Shared ecosystem audit platform.",
+        status="active",
+        root_agent="ecosystem-audit.agent.md",
+        agents=["ecosystem-audit.agent.md"],
+        skills=[],
+        dependencies=[],
+        ecosystem_files=[],
+        manifest_path=Path(".github/ecosystems/ecosystem-audit/ECOSYSTEM.md"),
+        audit_files=[".github/ecosystems/ecosystem-audit/audit/core-rules.md"],
+    )
+
+    relative_paths = manifest_owned_relative_paths(manifest)
+
+    assert ".github/ecosystems/ecosystem-audit/audit/core-rules.md" in relative_paths
+
+
+def test_resolve_manifest_dependency_closure_orders_dependencies_first(
+    tmp_path: Path,
+) -> None:
+    repo_root = tmp_path / "repo"
+
+    def write_manifest(slug: str, dependencies: list[str]) -> None:
+        manifest_path = repo_root / ".github" / "ecosystems" / slug / "ECOSYSTEM.md"
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        dependency_text = ", ".join(dependencies)
+        manifest_path.write_text(
+            f"""---
+slug: {slug}
+name: {slug}
+description: Test ecosystem.
+status: active
+root-agent: {slug}.agent.md
+agents: [{slug}.agent.md]
+skills: []
+dependencies: [{dependency_text}]
+ecosystem-files: []
+---
+
+# {slug}
+""",
+            encoding="utf-8",
+        )
+
+    write_manifest("ecosystem-audit", [])
+    write_manifest("repository-governance", ["ecosystem-audit"])
+    write_manifest("product-docs", ["repository-governance"])
+
+    closure = resolve_manifest_dependency_closure(repo_root, "product-docs")
+
+    assert [manifest.slug for manifest in closure] == [
+        "ecosystem-audit",
+        "repository-governance",
+        "product-docs",
+    ]
 
 
 def test_merge_managed_block_replaces_existing_managed_content() -> None:

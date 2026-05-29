@@ -1,0 +1,14 @@
+.git
+.pytest_cache
+.tmp
+.venv
+.vscode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache
+.nox
+.tox
+coverage
+htmlcov

@@ -43,6 +43,8 @@ def test_execute_delivery_plan_round_trips_manifest_owned_payload(tmp_path: Path
     preserved_file.write_text("keep me\n", encoding="utf-8")
 
     assert install_result.pr_url == "https://example.com/ecosystem-repository-governance-install"
+    assert install_result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
+    assert (clone_path / ".github" / "agents" / "ecosystem-audit.agent.md").is_file()
     assert (clone_path / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").is_file()
     assert (clone_path / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").is_file()
     assert not (clone_path / ".github" / "ecosystems" / "mcp_server.py").exists()
@@ -57,6 +59,8 @@ def test_execute_delivery_plan_round_trips_manifest_owned_payload(tmp_path: Path
     )
 
     assert remove_result.pr_url == "https://example.com/ecosystem-repository-governance-remove"
+    assert remove_result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
+    assert not (clone_path / ".github" / "ecosystems" / "ecosystem-audit").exists()
     assert not (clone_path / ".github" / "ecosystems" / "repository-governance").exists()
     assert not (clone_path / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").exists()
     assert preserved_file.read_text(encoding="utf-8") == "keep me\n"
