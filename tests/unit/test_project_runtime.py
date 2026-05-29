@@ -7,14 +7,14 @@ import tomllib
 from pathlib import Path
 
 
-def test_pyproject_declares_python_3_10_plus(repo_root: Path) -> None:
+def test_pyproject_declares_python_3_11_plus(repo_root: Path) -> None:
     pyproject_path = repo_root / "pyproject.toml"
     pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
 
-    assert pyproject["project"]["requires-python"] == ">=3.10"
+    assert pyproject["project"]["requires-python"] == ">=3.11"
 
 
-def test_validator_shell_wrappers_require_python_3_10_or_newer(
+def test_validator_shell_wrappers_require_python_3_11_or_newer(
     repo_root: Path,
     tmp_path: Path,
 ) -> None:
@@ -46,4 +46,4 @@ def test_validator_shell_wrappers_require_python_3_10_or_newer(
         )
 
         assert result.returncode == 1
-        assert "python 3.10 or newer interpreter not found" in result.stderr
+        assert "python 3.11 or newer interpreter not found" in result.stderr

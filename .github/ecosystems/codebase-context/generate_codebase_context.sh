@@ -18,7 +18,7 @@ select_python() {
     fi
     if "${candidate}" - >/dev/null 2>&1 <<'PY'
 import sys
-raise SystemExit(0 if sys.version_info >= (3, 10) else 1)
+raise SystemExit(0 if sys.version_info >= (3, 11) else 1)
 PY
     then
       PYTHON_CMD="${candidate}"
@@ -29,7 +29,7 @@ PY
 }
 
 if ! select_python; then
-  echo "python 3.10 or newer interpreter not found" >&2
+  echo "python 3.11 or newer interpreter not found" >&2
   exit 1
 fi
 
