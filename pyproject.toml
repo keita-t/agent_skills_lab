@@ -2,7 +2,7 @@
 name = "agent-skills-lab"
 version = "0.0.0"
 description = "Development and experimentation lab for custom agents, skills, and installable ecosystems."
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
