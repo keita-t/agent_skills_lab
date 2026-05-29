@@ -2,143 +2,136 @@
 
 ## English
 
-This repository is a development and experimentation lab for custom agents,
-skills, and installable ecosystems.
+**agent_skills_lab** is a development lab for building and testing *ecosystems* — reusable bundles of AI agents and skills that can be installed into any GitHub repository.
 
-It is structured so one repository can both define reusable ecosystems and act
-as a self-hosted target of the repository-governance ecosystem.
+### What is an ecosystem?
 
-## Development Runtime
+An ecosystem packages one or more AI agent definitions, the skills those agents can invoke, and any required helper files, all governed by a single manifest. You author an ecosystem once in this repository, then install it into any target repository with a single command. Because the manifest declares exactly which files the ecosystem owns, install and remove are predictable and reversible.
 
-Use Python 3.10 or newer for local virtual environments, source-only helper
-scripts, and current test workflows in this repository.
+### Active ecosystems
 
-## Sandbox Smoke
+Three ecosystems are currently developed and hosted here:
 
-Use
-[tests/sandbox/run_codebase_context_container_smoke.sh](tests/sandbox/run_codebase_context_container_smoke.sh)
-to run the installed-target `codebase-context` smoke tests inside a repo-
-contained Docker sandbox, and use
-[tests/sandbox/run_repository_governance_container_smoke.sh](tests/sandbox/run_repository_governance_container_smoke.sh)
-to run the installed-target `repository-governance` smoke tests against the
-shipped bilingual template pack. The container definitions live at
-[tests/sandbox/base/Dockerfile](tests/sandbox/base/Dockerfile), which both
-smoke runners share as a common sandbox image definition.
+| Ecosystem | What it does |
+|---|---|
+| **`ecosystem-audit`** | Audits other ecosystems for structural correctness and work quality. Acts as a shared platform that the other two ecosystems depend on. |
+| **`codebase-context`** | Exports a full repository source tree into one Markdown file — useful for feeding an entire codebase to a large-context AI model in a single prompt. |
+| **`repository-governance`** | Manages a repository's documentation: bootstraps the doc structure, enforces update rules, and tracks TODO progress. |
 
-GitHub Actions CI is defined at
-[.github/workflows/ci.yml](.github/workflows/ci.yml) and runs the full
-`python -m pytest -q` suite plus both sandbox smoke runners.
+### This repository is its own guinea pig
 
-## Practical Workflow
+agent_skills_lab is both the place where ecosystems are developed and a live target that runs `repository-governance` on itself. The documentation governance you see here is actively maintained by the same ecosystem you can install into your own repositories.
 
-Today this repository operates three active ecosystems:
-[`ecosystem-audit`](.github/ecosystems/ecosystem-audit/ECOSYSTEM.md),
-[`codebase-context`](.github/ecosystems/codebase-context/ECOSYSTEM.md), and
-[`repository-governance`](.github/ecosystems/repository-governance/ECOSYSTEM.md).
-In practice, treat each manifest as the implementation-facing contract. The
-manifest defines the root agent, any specialized agents, shipped skills,
-dependencies, audit files, and the ecosystem-owned files that install/remove
-workflows are allowed to touch.
+### Installing an ecosystem into another repository
 
-The shared `ecosystem-audit` platform also ships starter assets for future
-ecosystems, including an audit-pack template and a manual smoke scenario for
-validating a newly added audit extension.
-Its recommended audit output is rubric-first: summarize structural conformance
-and work quality by dimension, then follow with evidence-backed findings and
-upstream ecosystem feedback.
-
-Most repository-facing work starts with
-[Repository Context Manager](.github/agents/governance-repository-context-manager.agent.md),
-which routes docs, bootstrap, and TODO/progress tasks to the canonical skills.
-When the contract itself changes, use
-[Ecosystem Manifest Governor](.github/agents/governance-ecosystem-manifest.agent.md)
-to update membership, ownership scope, or frontmatter alignment, then ask the
-Ecosystem Audit Agent to audit the current ecosystems for structural
-conformance and ecosystem work quality.
-When you need to apply the manifest-owned payload to another repository, use
+Use the
 [Ecosystem Delivery Orchestrator](.github/agents/governance-ecosystem-delivery.agent.md)
-or run
-[deliver_ecosystem.py](.github/ecosystems/deliver_ecosystem.py)
-with `install` or `remove` so the same manifest drives the PR-based workflow,
-including any declared ecosystem dependencies such as the shared audit
-platform.
+agent to drive the install or remove workflow interactively. It prepares a
+PR-based delivery flow and resolves any declared dependencies automatically —
+for example, installing `repository-governance` also brings in `ecosystem-audit`.
 
-Start with the canonical docs under `docs/` for repository-specific context,
-documentation governance, and current follow-up work.
+If you prefer to run the delivery script directly, use
+[deliver_ecosystem.py](.github/ecosystems/deliver_ecosystem.py):
 
-- [docs/README.md](docs/README.md) - Bilingual documentation map
-- [docs/en/ecosystems.md](docs/en/ecosystems.md) - Current ecosystem inventory
-- [docs/en/project-charter.md](docs/en/project-charter.md) - English charter
-- [docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md) - English ubiquitous language
-- [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) - Japanese charter
-- [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md) - Japanese ubiquitous language
-- [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) - Documentation governance
-- [docs/TODO.md](docs/TODO.md) - Current backlog and design-review notes
-- [.github/ecosystems/README.md](.github/ecosystems/README.md) - Implementation-facing ecosystem index
-- [.github/ecosystems/repository-governance/ECOSYSTEM.md](.github/ecosystems/repository-governance/ECOSYSTEM.md) - Current repository-governance manifest
+```bash
+python .github/ecosystems/deliver_ecosystem.py install repository-governance owner/repo
+```
+
+### Development runtime
+
+The repository ships a [dev container](.devcontainer/devcontainer.json) that
+provides Python 3.11 and Docker out of the box — open the repository in VS Code
+and choose **Reopen in Container** to get a ready-to-use environment.
+
+For a local setup without the dev container, Python 3.11 or newer is required.
+Create a virtual environment and install dependencies as usual.
+
+### Running tests
+
+```bash
+# Unit tests
+python -m pytest -q
+
+# Installed-target smoke tests (requires Docker)
+tests/sandbox/run_codebase_context_container_smoke.sh
+tests/sandbox/run_repository_governance_container_smoke.sh
+```
+
+Both smoke tests spin up a repo-contained Docker sandbox built from
+[tests/sandbox/base/Dockerfile](tests/sandbox/base/Dockerfile).
+GitHub Actions CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs
+all of the above on every push.
+
+### Where to go next
+
+- [docs/en/ecosystems.md](docs/en/ecosystems.md) — Full ecosystem inventory with implementation details
+- [docs/en/project-charter.md](docs/en/project-charter.md) — Repository scope and maintainer decisions
+- [docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md) — Shared vocabulary used throughout this project
+- [docs/README.md](docs/README.md) — Bilingual documentation map
+- [.github/ecosystems/README.md](.github/ecosystems/README.md) — Implementation-facing ecosystem index
+
+---
 
 ## 日本語
 
-このリポジトリは、custom agents、skills、installable ecosystems の開発と実験のためのラボです。
+**agent_skills_lab** は *ecosystem* — AI エージェントとスキルを束ねた再利用可能なパッケージ — を開発・テストするためのラボです。作った ecosystem は任意の GitHub リポジトリにインストールできます。
 
-再利用可能な ecosystem の source repository であると同時に、repository-governance ecosystem を self-host する target repository としても成立するよう構成しています。
+### ecosystem とは？
 
-## 開発用ランタイム
+ecosystem は、AI エージェント定義・エージェントが呼び出せるスキル・必要なヘルパーファイルをひとつのマニフェストで管理する自己完結したパッケージです。このリポジトリで一度作れば、コマンド一発で任意のリポジトリにインストールできます。マニフェストが「この ecosystem が所有するファイル」を宣言するため、インストールも削除も予測可能かつ巻き戻し可能です。
 
-このリポジトリの local virtual environment、validator、ecosystem helper script は
-Python 3.10 以上を前提とします。
+### 現在稼動中の ecosystem
 
-## Sandbox Smoke
+現在、3 つの ecosystem がここで開発・運用されています。
 
-[tests/sandbox/run_codebase_context_container_smoke.sh](tests/sandbox/run_codebase_context_container_smoke.sh)
-を使うと、installed-target 向けの `codebase-context` smoke test を、この repo に
-同梱した Docker sandbox の中で実行できます。さらに
-[tests/sandbox/run_repository_governance_container_smoke.sh](tests/sandbox/run_repository_governance_container_smoke.sh)
-を使うと、shipped bilingual template pack を使った `repository-governance`
-の installed-target smoke test も同じく repo 内で完結します。container 定義は
-[tests/sandbox/base/Dockerfile](tests/sandbox/base/Dockerfile)
-に共通化してあり、2 本の runner が同じ sandbox image 定義を共有します。
+| Ecosystem | 何をするか |
+|---|---|
+| **`ecosystem-audit`** | 他の ecosystem の構造的な正確性と成果物の品質を監査します。他の 2 つの ecosystem が依存する共有プラットフォームです。 |
+| **`codebase-context`** | リポジトリのソースコード全体をひとつの Markdown ファイルにエクスポートします。コードベース全体を大規模文脈 AI モデルに一度のプロンプトで渡したいときに使います。 |
+| **`repository-governance`** | リポジトリのドキュメント管理を担います。ドキュメント構造のブートストラップ、更新ルールの適用、TODO 進捗の追跡を行います。 |
 
-GitHub Actions CI は
-[.github/workflows/ci.yml](.github/workflows/ci.yml)
-で定義しており、`python -m pytest -q` の full suite と 2 本の sandbox smoke
-runner をまとめて実行します。
+### このリポジトリ自身も実験台
 
-## 実務フローの見取り図
+agent_skills_lab は ecosystem を開発する場所であると同時に、`repository-governance` を自分自身に適用している live target でもあります。ここで見えているドキュメント管理の仕組みは、あなたのリポジトリにもインストールできる同じ ecosystem によってアクティブに維持されています。
 
-現時点でこの repository が運用している active ecosystem は
-[`ecosystem-audit`](.github/ecosystems/ecosystem-audit/ECOSYSTEM.md)、
-[`codebase-context`](.github/ecosystems/codebase-context/ECOSYSTEM.md)、
-[`repository-governance`](.github/ecosystems/repository-governance/ECOSYSTEM.md)
-の 3 つです。実務上は、それぞれの manifest を implementation-facing な
-contract として扱います。root agent、専用 agent、同梱する skills、
-dependency、audit files、さらに install/remove workflow が触れてよい
-ecosystem-owned files は、ここを正本として決まります。
+### 別のリポジトリへのインストール
 
-repository 側の作業の起点は、通常
-[Repository Context Manager](.github/agents/governance-repository-context-manager.agent.md)
-です。これは docs、bootstrap、TODO/progress の変更を正規の skill へ振り分けます。
-contract 自体を変えるときは
-[Ecosystem Manifest Governor](.github/agents/governance-ecosystem-manifest.agent.md)
-を使って membership、ownership scope、frontmatter alignment を更新し、その後に
-Ecosystem Audit Agent へ現在の ecosystem 監査を依頼します。
-manifest-owned payload を他 repository に適用するときは
 [Ecosystem Delivery Orchestrator](.github/agents/governance-ecosystem-delivery.agent.md)
-または
-[deliver_ecosystem.py](.github/ecosystems/deliver_ecosystem.py)
-の `install` / `remove` を使い、同じ manifest を PR ベースの delivery workflow の
-入力にします。必要な dependency が宣言されていれば、shared audit platform の
-ような ecosystem も一緒に解決されます。
+エージェントを使うと、インストール・削除のワークフローを対話形式で進められます。PR ベースのデリバリーフローを準備し、宣言済みの依存関係を自動で解決します（例：`repository-governance` をインストールすると `ecosystem-audit` も一緒に入ります）。
 
-リポジトリ固有の前提、文書更新ガバナンス、現在の追跡事項は `docs/` の正本文書から読み始めます。
+スクリプトを直接実行する場合は
+[deliver_ecosystem.py](.github/ecosystems/deliver_ecosystem.py) を使います：
 
-- [docs/README.md](docs/README.md) - 英日対応のドキュメント案内
-- [docs/ja/ecosystems.ja.md](docs/ja/ecosystems.ja.md) - 現在の ecosystem inventory
-- [docs/en/project-charter.md](docs/en/project-charter.md) - 英語版憲章
-- [docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md) - 英語版ユビキタス言語
-- [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) - 日本語版憲章
-- [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md) - 日本語版ユビキタス言語
-- [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) - 文書更新ルール
-- [docs/TODO.md](docs/TODO.md) - 現在の TODO とレビュー用メモ
-- [.github/ecosystems/README.md](.github/ecosystems/README.md) - implementation-facing ecosystem index
-- [.github/ecosystems/repository-governance/ECOSYSTEM.md](.github/ecosystems/repository-governance/ECOSYSTEM.md) - 現在の repository-governance manifest
+```bash
+python .github/ecosystems/deliver_ecosystem.py install repository-governance owner/repo
+```
+
+### 開発環境
+
+リポジトリには Python 3.11 と Docker がすぐ使える [dev container](.devcontainer/devcontainer.json) が同梱されています。VS Code でリポジトリを開き、**Reopen in Container** を選ぶだけで環境が整います。
+
+dev container を使わない場合は Python 3.11 以上が必要です。通常通り仮想環境を作成し、依存関係をインストールしてください。
+
+### テストの実行
+
+```bash
+# ユニットテスト
+python -m pytest -q
+
+# インストール済みターゲット向け smoke テスト（Docker 必須）
+tests/sandbox/run_codebase_context_container_smoke.sh
+tests/sandbox/run_repository_governance_container_smoke.sh
+```
+
+2 本の smoke テストはどちらも、
+[tests/sandbox/base/Dockerfile](tests/sandbox/base/Dockerfile)
+をベースにした repo 内 Docker sandbox 上で動きます。
+GitHub Actions CI（[.github/workflows/ci.yml](.github/workflows/ci.yml)）は、プッシュごとにすべてのテストを実行します。
+
+### 次に読む
+
+- [docs/ja/ecosystems.ja.md](docs/ja/ecosystems.ja.md) — 実装詳細を含む ecosystem inventory
+- [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) — リポジトリの目的と maintainer の判断
+- [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md) — このプロジェクト全体で使う共有語彙
+- [docs/README.md](docs/README.md) — 英日対応のドキュメント案内
+- [.github/ecosystems/README.md](.github/ecosystems/README.md) — 実装向け ecosystem index
