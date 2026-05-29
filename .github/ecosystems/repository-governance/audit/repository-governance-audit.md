@@ -6,6 +6,9 @@ the source repository or installed target repository.
 ## Structural Checks
 
 1. Required governance entry points must exist for the repository mode in use.
+   In single-language mode this includes `docs/README.md`,
+   `docs/DOCUMENTATION_UPDATE_RULES.md`, `docs/TODO.md`,
+   `docs/project-charter.md`, and `docs/ubiquitous-language.md`.
    In bilingual mode this includes `docs/README.md`,
    `docs/DOCUMENTATION_UPDATE_RULES.md`, `docs/TODO.md`,
    `docs/en/project-charter.md`, `docs/en/ubiquitous-language.md`,

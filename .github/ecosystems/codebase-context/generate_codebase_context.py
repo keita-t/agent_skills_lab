@@ -293,8 +293,16 @@ def list_fallback_files(
 ) -> list[Path]:
     files: list[Path] = []
     for current_root, dir_names, file_names in os.walk(repo_root, topdown=True):
+        current_root_path = Path(current_root).resolve()
         if include_patterns:
-            dir_names[:] = sorted(dir_names)
+            dir_names[:] = sorted(
+                dir_name
+                for dir_name in dir_names
+                if should_descend_into_directory(
+                    relative_posix_path(current_root_path / dir_name, repo_root),
+                    include_patterns,
+                )
+            )
         else:
             dir_names[:] = sorted(
                 dir_name for dir_name in dir_names if dir_name not in EXCLUDED_DIR_NAMES
@@ -350,6 +358,32 @@ def matches_any_pattern(relative_path: str, patterns: list[str]) -> bool:
         if fnmatch.fnmatchcase(relative_path, normalized):
             return True
         if "/" not in normalized and fnmatch.fnmatchcase(basename, normalized):
+            return True
+    return False
+
+
+def should_descend_into_directory(relative_path: str, patterns: list[str]) -> bool:
+    normalized_path = relative_path.strip("/")
+    if not normalized_path:
+        return True
+
+    basename = normalized_path.rsplit("/", 1)[-1]
+    if basename not in EXCLUDED_DIR_NAMES:
+        return True
+
+    candidate_descendant = f"{normalized_path}/__candidate__"
+    for pattern in patterns:
+        normalized = pattern.replace("\\", "/")
+        if normalized.startswith("./"):
+            normalized = normalized[2:]
+        normalized = normalized.rstrip("/")
+        if not normalized:
+            return True
+        if "/" not in normalized:
+            return True
+        if normalized == normalized_path or normalized.startswith(f"{normalized_path}/"):
+            return True
+        if fnmatch.fnmatchcase(candidate_descendant, normalized):
             return True
     return False
 
@@ -461,10 +495,16 @@ def render_codebase_section(selected_paths: list[str], text_files: dict[str, str
         fence = code_fence(content)
         language = infer_language(relative_path)
         info_string = language if language else "text"
-        sections.append(f"### {relative_path}")
-        sections.append(f"{fence}{info_string}")
-        sections.append(content.rstrip("\n"))
-        sections.append(fence)
+        sections.append(
+            "\n".join(
+                [
+                    f"### {relative_path}",
+                    f"{fence}{info_string}",
+                    content.rstrip("\n"),
+                    fence,
+                ]
+            )
+        )
     return "\n\n".join(sections)
 
 

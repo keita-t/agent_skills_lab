@@ -218,6 +218,24 @@ def test_ecosystem_audit_packs_define_quality_rubrics(repo_root: Path) -> None:
         assert "Upstream Improvement Feedback" in text
 
 
+def test_repository_governance_audit_pack_covers_single_language_ubiquitous_language_doc(
+    repo_root: Path,
+) -> None:
+    audit_path = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "repository-governance"
+        / "audit"
+        / "repository-governance-audit.md"
+    )
+    text = audit_path.read_text(encoding="utf-8")
+    normalized = " ".join(text.split())
+
+    assert "docs/ubiquitous-language.md" in text
+    assert "In single-language mode this includes" in normalized
+
+
 def test_ubiquitous_language_tracks_quality_audit_terms(repo_root: Path) -> None:
     en_text = (repo_root / "docs" / "en" / "ubiquitous-language.md").read_text(encoding="utf-8")
     ja_text = (repo_root / "docs" / "ja" / "ubiquitous-language.ja.md").read_text(encoding="utf-8")

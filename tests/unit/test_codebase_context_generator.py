@@ -71,6 +71,8 @@ def test_generator_renders_required_template_and_excludes_noise(
     assert "docs/" in output
     assert "src/" in output
     assert "<small>" in output
+    assert "### docs/README.md\n```markdown\n# Guide\n```" in output
+    assert "### src/a.py\n```python\nprint('a')\n```" in output
 
 
 def test_generator_respects_gitignore_by_default(
@@ -153,6 +155,59 @@ def test_generator_explicit_include_keeps_nonignored_untracked_files_in_git_repo
 
     assert "### src/app.py" in output
     assert "### README.md" not in output
+
+
+def test_fallback_include_prunes_excluded_directories_without_losing_explicit_targets(
+    tmp_path: Path,
+    codebase_context_generator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo_root = tmp_path / "fallback-repo"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('keep me')\n")
+    write_text(repo_root / ".git" / "HEAD", "ref: refs/heads/main\n")
+    write_text(repo_root / "build" / "secret.txt", "keep explicit\n")
+
+    monkeypatch.setattr(codebase_context_generator, "list_git_files", lambda *_args, **_kwargs: None)
+
+    src_output = repo_root / "src-only.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--include",
+            "src/**",
+            "--output",
+            str(src_output),
+        ]
+    )
+    src_text = src_output.read_text(encoding="utf-8")
+
+    explicit_output = repo_root / "build-only.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--include",
+            "build/**",
+            "--output",
+            str(explicit_output),
+        ]
+    )
+    explicit_text = explicit_output.read_text(encoding="utf-8")
+
+    assert "### src/app.py" in src_text
+    assert ".git/HEAD" not in src_text
+    assert "### build/secret.txt" in explicit_text
+
+
+def test_should_descend_into_directory_respects_explicit_include_for_excluded_dirs(
+    codebase_context_generator,
+) -> None:
+    assert codebase_context_generator.should_descend_into_directory("src", ["src/**"])
+    assert not codebase_context_generator.should_descend_into_directory(".git", ["src/**"])
+    assert codebase_context_generator.should_descend_into_directory("build", ["build/**"])
 
 
 def test_generator_source_only_excludes_auxiliary_files(
