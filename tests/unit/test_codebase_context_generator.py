@@ -98,7 +98,7 @@ def test_generator_respects_gitignore_by_default(
     assert "### ignored.txt" not in output
 
 
-def test_generator_explicit_include_can_override_default_exclusions(
+def test_generator_explicit_include_does_not_override_default_exclusions(
     tmp_path: Path,
     codebase_context_generator,
 ) -> None:
@@ -111,21 +111,18 @@ def test_generator_explicit_include_can_override_default_exclusions(
     write_text(repo_root / "build" / "secret.txt", "include me only when explicit\n")
 
     output_path = repo_root / "explicit.md"
-    codebase_context_generator.main(
-        [
-            "--repo-root",
-            str(repo_root),
-            "--include",
-            "build/**",
-            "--output",
-            str(output_path),
-        ]
-    )
 
-    output = output_path.read_text(encoding="utf-8")
-
-    assert "### build/secret.txt" in output
-    assert "### src/app.py" not in output
+    with pytest.raises(RuntimeError, match="No repository files matched the selected export scope"):
+        codebase_context_generator.main(
+            [
+                "--repo-root",
+                str(repo_root),
+                "--include",
+                "build/**",
+                "--output",
+                str(output_path),
+            ]
+        )
 
 
 def test_generator_explicit_include_keeps_nonignored_untracked_files_in_git_repo(
@@ -176,7 +173,47 @@ def test_list_repo_files_applies_include_scope_before_reading_text_files(
     ]
 
 
-def test_fallback_include_prunes_excluded_directories_without_losing_explicit_targets(
+def test_list_repo_files_keeps_ignored_files_excluded_even_with_include(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "git-repo-ignored-scope"
+    repo_root.mkdir()
+    init_git_repo(repo_root)
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / ".gitignore", "docs/private.md\n")
+    write_text(repo_root / "docs" / "public.md", "# Keep me\n")
+    write_text(repo_root / "docs" / "private.md", "# Ignore me\n")
+
+    output_path = repo_root / "docs-only.md"
+    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["docs/**"])
+
+    assert [codebase_context_generator.relative_posix_path(path, repo_root) for path in paths] == [
+        "docs/public.md"
+    ]
+
+
+def test_include_scope_keeps_excluded_directories_filtered_in_git_mode(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "git-repo-excluded-dir-scope"
+    repo_root.mkdir()
+    init_git_repo(repo_root)
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / ".gitignore", "build/\n")
+    write_text(repo_root / "src" / "app.py", "print('keep me')\n")
+    write_text(repo_root / "build" / "secret.py", "print('skip me')\n")
+
+    output_path = repo_root / "python-only.md"
+    paths = codebase_context_generator.list_repo_files(repo_root, output_path, ["*.py"])
+
+    assert [codebase_context_generator.relative_posix_path(path, repo_root) for path in paths] == [
+        "src/app.py"
+    ]
+
+
+def test_fallback_include_prunes_excluded_directories(
     tmp_path: Path,
     codebase_context_generator,
     monkeypatch: pytest.MonkeyPatch,
@@ -203,30 +240,29 @@ def test_fallback_include_prunes_excluded_directories_without_losing_explicit_ta
     )
     src_text = src_output.read_text(encoding="utf-8")
 
-    explicit_output = repo_root / "build-only.md"
-    codebase_context_generator.main(
-        [
-            "--repo-root",
-            str(repo_root),
-            "--include",
-            "build/**",
-            "--output",
-            str(explicit_output),
-        ]
-    )
-    explicit_text = explicit_output.read_text(encoding="utf-8")
-
     assert "### src/app.py" in src_text
     assert ".git/HEAD" not in src_text
-    assert "### build/secret.txt" in explicit_text
+
+    explicit_output = repo_root / "build-only.md"
+    with pytest.raises(RuntimeError, match="No repository files matched the selected export scope"):
+        codebase_context_generator.main(
+            [
+                "--repo-root",
+                str(repo_root),
+                "--include",
+                "build/**",
+                "--output",
+                str(explicit_output),
+            ]
+        )
 
 
-def test_should_descend_into_directory_respects_explicit_include_for_excluded_dirs(
+def test_should_descend_into_directory_keeps_excluded_dirs_filtered(
     codebase_context_generator,
 ) -> None:
     assert codebase_context_generator.should_descend_into_directory("src", ["src/**"])
     assert not codebase_context_generator.should_descend_into_directory(".git", ["src/**"])
-    assert codebase_context_generator.should_descend_into_directory("build", ["build/**"])
+    assert not codebase_context_generator.should_descend_into_directory("build", ["build/**"])
 
 
 def test_generator_source_only_excludes_auxiliary_files(

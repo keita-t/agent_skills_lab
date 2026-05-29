@@ -213,12 +213,14 @@ def should_skip_path_for_scope(
         return True
     if not resolved_path.is_file():
         return True
+    if any(part in EXCLUDED_DIR_NAMES for part in relative_path_obj.parts[:-1]):
+        return True
 
     relative_path = relative_path_obj.as_posix()
     if include_patterns:
         return not matches_any_pattern(relative_path, include_patterns)
 
-    return any(part in EXCLUDED_DIR_NAMES for part in relative_path_obj.parts[:-1])
+    return False
 
 
 def list_repo_files(repo_root: Path, output_path: Path, include_patterns: list[str]) -> list[Path]:
@@ -233,53 +235,35 @@ def list_git_files(
     output_path: Path,
     include_patterns: list[str],
 ) -> list[Path] | None:
-    commands = [
-        [
-            "git",
-            "-C",
-            str(repo_root),
-            "ls-files",
-            "--cached",
-            "--others",
-            "--exclude-standard",
-            "-z",
-        ]
-    ]
-    if include_patterns:
-        commands.append(
+    files: list[Path] = []
+    seen: set[Path] = set()
+    try:
+        result = subprocess.run(
             [
                 "git",
                 "-C",
                 str(repo_root),
                 "ls-files",
+                "--cached",
                 "--others",
-                "--ignored",
                 "--exclude-standard",
                 "-z",
-            ]
+            ],
+            capture_output=True,
+            check=False,
         )
-
-    files: list[Path] = []
-    seen: set[Path] = set()
-    try:
-        for command in commands:
-            result = subprocess.run(
-                command,
-                capture_output=True,
-                check=False,
-            )
-            if result.returncode != 0:
-                return None
-            for raw_path in result.stdout.split(b"\0"):
-                if not raw_path:
-                    continue
-                candidate = (repo_root / raw_path.decode("utf-8")).resolve()
-                if should_skip_path_for_scope(candidate, repo_root, output_path, include_patterns):
-                    continue
-                if candidate in seen:
-                    continue
-                seen.add(candidate)
-                files.append(candidate)
+        if result.returncode != 0:
+            return None
+        for raw_path in result.stdout.split(b"\0"):
+            if not raw_path:
+                continue
+            candidate = (repo_root / raw_path.decode("utf-8")).resolve()
+            if should_skip_path_for_scope(candidate, repo_root, output_path, include_patterns):
+                continue
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            files.append(candidate)
     except FileNotFoundError:
         return None
 
@@ -368,24 +352,9 @@ def should_descend_into_directory(relative_path: str, patterns: list[str]) -> bo
         return True
 
     basename = normalized_path.rsplit("/", 1)[-1]
-    if basename not in EXCLUDED_DIR_NAMES:
-        return True
-
-    candidate_descendant = f"{normalized_path}/__candidate__"
-    for pattern in patterns:
-        normalized = pattern.replace("\\", "/")
-        if normalized.startswith("./"):
-            normalized = normalized[2:]
-        normalized = normalized.rstrip("/")
-        if not normalized:
-            return True
-        if "/" not in normalized:
-            return True
-        if normalized == normalized_path or normalized.startswith(f"{normalized_path}/"):
-            return True
-        if fnmatch.fnmatchcase(candidate_descendant, normalized):
-            return True
-    return False
+    if basename in EXCLUDED_DIR_NAMES:
+        return False
+    return True
 
 
 def select_paths(
