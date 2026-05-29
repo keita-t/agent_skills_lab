@@ -185,6 +185,11 @@ def relative_posix_path(path: Path, repo_root: Path) -> str:
     return path.relative_to(repo_root).as_posix()
 
 
+def is_default_sensitive_file(relative_path: PurePosixPath) -> bool:
+    name = relative_path.name
+    return name == ".env" or (name.startswith(".env.") and name != ".env.example")
+
+
 def should_skip_path(path: Path, repo_root: Path, output_path: Path) -> bool:
     resolved_path = path.resolve()
     if resolved_path == output_path:
@@ -194,6 +199,8 @@ def should_skip_path(path: Path, repo_root: Path, output_path: Path) -> bool:
     except ValueError:
         return True
     if any(part in EXCLUDED_DIR_NAMES for part in relative_path.parts[:-1]):
+        return True
+    if is_default_sensitive_file(PurePosixPath(relative_path.as_posix())):
         return True
     return not resolved_path.is_file()
 
@@ -219,6 +226,9 @@ def should_skip_path_for_scope(
     relative_path = relative_path_obj.as_posix()
     if include_patterns:
         return not matches_any_pattern(relative_path, include_patterns)
+
+    if is_default_sensitive_file(PurePosixPath(relative_path)):
+        return True
 
     return False
 

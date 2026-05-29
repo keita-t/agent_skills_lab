@@ -98,6 +98,59 @@ def test_generator_respects_gitignore_by_default(
     assert "### ignored.txt" not in output
 
 
+def test_generator_skips_sensitive_env_files_by_default(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "plain-repo-sensitive-env"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('ok')\n")
+    write_text(repo_root / ".env", "SECRET=value\n")
+    write_text(repo_root / ".env.local", "LOCAL_SECRET=value\n")
+    write_text(repo_root / ".env.example", "EXAMPLE=value\n")
+
+    output_path = repo_root / "snapshot.md"
+    codebase_context_generator.main(
+        ["--repo-root", str(repo_root), "--output", str(output_path)]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "### src/app.py" in output
+    assert "### .env.example\n" in output
+    assert "### .env\n" not in output
+    assert "### .env.local\n" not in output
+
+
+def test_generator_explicit_include_can_override_sensitive_env_default(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "plain-repo-sensitive-env-include"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('ok')\n")
+    write_text(repo_root / ".env.local", "LOCAL_SECRET=value\n")
+
+    output_path = repo_root / "env-only.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--include",
+            ".env.local",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "### .env.local\n" in output
+    assert "### src/app.py\n" not in output
+
+
 def test_generator_explicit_include_does_not_override_default_exclusions(
     tmp_path: Path,
     codebase_context_generator,
