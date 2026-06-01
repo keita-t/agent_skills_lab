@@ -1,4 +1,4 @@
-# agent_skills_lab
+６# agent_skills_lab
 
 ## English
 
@@ -45,20 +45,6 @@ and choose **Reopen in Container** to get a ready-to-use environment.
 
 For a local setup without the dev container, Python 3.11 or newer is required.
 Create a virtual environment and install dependencies as usual.
-
-### Testing and runtime validation
-
-GitHub Actions CI is defined in `.github/workflows/ci.yml`. It runs the
-repository test suite with `python -m pytest -q` and then executes both
-sandbox smoke runners:
-`tests/sandbox/run_codebase_context_container_smoke.sh` and
-`tests/sandbox/run_repository_governance_container_smoke.sh`.
-
-The shared sandbox image is built from `tests/sandbox/base/Dockerfile`.
-For `codebase-context`, the installed runtime contract is declared through
-`runtime-mode` and `runtime-entrypoint`; the installed runtime launcher runs a
-disposable runtime container so the export itself stays inside that runtime
-container boundary.
 
 ### Operational Precautions
 
@@ -113,19 +99,6 @@ python .github/ecosystems/deliver_ecosystem.py install repository-governance own
 リポジトリには Python 3.11 と Docker がすぐ使える [dev container](.devcontainer/devcontainer.json) が同梱されています。VS Code でリポジトリを開き、**Reopen in Container** を選ぶだけで環境が整います。
 
 dev container を使わない場合は Python 3.11 以上が必要です。通常通り仮想環境を作成し、依存関係をインストールしてください。
-
-### テストと runtime 検証
-
-GitHub Actions CI の定義は `.github/workflows/ci.yml` にあります。ここで
-`python -m pytest -q` による repository の test suite を実行したあと、
-`tests/sandbox/run_codebase_context_container_smoke.sh` と
-`tests/sandbox/run_repository_governance_container_smoke.sh` の 2 本の sandbox smoke runner を続けて実行します。
-
-共有 sandbox image は `tests/sandbox/base/Dockerfile` から build されます。
-`codebase-context` では、installed runtime contract を `runtime-mode` と
-`runtime-entrypoint` で宣言し、installed runtime launcher が disposable な
-runtime container を起動することで、export 自体をその runtime container の
-境界内に閉じ込めます。
 
 ### 運用上の注意
 
