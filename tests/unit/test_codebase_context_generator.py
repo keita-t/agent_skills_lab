@@ -67,7 +67,8 @@ def test_generator_renders_required_template_and_excludes_noise(
     assert exit_code == 0
     assert output.index("【指示】") < output.index("【インデックス】")
     assert output.index("【インデックス】") < output.index("【コードベース】")
-    assert output.index("【コードベース】") < output.index("【念押しの指示（最後に小さく）】")
+    assert output.index("【コードベース】") < output.index("【念押しの指示】")
+    assert "【念押しの指示（最後に小さく）】" not in output
     assert "### docs/README.md" in output
     assert "### src/a.py" in output
     assert "### src/b.py" in output
@@ -470,3 +471,165 @@ def test_generator_source_only_excludes_auxiliary_files(
     assert "### src/main.py" in output
     assert "### README.md" not in output
     assert "### pyproject.toml" not in output
+
+
+def test_generator_budget_hint_defaults_to_smart_mode(
+    tmp_path: Path,
+    codebase_context_generator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo_root = tmp_path / "plain-repo-smart-budget-hint"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "def main():\n    return 'ok'\n")
+
+    monkeypatch.setitem(codebase_context_generator.SMART_BUDGET_TOKENS, "low", 400)
+
+    output_path = repo_root / "smart.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--budget",
+            "low",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "### src/app.py" in output
+    assert "Smart mode stub: signatures only." not in output
+
+
+def test_generator_rejects_smart_only_options_in_simple_mode(
+    tmp_path: Path,
+    codebase_context_generator,
+) -> None:
+    repo_root = tmp_path / "plain-repo-simple-budget"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('ok')\n")
+
+    with pytest.raises(RuntimeError, match="--budget and --task are only supported"):
+        codebase_context_generator.main(
+            [
+                "--repo-root",
+                str(repo_root),
+                "--mode",
+                "simple",
+                "--budget",
+                "low",
+            ]
+        )
+
+
+def test_generator_smart_mode_prefers_task_related_full_files_and_stubs_others(
+    tmp_path: Path,
+    codebase_context_generator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo_root = tmp_path / "plain-repo-smart-task"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(
+        repo_root / "src" / "cache.py",
+        "class CacheStore:\n"
+        "    def get(self, key):\n"
+        "        return f'cache:{key}'\n",
+    )
+    write_text(
+        repo_root / "src" / "helper.py",
+        "def helper():\n"
+        "    return 'helper'\n\n"
+        f"DETAILS = '{'x' * 2_000}'\n",
+    )
+
+    monkeypatch.setitem(codebase_context_generator.SMART_BUDGET_TOKENS, "low", 260)
+
+    output_path = repo_root / "smart-task.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--mode",
+            "smart",
+            "--budget",
+            "low",
+            "--task",
+            "add cache behavior",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "### src/cache.py" in output
+    assert "return f'cache:{key}'" in output
+    assert "### src/helper.py" in output
+    assert "Smart mode stub: signatures only." in output
+    assert "DETAILS =" not in output
+
+
+def test_generator_smart_mode_keeps_sensitive_env_files_excluded(
+    tmp_path: Path,
+    codebase_context_generator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo_root = tmp_path / "plain-repo-smart-sensitive-env"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "print('ok')\n")
+    write_text(repo_root / ".env", "SECRET=value\n")
+    write_text(repo_root / ".env.local", "LOCAL_SECRET=value\n")
+
+    monkeypatch.setitem(codebase_context_generator.SMART_BUDGET_TOKENS, "low", 400)
+
+    output_path = repo_root / "smart-sensitive.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--mode",
+            "smart",
+            "--budget",
+            "low",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "### src/app.py" in output
+    assert "### .env\n" not in output
+    assert "### .env.local\n" not in output
+
+
+def test_generator_smart_mode_errors_when_include_stubs_exceed_budget(
+    tmp_path: Path,
+    codebase_context_generator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo_root = tmp_path / "plain-repo-smart-include-budget"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    write_text(repo_root / "src" / "app.py", "def main():\n    return 'ok'\n")
+
+    monkeypatch.setitem(codebase_context_generator.SMART_BUDGET_TOKENS, "low", 1)
+
+    with pytest.raises(RuntimeError, match="explicitly selected files as stubs"):
+        codebase_context_generator.main(
+            [
+                "--repo-root",
+                str(repo_root),
+                "--mode",
+                "smart",
+                "--budget",
+                "low",
+                "--include",
+                "src/**",
+            ]
+        )

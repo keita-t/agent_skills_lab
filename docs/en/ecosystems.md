@@ -46,7 +46,7 @@ infrastructure, not separate ecosystems by themselves.
 | Slug | Status | Purpose | Root agent | Skills | Notes |
 |---|---|---|---|---|---|
 | `ecosystem-audit` | `active` | Provide a shared audit platform for ecosystem manifests, installed ecosystem payloads, and rubric-first work-quality feedback. | `ecosystem-audit.agent.md` | None | Installable into other repositories and extended through manifest-declared `audit-files`. |
-| `codebase-context` | `active` | Export a repository into one markdown context file for large-context models. | `codebase-context.agent.md` | `codebase-context-export` | Installable into other repositories. The default export includes the full filtered source code plus useful supporting files, while explicit user pickup rules can narrow or override that scope. Uses the shared installed runtime contract in `container` mode. |
+| `codebase-context` | `active` | Export a repository into one markdown context file for large-context models. | `codebase-context.agent.md` | `codebase-context-export` | Installable into other repositories. `simple` mode exports the full filtered source code plus useful supporting files by default, while `smart` mode uses token-budgeted task-aware selection. Explicit user pickup rules can narrow or override scope. Uses the shared installed runtime contract in `container` mode. |
 | `repository-governance` | `active` | Repository documentation governance, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`, `repository-doc-governance`, `todo-progress-governance` | Self-hosted in this repository and installable into other repositories. Depends on `ecosystem-audit`, ships a governance-specific audit pack, and declares no installed runtime. |
 
 ## Ecosystem Details
@@ -121,7 +121,8 @@ Canonical manifest:
 | Audit files | `.github/ecosystems/codebase-context/audit/codebase-context-audit.md` |
 | Installed runtime | Shared installed runtime contract in `container` mode, with `generate_codebase_context.sh` as the runtime launcher, `.github/ecosystems/runtime_container_lib.sh` as the shared transport helper, and Docker as the only declared host prerequisite |
 | Quality focus | Export usefulness, signal-to-noise balance, pickup-rule obedience, and operator experience |
-| Default export behavior | Generates `CODEBASE_CONTEXT.md` at the repository root, exporting the full filtered source code plus useful supporting files in one markdown snapshot |
+| Default export behavior | Generates `CODEBASE_CONTEXT.md` at the repository root in `simple` mode, exporting the full filtered source code plus useful supporting files in one markdown snapshot |
+| Smart export behavior | `smart` mode uses `--budget low|medium|high` and optional `--task` text to produce a token-budgeted, task-aware snapshot with full or stubbed file representations |
 | User override rule | Explicit user pickup rules such as include, exclude, or source-only constraints override the default broad export policy |
 | Runtime output | The generated markdown snapshot is runtime output and is not part of the manifest-owned install payload |
 | Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) uses the shared [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) to prepare a temporary target repository, then invokes the installed runtime launcher directly so the runtime container is the only execution boundary for the export itself. |

@@ -102,6 +102,65 @@ def test_codebase_context_runtime_wrapper_builds_and_runs_docker_image(
     assert f"--repo-root {repo_root} --output runtime.md" in log_lines[2]
 
 
+def test_codebase_context_runtime_wrapper_forwards_smart_mode_args(
+    repo_root: Path,
+    tmp_path: Path,
+) -> None:
+    bash_path = shutil.which("bash")
+    assert bash_path is not None
+
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    docker_log = tmp_path / "docker.log"
+    fake_docker = fake_bin / "docker"
+    fake_docker.write_text(
+        f"#!{bash_path}\n"
+        f"printf '%s\\n' \"$*\" >> \"{docker_log}\"\n"
+        "exit 0\n",
+        encoding="utf-8",
+    )
+    fake_docker.chmod(0o755)
+
+    script_path = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "codebase-context"
+        / "generate_codebase_context.sh"
+    )
+
+    result = subprocess.run(
+        [
+            bash_path,
+            str(script_path),
+            "--repo-root",
+            ".",
+            "--output",
+            "runtime.md",
+            "--mode",
+            "smart",
+            "--budget",
+            "low",
+            "--task",
+            "cache behavior",
+        ],
+        cwd=repo_root,
+        env={"PATH": f"{fake_bin}:{os.environ.get('PATH', '')}"},
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+
+    log_lines = docker_log.read_text(encoding="utf-8").splitlines()
+
+    assert len(log_lines) == 3
+    assert (
+        f"--repo-root {repo_root} --output runtime.md --mode smart --budget low --task cache behavior"
+        in log_lines[2]
+    )
+
+
 def test_codebase_context_runtime_wrapper_falls_back_to_docker_cp_when_bind_mount_probe_fails(
     repo_root: Path,
     tmp_path: Path,

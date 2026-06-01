@@ -44,7 +44,7 @@
 | Slug | Status | Purpose | Root agent | Skills | Notes |
 |---|---|---|---|---|---|
 | `ecosystem-audit` | `active` | ecosystem manifest、install 済み payload、仕事の質を rubric-first で監査する共通 platform。 | `ecosystem-audit.agent.md` | なし | 他 repository へ install でき、manifest の `audit-files` で各 ecosystem から拡張できる。 |
-| `codebase-context` | `active` | repository を large-context model 向けの単一 markdown context file に export する。 | `codebase-context.agent.md` | `codebase-context-export` | 他 repository へ install できる。既定では full filtered source code と useful supporting files を export し、ユーザーの明示 pickup rule がある場合はその指定で scope を上書きする。shared installed runtime contract に `container` mode で opt-in している。 |
+| `codebase-context` | `active` | repository を large-context model 向けの単一 markdown context file に export する。 | `codebase-context.agent.md` | `codebase-context-export` | 他 repository へ install できる。`simple` mode は既定で full filtered source code と useful supporting files を export し、`smart` mode は token-budgeted かつ task-aware な選定を行う。ユーザーの明示 pickup rule がある場合はその指定で scope を上書きする。shared installed runtime contract に `container` mode で opt-in している。 |
 | `repository-governance` | `active` | repository documentation governance、bootstrap、TODO progress tracking。 | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`、`repository-doc-governance`、`todo-progress-governance` | この repository 自身で self-host しつつ、他 repository へ install できる。`ecosystem-audit` に依存し、governance 専用の audit pack を同梱し、installed runtime は宣言しない。 |
 
 ## Ecosystem Details
@@ -117,7 +117,8 @@
 | Audit files | `.github/ecosystems/codebase-context/audit/codebase-context-audit.md` |
 | Installed runtime | shared installed runtime contract の `container` mode。`generate_codebase_context.sh` を runtime launcher、`.github/ecosystems/runtime_container_lib.sh` を共有 transport helper とし、host prerequisite は Docker のみ |
 | 品質観点 | export の有用性、signal-to-noise、pickup rule の順守、operator experience |
-| 既定の export 挙動 | repository root の `CODEBASE_CONTEXT.md` を生成し、full filtered source code と useful supporting files を 1 つの markdown snapshot にまとめる |
+| 既定の export 挙動 | `simple` mode で repository root の `CODEBASE_CONTEXT.md` を生成し、full filtered source code と useful supporting files を 1 つの markdown snapshot にまとめる |
+| Smart export 挙動 | `smart` mode は `--budget low|medium|high` と任意の `--task` text を使い、full/stub representation を組み合わせた token-budgeted かつ task-aware な snapshot を生成する |
 | ユーザー override rule | include、exclude、source-only などの明示 pickup rule がある場合は、既定の broad export policy よりその指定を優先する |
 | Runtime output | 生成された markdown snapshot は runtime output であり、manifest-owned install payload には含めない |
 | Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) が、共有の [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) を使って一時 target repository を準備し、その後 install 済み runtime launcher を直接呼び出す。export 自体の実行境界は runtime container の 1 回だけになる。 |

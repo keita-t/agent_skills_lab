@@ -4,15 +4,25 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import fnmatch
+import math
 import os
 from pathlib import Path
 from pathlib import PurePosixPath
+import re
 import subprocess
 import sys
 
 DEFAULT_OUTPUT_NAME = "CODEBASE_CONTEXT.md"
 DEFAULT_INDEX_DEPTH = 4
+TOKEN_CHAR_RATIO = 4
+DEFAULT_SMART_BUDGET = "medium"
+SMART_BUDGET_TOKENS = {
+    "low": 50_000,
+    "medium": 150_000,
+    "high": 500_000,
+}
 EXCLUDED_DIR_NAMES = {
     ".git",
     ".hg",
@@ -84,7 +94,7 @@ _OUTPUT_TEMPLATES: dict[str, dict[str, str]] = {
         "instruction_body": "これから提示するソースコード全体の依存関係を解析し、ユーザーのプロンプトで提示された内容の解決を行ってください。",
         "index_header": "【インデックス】",
         "codebase_header": "【コードベース】",
-        "reminder_header": "【念押しの指示（最後に小さく）】",
+        "reminder_header": "【念押しの指示】",
         "reminder_body": "以上がコードベースです。上記【指示】に従って、まずは全体の方針から提示してください。",
     },
     "en": {
@@ -186,7 +196,34 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="ja",
         help="Language of the output headers and instructions (default: ja).",
     )
+    parser.add_argument(
+        "--mode",
+        choices=("simple", "smart"),
+        help="Export mode. Defaults to simple unless --budget or --task is supplied.",
+    )
+    parser.add_argument(
+        "--budget",
+        choices=tuple(SMART_BUDGET_TOKENS),
+        help="Smart mode token budget preset: low, medium, or high.",
+    )
+    parser.add_argument(
+        "--task",
+        help="Optional task description used by smart mode to prioritize files.",
+    )
     return parser.parse_args(argv)
+
+
+def resolve_export_mode(args: argparse.Namespace) -> tuple[str, str | None]:
+    mode = args.mode
+    smart_hint = args.budget is not None or args.task is not None
+    if mode is None:
+        mode = "smart" if smart_hint else "simple"
+    if mode == "simple" and smart_hint:
+        raise RuntimeError("--budget and --task are only supported with --mode smart")
+    budget = args.budget
+    if mode == "smart" and budget is None:
+        budget = DEFAULT_SMART_BUDGET
+    return mode, budget
 
 
 def discover_repo_root(start: Path) -> Path:
@@ -541,23 +578,24 @@ def infer_language(relative_path: str) -> str:
     return LANGUAGE_BY_SUFFIX.get(path.suffix.lower(), "")
 
 
+def render_file_section(relative_path: str, content: str) -> str:
+    fence = code_fence(content)
+    language = infer_language(relative_path)
+    info_string = language if language else "text"
+    return "\n".join(
+        [
+            f"### {relative_path}",
+            f"{fence}{info_string}",
+            content.rstrip("\n"),
+            fence,
+        ]
+    )
+
+
 def render_codebase_section(selected_paths: list[str], text_files: dict[str, str]) -> str:
     sections: list[str] = []
     for relative_path in selected_paths:
-        content = text_files[relative_path]
-        fence = code_fence(content)
-        language = infer_language(relative_path)
-        info_string = language if language else "text"
-        sections.append(
-            "\n".join(
-                [
-                    f"### {relative_path}",
-                    f"{fence}{info_string}",
-                    content.rstrip("\n"),
-                    fence,
-                ]
-            )
-        )
+        sections.append(render_file_section(relative_path, text_files[relative_path]))
     return "\n\n".join(sections)
 
 
@@ -586,8 +624,267 @@ def build_markdown(index_text: str, codebase_text: str, lang: str = "ja") -> str
     return "\n".join(parts)
 
 
+def estimate_tokens(text: str) -> int:
+    return max(1, math.ceil(len(text) / TOKEN_CHAR_RATIO))
+
+
+def tokenize_task(task: str | None) -> set[str]:
+    if not task:
+        return set()
+    return {
+        token
+        for token in re.findall(r"[A-Za-z0-9_]{3,}", task.lower())
+        if not token.isdigit()
+    }
+
+
+def git_status_paths(repo_root: Path) -> set[str]:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo_root), "status", "--short"],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+    except FileNotFoundError:
+        return set()
+    if result.returncode != 0:
+        return set()
+
+    paths: set[str] = set()
+    for line in result.stdout.splitlines():
+        if len(line) < 4:
+            continue
+        path_text = line[3:]
+        if " -> " in path_text:
+            path_text = path_text.rsplit(" -> ", 1)[-1]
+        paths.add(path_text)
+    return paths
+
+
+def is_source_file(relative_path: str) -> bool:
+    suffix = PurePosixPath(relative_path).suffix.lower()
+    return suffix in LANGUAGE_BY_SUFFIX and suffix not in AUXILIARY_SUFFIXES
+
+
+def score_smart_relevance(
+    relative_path: str,
+    content: str,
+    task_tokens: set[str],
+    changed_paths: set[str],
+    explicit_include: bool,
+) -> int:
+    score = 0
+    path_lower = relative_path.lower()
+    name_lower = PurePosixPath(relative_path).name.lower()
+    content_sample = content[:4_000].lower()
+
+    if explicit_include:
+        score += 80
+    if relative_path in changed_paths:
+        score += 60
+    if is_source_file(relative_path):
+        score += 10
+    elif is_useful_auxiliary_file(PurePosixPath(relative_path)):
+        score += 4
+
+    for token in task_tokens:
+        if token in path_lower:
+            score += 30
+        if token in name_lower:
+            score += 20
+        if token in content_sample:
+            score += 8
+
+    return score
+
+
+def source_segment_line(source: str, node: ast.AST) -> str | None:
+    segment = ast.get_source_segment(source, node)
+    if segment is None:
+        return None
+    first_line = segment.strip().splitlines()[0].rstrip()
+    return first_line
+
+
+def render_python_stub(relative_path: str, content: str) -> str:
+    try:
+        tree = ast.parse(content)
+    except SyntaxError:
+        return render_generic_stub(relative_path, content)
+
+    lines = ["# Smart mode stub: signatures only."]
+    imports: list[str] = []
+    declarations: list[str] = []
+
+    for node in tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            line = source_segment_line(content, node)
+            if line:
+                imports.append(line)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            line = source_segment_line(content, node)
+            if line:
+                declarations.append(line)
+        elif isinstance(node, ast.ClassDef):
+            line = source_segment_line(content, node)
+            if line:
+                declarations.append(line)
+            for child in node.body:
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    child_line = source_segment_line(content, child)
+                    if child_line:
+                        declarations.append(f"    {child_line}")
+
+    lines.extend(imports[:40])
+    if imports and declarations:
+        lines.append("")
+    lines.extend(declarations[:160])
+    if len(imports) > 40 or len(declarations) > 160:
+        lines.append("# ...")
+    if len(lines) == 1:
+        lines.extend(content.strip().splitlines()[:80])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+GENERIC_DECLARATION_PATTERN = re.compile(
+    r"^\s*(?:"
+    r"(?:export\s+)?(?:abstract\s+)?(?:class|interface|type|enum|function|const|let|var)\b|"
+    r"(?:public|private|protected|internal|static|final|open|data|sealed|fun)\b|"
+    r"(?:def|class)\b|"
+    r"(?:package|import|from|use|mod)\b"
+    r")"
+)
+
+
+def render_generic_stub(relative_path: str, content: str) -> str:
+    lines = ["// Smart mode stub: signatures only."]
+    matched_lines = [
+        line.rstrip()
+        for line in content.splitlines()
+        if GENERIC_DECLARATION_PATTERN.match(line)
+    ]
+    if matched_lines:
+        lines.extend(matched_lines[:220])
+        if len(matched_lines) > 220:
+            lines.append("// ...")
+    else:
+        lines.append("// No lightweight signatures detected; showing leading excerpt.")
+        lines.extend(content.strip().splitlines()[:80])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_stub_content(relative_path: str, content: str) -> str:
+    if PurePosixPath(relative_path).suffix.lower() == ".py":
+        return render_python_stub(relative_path, content)
+    return render_generic_stub(relative_path, content)
+
+
+def minimum_smart_markdown_tokens(
+    selected_paths: list[str],
+    stub_sections: dict[str, str],
+    output_lang: str,
+    index_depth: int,
+) -> int:
+    index_text = build_index(selected_paths, index_depth)
+    codebase_text = "\n\n".join(stub_sections[path] for path in selected_paths)
+    return estimate_tokens(build_markdown(index_text, codebase_text, lang=output_lang))
+
+
+def render_smart_codebase(
+    selected_paths: list[str],
+    text_files: dict[str, str],
+    repo_root: Path,
+    task: str | None,
+    budget_name: str,
+    output_lang: str,
+    index_depth: int,
+    explicit_include: bool,
+) -> tuple[list[str], str]:
+    budget_tokens = SMART_BUDGET_TOKENS[budget_name]
+    task_tokens = tokenize_task(task)
+    changed_paths = git_status_paths(repo_root)
+
+    full_sections = {
+        relative_path: render_file_section(relative_path, text_files[relative_path])
+        for relative_path in selected_paths
+    }
+    stub_sections = {
+        relative_path: render_file_section(
+            relative_path,
+            render_stub_content(relative_path, text_files[relative_path]),
+        )
+        for relative_path in selected_paths
+    }
+
+    required_paths = set(selected_paths) if explicit_include else set()
+    scored_paths = sorted(
+        selected_paths,
+        key=lambda path: (
+            -score_smart_relevance(
+                path,
+                text_files[path],
+                task_tokens,
+                changed_paths,
+                path in required_paths,
+            ),
+            path,
+        ),
+    )
+
+    if explicit_include:
+        minimum_tokens = minimum_smart_markdown_tokens(
+            selected_paths,
+            stub_sections,
+            output_lang,
+            index_depth,
+        )
+        if minimum_tokens > budget_tokens:
+            raise RuntimeError(
+                "Smart mode budget is too small to include all explicitly selected files as stubs"
+            )
+
+    selected_representations: dict[str, str] = {}
+    for relative_path in scored_paths:
+        candidate_representation = full_sections[relative_path]
+        candidate_paths = sorted([*selected_representations, relative_path])
+        candidate_sections = dict(selected_representations)
+        candidate_sections[relative_path] = candidate_representation
+        candidate_markdown = build_markdown(
+            build_index(candidate_paths, index_depth),
+            "\n\n".join(candidate_sections[path] for path in candidate_paths),
+            lang=output_lang,
+        )
+        if estimate_tokens(candidate_markdown) <= budget_tokens:
+            selected_representations[relative_path] = candidate_representation
+            continue
+
+        candidate_representation = stub_sections[relative_path]
+        candidate_sections[relative_path] = candidate_representation
+        candidate_markdown = build_markdown(
+            build_index(candidate_paths, index_depth),
+            "\n\n".join(candidate_sections[path] for path in candidate_paths),
+            lang=output_lang,
+        )
+        if estimate_tokens(candidate_markdown) <= budget_tokens:
+            selected_representations[relative_path] = candidate_representation
+            continue
+
+        if relative_path in required_paths:
+            raise RuntimeError(
+                "Smart mode budget is too small to include an explicitly selected file as a stub"
+            )
+
+    final_paths = sorted(selected_representations)
+    if not final_paths:
+        raise RuntimeError("No repository files fit within the selected smart mode budget")
+    codebase_text = "\n\n".join(selected_representations[path] for path in final_paths)
+    return final_paths, codebase_text
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    mode, budget = resolve_export_mode(args)
     repo_root = discover_repo_root(args.repo_root or Path.cwd())
     output_path = resolve_output_path(repo_root, args.output)
     auxiliary_policy = "none" if args.source_only else args.auxiliary_policy
@@ -610,8 +907,21 @@ def main(argv: list[str] | None = None) -> int:
     if not selected_paths:
         raise RuntimeError("No repository files matched the selected export scope")
 
+    if mode == "smart":
+        assert budget is not None
+        selected_paths, codebase_text = render_smart_codebase(
+            selected_paths,
+            text_files,
+            repo_root,
+            args.task,
+            budget,
+            args.output_lang,
+            args.index_depth,
+            explicit_include=bool(args.include),
+        )
+    else:
+        codebase_text = render_codebase_section(selected_paths, text_files)
     index_text = build_index(selected_paths, args.index_depth)
-    codebase_text = render_codebase_section(selected_paths, text_files)
     markdown_text = build_markdown(index_text, codebase_text, lang=args.output_lang)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

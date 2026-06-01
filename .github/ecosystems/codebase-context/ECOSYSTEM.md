@@ -50,6 +50,9 @@ building a single markdown context file from a repository.
   ecosystems can co-own the same installed path without path-based heuristics.
 - The generator's default output path is `CODEBASE_CONTEXT.md` at the target
   repository root, but callers can override it when needed.
+- The generator supports `simple` mode for the default broad export and `smart`
+  mode for token-budgeted, task-aware exports selected with `--budget` or
+  `--task`.
 - Explicit user pickup rules override the default broad export behavior.
 - Ecosystem-specific audits are declared through this manifest's `audit-files`
   and applied by the shared `ecosystem-audit` platform.
