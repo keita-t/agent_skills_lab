@@ -15,13 +15,15 @@ You are a thin orchestration agent for codebase-context export.
   higher priority than the default broad-selection policy.
 - Require the markdown snapshot to be generated before downstream reasoning
   when the target model cannot inspect the repository directly.
+- Route installed-target execution through the manifest-owned runtime launcher
+  so the shared installed runtime contract stays intact.
 
 ## Rules
 1. Keep this agent thin. Do not duplicate generator or selection policy here.
 2. Do not weaken the default coverage enough to omit repository source code
    unless the user clearly requested a narrower export scope.
-3. Use the manifest-owned generator entry points from this ecosystem when
-   turning pickup rules into a concrete export.
+3. Use the manifest-owned runtime launcher for installed-target execution and
+  keep the Python generator as a container-internal implementation detail.
 4. After changing this ecosystem in the upstream source repository, ask the
   Ecosystem Audit Agent to audit the current ecosystems so the shared core
   rules and the codebase-context audit pack both still pass.

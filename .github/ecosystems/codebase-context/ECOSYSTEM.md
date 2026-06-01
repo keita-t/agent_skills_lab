@@ -7,8 +7,12 @@ root-agent: codebase-context.agent.md
 agents: [codebase-context.agent.md]
 skills: [codebase-context-export]
 dependencies: [ecosystem-audit]
-ecosystem-files: [.github/ecosystems/codebase-context/generate_codebase_context.py, .github/ecosystems/codebase-context/generate_codebase_context.sh]
+ecosystem-files: [.github/ecosystems/runtime_container_lib.sh, .github/ecosystems/codebase-context/Dockerfile, .github/ecosystems/codebase-context/generate_codebase_context.py, .github/ecosystems/codebase-context/generate_codebase_context.sh]
 audit-files: [.github/ecosystems/codebase-context/audit/codebase-context-audit.md]
+shared-ownership-files: [.github/ecosystems/runtime_container_lib.sh]
+runtime-mode: container
+runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-requires: [docker]
 ---
 
 # Codebase Context Ecosystem
@@ -37,6 +41,13 @@ building a single markdown context file from a repository.
   and this manifest must resolve to manifest-owned paths.
 
 ## Notes
+- This ecosystem uses the shared installed runtime contract in `container`
+  mode. Operators need Docker on the target host, while the shipped Python
+  generator runs inside a disposable runtime image built from this manifest-
+  owned payload, and the launcher sources the shared
+  `.github/ecosystems/runtime_container_lib.sh` transport helper. That helper
+  is explicitly declared in `shared-ownership-files` so other runtime-enabled
+  ecosystems can co-own the same installed path without path-based heuristics.
 - The generator's default output path is `CODEBASE_CONTEXT.md` at the target
   repository root, but callers can override it when needed.
 - Explicit user pickup rules override the default broad export behavior.

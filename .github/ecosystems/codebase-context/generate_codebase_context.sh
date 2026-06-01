@@ -1,36 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GENERATOR_PY="${SCRIPT_DIR}/generate_codebase_context.py"
-PYTHON_CMD=""
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+if [[ "${SCRIPT_SOURCE}" != */* ]]; then
+  SCRIPT_SOURCE="./${SCRIPT_SOURCE}"
+fi
+SCRIPT_DIR="$(cd -- "${SCRIPT_SOURCE%/*}" && pwd -P)"
+RUNTIME_DOCKERFILE="${SCRIPT_DIR}/Dockerfile"
+RUNTIME_HELPER="${SCRIPT_DIR}/../runtime_container_lib.sh"
+RUNTIME_IMAGE="${CODEBASE_CONTEXT_RUNTIME_IMAGE:-agent-skills-lab/codebase-context-runtime:local}"
+DEFAULT_OUTPUT_NAME="CODEBASE_CONTEXT.md"
 
-if [[ ! -f "${GENERATOR_PY}" ]]; then
-  echo "Generator script not found: ${GENERATOR_PY}" >&2
+if [[ ! -f "${RUNTIME_DOCKERFILE}" ]]; then
+  echo "Runtime Dockerfile not found: ${RUNTIME_DOCKERFILE}" >&2
   exit 1
 fi
 
-select_python() {
-  local candidate
-  for candidate in python3 python; do
-    if ! command -v "${candidate}" >/dev/null 2>&1; then
-      continue
-    fi
-    if "${candidate}" - >/dev/null 2>&1 <<'PY'
-import sys
-raise SystemExit(0 if sys.version_info >= (3, 11) else 1)
-PY
-    then
-      PYTHON_CMD="${candidate}"
-      return 0
-    fi
-  done
-  return 1
-}
-
-if ! select_python; then
-  echo "python 3.11 or newer interpreter not found" >&2
+if [[ ! -f "${RUNTIME_HELPER}" ]]; then
+  echo "Runtime helper not found: ${RUNTIME_HELPER}" >&2
   exit 1
 fi
 
-"${PYTHON_CMD}" "${GENERATOR_PY}" "$@"
+# shellcheck source=../runtime_container_lib.sh
+source "${RUNTIME_HELPER}"
+
+if ! runtime_container_require_docker; then
+  echo "docker is required for codebase-context runtime" >&2
+  exit 1
+fi
+
+runtime_container_collect_common_args "--repo-root" "--output" "$@"
+
+CURRENT_WORKDIR="$(pwd -P)"
+REPO_ROOT="${RUNTIME_CONTAINER_EXPLICIT_REPO_ROOT}"
+if [[ -z "${REPO_ROOT}" ]]; then
+  REPO_ROOT="$(runtime_container_discover_repo_root "${CURRENT_WORKDIR}")"
+fi
+
+CONTAINER_WORKDIR="$(runtime_container_compute_workdir "${CURRENT_WORKDIR}" "${REPO_ROOT}")"
+
+runtime_container_build_image "${RUNTIME_IMAGE}" "${RUNTIME_DOCKERFILE}" "${SCRIPT_DIR}"
+runtime_container_run "${RUNTIME_IMAGE}" "${REPO_ROOT}" "${CONTAINER_WORKDIR}" "${DEFAULT_OUTPUT_NAME}"

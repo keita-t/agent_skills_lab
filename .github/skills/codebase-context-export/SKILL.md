@@ -40,10 +40,13 @@ required prompt placement while keeping source coverage broad by default.
 5. Preserve the required markdown template headings exactly:
    `【指示】`, `【インデックス】`, `【コードベース】`, and
    `【念押しの指示（最後に小さく）】`.
-6. Generate the export with
+6. In installed target repositories, generate the export with the shipped
+   runtime launcher
    [generate_codebase_context.sh](../../ecosystems/codebase-context/generate_codebase_context.sh)
-   or
+   so the shared installed runtime contract can build and run the disposable
+   runtime container. Treat
    [generate_codebase_context.py](../../ecosystems/codebase-context/generate_codebase_context.py).
+   as the container-internal implementation.
 7. Confirm that the resulting markdown contains a compact directory index and
    that the selected repository files were embedded in deterministic path order.
 
@@ -54,6 +57,8 @@ required prompt placement while keeping source coverage broad by default.
    requested them.
 4. Do not rewrite the required prompt template into a different structure.
 5. Keep installable links inside this skill limited to manifest-owned payload.
+6. Treat Docker as the only required host prerequisite for installed-target
+   execution of this ecosystem.
 
 ## Outputs
 - A generated markdown export, usually `CODEBASE_CONTEXT.md`

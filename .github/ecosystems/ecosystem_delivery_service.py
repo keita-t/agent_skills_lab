@@ -192,8 +192,10 @@ def _iter_manifest_owned_paths(
 ) -> list[tuple[EcosystemManifest, str]]:
     entries: list[tuple[EcosystemManifest, str]] = []
     seen_paths: dict[str, str] = {}
+    shared_paths: set[str] = set()
 
     for manifest in manifests:
+        manifest_shared_paths = set(manifest.shared_ownership_files)
         if remove_mode:
             relative_paths = sorted(
                 manifest_owned_relative_paths(manifest),
@@ -206,11 +208,16 @@ def _iter_manifest_owned_paths(
         for relative_path in relative_paths:
             owner = seen_paths.get(relative_path)
             if owner is not None and owner != manifest.slug:
+                if relative_path in shared_paths and relative_path in manifest_shared_paths:
+                    continue
                 raise RuntimeError(
                     "Manifest-owned path conflict between ecosystems "
-                    f"{owner} and {manifest.slug}: {relative_path}"
+                    f"{owner} and {manifest.slug}: {relative_path}. "
+                    "Declare shared paths in shared-ownership-files for every owner."
                 )
             seen_paths[relative_path] = manifest.slug
+            if relative_path in manifest_shared_paths:
+                shared_paths.add(relative_path)
             entries.append((manifest, relative_path))
 
     return entries
@@ -440,11 +447,22 @@ def build_remove_changeset(
         resolved_target_root,
         ecosystem_slug,
     )
+    installed_manifests = load_ecosystem_manifest_map(resolved_target_root)
+    removed_slugs = {manifest.slug for manifest in resolved_manifests}
+    preserved_shared_paths = {
+        relative_path
+        for slug, manifest in sorted(installed_manifests.items())
+        if slug not in removed_slugs
+        for relative_path in manifest.shared_ownership_files
+    }
+
     changes: list[DeliveryChange] = []
     for _, relative_path in _iter_manifest_owned_paths(
         list(reversed(resolved_manifests)),
         remove_mode=True,
     ):
+        if relative_path in preserved_shared_paths:
+            continue
         source_path = resolved_source_root / relative_path
         if not source_path.exists():
             raise FileNotFoundError(f"Manifest-owned source path not found: {source_path}")

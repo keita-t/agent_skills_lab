@@ -21,13 +21,33 @@ infrastructure, not separate ecosystems by themselves.
   repository documentation governance, bootstrap, and TODO progress tracking.
 - Manifest direction: ownership and dependency contract first.
 
+## Installed Runtime Contract
+
+- Installed runtime is optional across ecosystems.
+- Runtime-free ecosystems omit runtime metadata and ship no installed runtime.
+- Runtime-enabled ecosystems may declare `runtime-mode`,
+  `runtime-entrypoint`, and `runtime-requires` in manifest frontmatter.
+- Ecosystems may also declare `shared-ownership-files` to mark specific
+  manifest-owned paths as explicitly shareable across installed ecosystems.
+- Runtime assets remain part of `ecosystem-files`; runtime metadata describes
+  how the installed payload executes on target hosts.
+- Delivery copies a duplicate manifest-owned path only when every owning
+  ecosystem declares that exact path in `shared-ownership-files`; the remove
+  flow keeps it until the last installed owner is removed.
+- The only supported installed runtime mode today is `container`, which uses a
+  manifest-owned launcher and disposable Docker execution.
+- Runtime-enabled launchers may also reuse the shared
+  `.github/ecosystems/runtime_container_lib.sh` helper for bind-mount probing
+  and `docker cp` fallback transport when the host Docker daemon cannot see the
+  current workspace path directly.
+
 ## Current Inventory
 
 | Slug | Status | Purpose | Root agent | Skills | Notes |
 |---|---|---|---|---|---|
 | `ecosystem-audit` | `active` | Provide a shared audit platform for ecosystem manifests, installed ecosystem payloads, and rubric-first work-quality feedback. | `ecosystem-audit.agent.md` | None | Installable into other repositories and extended through manifest-declared `audit-files`. |
-| `codebase-context` | `active` | Export a repository into one markdown context file for large-context models. | `codebase-context.agent.md` | `codebase-context-export` | Installable into other repositories. The default export includes the full filtered source code plus useful supporting files, while explicit user pickup rules can narrow or override that scope. |
-| `repository-governance` | `active` | Repository documentation governance, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`, `repository-doc-governance`, `todo-progress-governance` | Self-hosted in this repository and installable into other repositories. Depends on `ecosystem-audit` and ships a governance-specific audit pack. |
+| `codebase-context` | `active` | Export a repository into one markdown context file for large-context models. | `codebase-context.agent.md` | `codebase-context-export` | Installable into other repositories. The default export includes the full filtered source code plus useful supporting files, while explicit user pickup rules can narrow or override that scope. Uses the shared installed runtime contract in `container` mode. |
+| `repository-governance` | `active` | Repository documentation governance, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`, `repository-doc-governance`, `todo-progress-governance` | Self-hosted in this repository and installable into other repositories. Depends on `ecosystem-audit`, ships a governance-specific audit pack, and declares no installed runtime. |
 
 ## Ecosystem Details
 
@@ -97,13 +117,14 @@ Canonical manifest:
 | Skills | [.github/skills/codebase-context-export/SKILL.md](../../.github/skills/codebase-context-export/SKILL.md) |
 | Ownership contract | Agent, skill, listed ecosystem-owned files, listed audit files, and the manifest itself |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem-owned files | The generator and shell wrapper under `.github/ecosystems/codebase-context/` |
+| Ecosystem-owned files | The shared `.github/ecosystems/runtime_container_lib.sh` transport helper, plus the runtime Dockerfile, shell launcher, and generator under `.github/ecosystems/codebase-context/` |
 | Audit files | `.github/ecosystems/codebase-context/audit/codebase-context-audit.md` |
+| Installed runtime | Shared installed runtime contract in `container` mode, with `generate_codebase_context.sh` as the runtime launcher, `.github/ecosystems/runtime_container_lib.sh` as the shared transport helper, and Docker as the only declared host prerequisite |
 | Quality focus | Export usefulness, signal-to-noise balance, pickup-rule obedience, and operator experience |
 | Default export behavior | Generates `CODEBASE_CONTEXT.md` at the repository root, exporting the full filtered source code plus useful supporting files in one markdown snapshot |
 | User override rule | Explicit user pickup rules such as include, exclude, or source-only constraints override the default broad export policy |
 | Runtime output | The generated markdown snapshot is runtime output and is not part of the manifest-owned install payload |
-| Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) runs the installed-target smoke tests inside the repo-contained Docker sandbox built from the shared [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile). |
+| Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) uses the shared [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) to prepare a temporary target repository, then invokes the installed runtime launcher directly so the runtime container is the only execution boundary for the export itself. |
 
 ### `repository-governance`
 
@@ -119,6 +140,7 @@ Canonical manifest:
 | Dependencies | `ecosystem-audit` |
 | Ecosystem-owned files | Template assets under `.github/ecosystems/repository-governance/` |
 | Audit files | `.github/ecosystems/repository-governance/audit/repository-governance-audit.md` |
+| Installed runtime | None declared. This ecosystem ships no installed executable runtime. |
 | Install portability rule | Repository-local links inside installable markdown must resolve within the manifest-owned payload so installed artifacts stay self-contained in target repositories. |
 | Quality focus | Document clarity, navigability, bilingual alignment quality, and operator usability |
 | Audit flow | The shared `ecosystem-audit` platform applies shared core rules, the shared work-quality rubric, and this ecosystem's audit pack on demand |
@@ -139,3 +161,4 @@ ecosystem entries.
 | Path | Role |
 |---|---|
 | [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) | Execute manifest-owned install or remove workflows against a target `owner/repo`, including declared dependencies, and prepare a PR-based delivery flow. |
+| [.github/ecosystems/runtime_container_lib.sh](../../.github/ecosystems/runtime_container_lib.sh) | Provide shared shell transport for installed `container` runtimes, including bind-mount probing and `docker cp` fallback execution when the Docker host cannot resolve the current workspace path. |

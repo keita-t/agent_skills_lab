@@ -19,13 +19,33 @@
 - 現在の主責務: 共有 ecosystem 監査と仕事の質フィードバック、large-context model 向けの repository codebase export、repository documentation governance、bootstrap、TODO progress tracking。
 - manifest の方向性: ownership と dependency の structural contract を優先する。
 
+## Installed Runtime Contract
+
+- installed runtime は ecosystem 共通の optional contract。
+- runtime-free ecosystem は runtime metadata を持たず、install 後 runtime を同梱しない。
+- runtime-enabled ecosystem は manifest frontmatter に `runtime-mode`、
+	`runtime-entrypoint`、`runtime-requires` を宣言できる。
+- ecosystem は `shared-ownership-files` も宣言でき、複数の install 済み
+	ecosystem が明示的に co-own してよい manifest-owned path を指定する。
+- runtime asset 自体は引き続き `ecosystem-files` に属し、runtime metadata は
+	target host 上での実行方法だけを記述する。
+- delivery は、すべての owner ecosystem が同じ path を
+	`shared-ownership-files` で明示した場合にだけ、その manifest-owned path を
+	重複 install できるものとして扱う。remove では最後の installed owner が
+	消えるまでその path を保持する。
+- 現在サポートする installed runtime mode は `container` のみで、manifest-owned
+	launcher と disposable Docker execution を共通契約とする。
+- runtime-enabled launcher は、host Docker daemon から現在の workspace path が
+	直接見えない場合に備えて、bind-mount probe と `docker cp` fallback transport
+	を共有 helper `.github/ecosystems/runtime_container_lib.sh` で再利用できる。
+
 ## 現在の Inventory
 
 | Slug | Status | Purpose | Root agent | Skills | Notes |
 |---|---|---|---|---|---|
 | `ecosystem-audit` | `active` | ecosystem manifest、install 済み payload、仕事の質を rubric-first で監査する共通 platform。 | `ecosystem-audit.agent.md` | なし | 他 repository へ install でき、manifest の `audit-files` で各 ecosystem から拡張できる。 |
-| `codebase-context` | `active` | repository を large-context model 向けの単一 markdown context file に export する。 | `codebase-context.agent.md` | `codebase-context-export` | 他 repository へ install できる。既定では full filtered source code と useful supporting files を export し、ユーザーの明示 pickup rule がある場合はその指定で scope を上書きする。 |
-| `repository-governance` | `active` | repository documentation governance、bootstrap、TODO progress tracking。 | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`、`repository-doc-governance`、`todo-progress-governance` | この repository 自身で self-host しつつ、他 repository へ install できる。`ecosystem-audit` に依存し、governance 専用の audit pack を同梱する。 |
+| `codebase-context` | `active` | repository を large-context model 向けの単一 markdown context file に export する。 | `codebase-context.agent.md` | `codebase-context-export` | 他 repository へ install できる。既定では full filtered source code と useful supporting files を export し、ユーザーの明示 pickup rule がある場合はその指定で scope を上書きする。shared installed runtime contract に `container` mode で opt-in している。 |
+| `repository-governance` | `active` | repository documentation governance、bootstrap、TODO progress tracking。 | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`、`repository-doc-governance`、`todo-progress-governance` | この repository 自身で self-host しつつ、他 repository へ install できる。`ecosystem-audit` に依存し、governance 専用の audit pack を同梱し、installed runtime は宣言しない。 |
 
 ## Ecosystem Details
 
@@ -93,13 +113,14 @@
 | Skills | [.github/skills/codebase-context-export/SKILL.md](../../.github/skills/codebase-context-export/SKILL.md) |
 | Ownership contract | agent、skill、listed ecosystem-owned files、listed audit files、および manifest 自体 |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem 固有 files | `.github/ecosystems/codebase-context/` 配下の generator と shell wrapper |
+| Ecosystem 固有 files | 共有 helper `.github/ecosystems/runtime_container_lib.sh` と、`.github/ecosystems/codebase-context/` 配下の runtime Dockerfile、shell launcher、generator |
 | Audit files | `.github/ecosystems/codebase-context/audit/codebase-context-audit.md` |
+| Installed runtime | shared installed runtime contract の `container` mode。`generate_codebase_context.sh` を runtime launcher、`.github/ecosystems/runtime_container_lib.sh` を共有 transport helper とし、host prerequisite は Docker のみ |
 | 品質観点 | export の有用性、signal-to-noise、pickup rule の順守、operator experience |
 | 既定の export 挙動 | repository root の `CODEBASE_CONTEXT.md` を生成し、full filtered source code と useful supporting files を 1 つの markdown snapshot にまとめる |
 | ユーザー override rule | include、exclude、source-only などの明示 pickup rule がある場合は、既定の broad export policy よりその指定を優先する |
 | Runtime output | 生成された markdown snapshot は runtime output であり、manifest-owned install payload には含めない |
-| Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) が、共有の [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) から build した repo 同梱 Docker sandbox 内で installed-target smoke test を実行する。 |
+| Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) が、共有の [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) を使って一時 target repository を準備し、その後 install 済み runtime launcher を直接呼び出す。export 自体の実行境界は runtime container の 1 回だけになる。 |
 
 ### `repository-governance`
 
@@ -115,6 +136,7 @@
 | Dependencies | `ecosystem-audit` |
 | Ecosystem 固有 files | `.github/ecosystems/repository-governance/` 配下の template assets |
 | Audit files | `.github/ecosystems/repository-governance/audit/repository-governance-audit.md` |
+| Installed runtime | 宣言なし。install 後に実行する executable runtime は持たない。 |
 | Install portability rule | installable markdown 内の repository-local link は manifest-owned payload の内側で解決できなければならず、install 後の artifact は target repository 内で self-contained に保つ。 |
 | 品質観点 | 文書の clarity、navigability、英日整合の質、operator usability |
 | Audit flow | shared `ecosystem-audit` platform が shared core rules、shared work-quality rubric、この ecosystem の audit pack を on-demand で適用する |
@@ -135,3 +157,4 @@ container smoke runner も続けて実行します。
 | Path | 役割 |
 |---|---|
 | [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) | 宣言された dependency も含めて manifest-owned install/remove workflow を target `owner/repo` に適用し、PR ベース delivery を準備する。 |
+| [.github/ecosystems/runtime_container_lib.sh](../../.github/ecosystems/runtime_container_lib.sh) | install 済み `container` runtime 向けの共有 shell transport helper。bind-mount probe と、Docker host が現在の workspace path を解決できない場合の `docker cp` fallback 実行を担う。 |

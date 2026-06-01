@@ -37,6 +37,69 @@ class FakeCommandRunner:
         return type("Result", (), {"stdout": "", "stderr": ""})()
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def create_test_ecosystem_source_root(
+    tmp_path: Path,
+    manifests: list[dict[str, object]],
+) -> Path:
+    source_root = tmp_path / "source-repo"
+
+    for manifest in manifests:
+        slug = str(manifest["slug"])
+        agent_name = f"{slug}.agent.md"
+        dependencies = [str(item) for item in manifest.get("dependencies", [])]
+        ecosystem_files = [str(item) for item in manifest.get("ecosystem_files", [])]
+        shared_ownership_files = [
+            str(item) for item in manifest.get("shared_ownership_files", [])
+        ]
+
+        write_text(
+            source_root / ".github" / "agents" / agent_name,
+            f"---\nname: {slug}\n---\n\n# {slug}\n",
+        )
+
+        for relative_path in ecosystem_files:
+            destination = source_root / relative_path
+            if not destination.exists():
+                write_text(destination, f"{relative_path}\n")
+
+        dependencies_literal = ", ".join(dependencies)
+        ecosystem_files_literal = ", ".join(ecosystem_files)
+        shared_ownership_literal = ", ".join(shared_ownership_files)
+        write_text(
+            source_root / ".github" / "ecosystems" / slug / "ECOSYSTEM.md",
+            "\n".join(
+                [
+                    "---",
+                    f"slug: {slug}",
+                    f"name: {slug.title()}",
+                    "description: Test ecosystem.",
+                    "status: active",
+                    f"root-agent: {agent_name}",
+                    f"agents: [{agent_name}]",
+                    "skills: []",
+                    f"dependencies: [{dependencies_literal}]",
+                    f"ecosystem-files: [{ecosystem_files_literal}]",
+                    *(
+                        [f"shared-ownership-files: [{shared_ownership_literal}]"]
+                        if shared_ownership_files
+                        else []
+                    ),
+                    "---",
+                    "",
+                    f"# {slug.title()}",
+                    "",
+                ]
+            ),
+        )
+
+    return source_root
+
+
 def test_build_install_changeset_uses_manifest_owned_paths_only(tmp_path) -> None:
     result = build_install_changeset(
         target_root=tmp_path / "target-repo",
@@ -82,6 +145,8 @@ def test_build_install_changeset_uses_manifest_owned_paths_only_for_codebase_con
     assert ".github/ecosystems/ecosystem-audit/assets/templates" in relative_destinations
     assert ".github/ecosystems/codebase-context/ECOSYSTEM.md" in relative_destinations
     assert ".github/ecosystems/codebase-context/audit/codebase-context-audit.md" in relative_destinations
+    assert ".github/ecosystems/runtime_container_lib.sh" in relative_destinations
+    assert ".github/ecosystems/codebase-context/Dockerfile" in relative_destinations
     assert ".github/ecosystems/codebase-context/generate_codebase_context.py" in relative_destinations
     assert ".github/ecosystems/codebase-context/generate_codebase_context.sh" in relative_destinations
     assert ".github/ecosystems/ecosystem_lib.py" not in relative_destinations
@@ -108,6 +173,142 @@ def test_build_remove_changeset_lists_only_existing_manifest_owned_paths(isolate
     assert ".github/ecosystems/codebase-context/ECOSYSTEM.md" not in relative_destinations
     assert ".github/ecosystems/ecosystem_lib.py" not in relative_destinations
     assert ".github/AGENT_SKILL_ROUTING.md" not in relative_destinations
+
+
+def test_build_install_changeset_allows_explicitly_shared_manifest_owned_path(tmp_path) -> None:
+    shared_path = ".github/ecosystems/shared/runtime-helper.sh"
+    source_root = create_test_ecosystem_source_root(
+        tmp_path,
+        [
+            {
+                "slug": "alpha",
+                "dependencies": [],
+                "ecosystem_files": [
+                    shared_path,
+                    ".github/ecosystems/alpha/alpha.txt",
+                ],
+                "shared_ownership_files": [shared_path],
+            },
+            {
+                "slug": "beta",
+                "dependencies": ["alpha"],
+                "ecosystem_files": [
+                    shared_path,
+                    ".github/ecosystems/beta/beta.txt",
+                ],
+                "shared_ownership_files": [shared_path],
+            },
+        ],
+    )
+
+    result = build_install_changeset(
+        target_root=tmp_path / "target-repo",
+        ecosystem_slug="beta",
+        source_root=source_root,
+    )
+
+    relative_destinations = [change.relative_destination for change in result]
+
+    assert relative_destinations.count(shared_path) == 1
+
+
+def test_build_install_changeset_rejects_duplicate_path_without_shared_ownership_metadata(tmp_path) -> None:
+    shared_path = ".github/ecosystems/shared/runtime-helper.sh"
+    source_root = create_test_ecosystem_source_root(
+        tmp_path,
+        [
+            {
+                "slug": "alpha",
+                "dependencies": [],
+                "ecosystem_files": [shared_path],
+            },
+            {
+                "slug": "beta",
+                "dependencies": ["alpha"],
+                "ecosystem_files": [shared_path],
+            },
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="Manifest-owned path conflict"):
+        build_install_changeset(
+            target_root=tmp_path / "target-repo",
+            ecosystem_slug="beta",
+            source_root=source_root,
+        )
+
+
+def test_remove_preserves_explicitly_shared_path_until_last_owner_is_removed(
+    tmp_path,
+) -> None:
+    shared_path = ".github/ecosystems/shared/runtime-helper.sh"
+    source_root = create_test_ecosystem_source_root(
+        tmp_path,
+        [
+            {
+                "slug": "alpha",
+                "dependencies": [],
+                "ecosystem_files": [
+                    shared_path,
+                    ".github/ecosystems/alpha/alpha.txt",
+                ],
+                "shared_ownership_files": [shared_path],
+            },
+            {
+                "slug": "beta",
+                "dependencies": [],
+                "ecosystem_files": [
+                    shared_path,
+                    ".github/ecosystems/beta/beta.txt",
+                ],
+                "shared_ownership_files": [shared_path],
+            },
+        ],
+    )
+    target_root = tmp_path / "target-repo"
+
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=target_root,
+            ecosystem_slug="alpha",
+            source_root=source_root,
+        )
+    )
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=target_root,
+            ecosystem_slug="beta",
+            source_root=source_root,
+        )
+    )
+
+    shared_helper = target_root / ".github" / "ecosystems" / "shared" / "runtime-helper.sh"
+
+    remove_alpha = build_remove_changeset(
+        target_root=target_root,
+        ecosystem_slug="alpha",
+        source_root=source_root,
+    )
+
+    assert shared_path not in {
+        change.relative_destination for change in remove_alpha
+    }
+
+    apply_delivery_changes(remove_alpha)
+
+    assert shared_helper.is_file()
+    assert not (target_root / ".github" / "ecosystems" / "alpha").exists()
+    assert (target_root / ".github" / "ecosystems" / "beta").exists()
+
+    apply_delivery_changes(
+        build_remove_changeset(
+            target_root=target_root,
+            ecosystem_slug="beta",
+            source_root=source_root,
+        )
+    )
+
+    assert not shared_helper.exists()
 
 
 def test_apply_delivery_changes_copies_manifest_owned_paths(tmp_path) -> None:
@@ -232,9 +433,22 @@ def test_apply_delivery_changes_installs_codebase_context_payload(tmp_path) -> N
         target_root
         / ".github"
         / "ecosystems"
+        / "runtime_container_lib.sh"
+    ).is_file()
+    assert (
+        target_root
+        / ".github"
+        / "ecosystems"
         / "codebase-context"
         / "audit"
         / "codebase-context-audit.md"
+    ).is_file()
+    assert (
+        target_root
+        / ".github"
+        / "ecosystems"
+        / "codebase-context"
+        / "Dockerfile"
     ).is_file()
     assert (
         target_root
@@ -288,6 +502,7 @@ def test_apply_delivery_changes_removes_codebase_context_manifest_owned_paths(tm
     assert not (target_root / ".github" / "agents" / "codebase-context.agent.md").exists()
     assert not (target_root / ".github" / "skills" / "codebase-context-export").exists()
     assert not (target_root / ".github" / "ecosystems" / "codebase-context").exists()
+    assert not (target_root / ".github" / "ecosystems" / "runtime_container_lib.sh").exists()
     assert not (target_root / ".github" / "agents" / "ecosystem-audit.agent.md").exists()
     assert not (target_root / ".github" / "ecosystems" / "ecosystem-audit").exists()
 

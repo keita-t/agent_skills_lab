@@ -46,21 +46,19 @@ and choose **Reopen in Container** to get a ready-to-use environment.
 For a local setup without the dev container, Python 3.11 or newer is required.
 Create a virtual environment and install dependencies as usual.
 
-### Running tests
+### Testing and runtime validation
 
-```bash
-# Unit tests
-python -m pytest -q
+GitHub Actions CI is defined in `.github/workflows/ci.yml`. It runs the
+repository test suite with `python -m pytest -q` and then executes both
+sandbox smoke runners:
+`tests/sandbox/run_codebase_context_container_smoke.sh` and
+`tests/sandbox/run_repository_governance_container_smoke.sh`.
 
-# Installed-target smoke tests (requires Docker)
-tests/sandbox/run_codebase_context_container_smoke.sh
-tests/sandbox/run_repository_governance_container_smoke.sh
-```
-
-Both smoke tests spin up a repo-contained Docker sandbox built from
-[tests/sandbox/base/Dockerfile](tests/sandbox/base/Dockerfile).
-GitHub Actions CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs
-all of the above on every push.
+The shared sandbox image is built from `tests/sandbox/base/Dockerfile`.
+For `codebase-context`, the installed runtime contract is declared through
+`runtime-mode` and `runtime-entrypoint`; the installed runtime launcher runs a
+disposable runtime container so the export itself stays inside that runtime
+container boundary.
 
 ### Operational Precautions
 
@@ -116,21 +114,18 @@ python .github/ecosystems/deliver_ecosystem.py install repository-governance own
 
 dev container を使わない場合は Python 3.11 以上が必要です。通常通り仮想環境を作成し、依存関係をインストールしてください。
 
-### テストの実行
+### テストと runtime 検証
 
-```bash
-# ユニットテスト
-python -m pytest -q
+GitHub Actions CI の定義は `.github/workflows/ci.yml` にあります。ここで
+`python -m pytest -q` による repository の test suite を実行したあと、
+`tests/sandbox/run_codebase_context_container_smoke.sh` と
+`tests/sandbox/run_repository_governance_container_smoke.sh` の 2 本の sandbox smoke runner を続けて実行します。
 
-# インストール済みターゲット向け smoke テスト（Docker 必須）
-tests/sandbox/run_codebase_context_container_smoke.sh
-tests/sandbox/run_repository_governance_container_smoke.sh
-```
-
-2 本の smoke テストはどちらも、
-[tests/sandbox/base/Dockerfile](tests/sandbox/base/Dockerfile)
-をベースにした repo 内 Docker sandbox 上で動きます。
-GitHub Actions CI（[.github/workflows/ci.yml](.github/workflows/ci.yml)）は、プッシュごとにすべてのテストを実行します。
+共有 sandbox image は `tests/sandbox/base/Dockerfile` から build されます。
+`codebase-context` では、installed runtime contract を `runtime-mode` と
+`runtime-entrypoint` で宣言し、installed runtime launcher が disposable な
+runtime container を起動することで、export 自体をその runtime container の
+境界内に閉じ込めます。
 
 ### 運用上の注意
 

@@ -5,15 +5,20 @@ source repository or installed target repository.
 
 ## Structural Checks
 
-1. The manifest-owned generator entry points
-   `.github/ecosystems/codebase-context/generate_codebase_context.py` and
-   `.github/ecosystems/codebase-context/generate_codebase_context.sh` must both
+1. The manifest-owned runtime Dockerfile, runtime launcher, and generator
+   implementation
+   `.github/ecosystems/codebase-context/Dockerfile`,
+   `.github/ecosystems/codebase-context/generate_codebase_context.sh`, and
+   `.github/ecosystems/codebase-context/generate_codebase_context.py` must all
    exist.
-2. The root agent and export skill should keep routing users to the manifest-
-   owned generator entry points instead of source-only shared helpers.
-3. `CODEBASE_CONTEXT.md` is runtime output, not part of the manifest-owned
+2. The manifest and guidance should keep installed-target execution on the
+   shared `container` runtime contract, with Docker as the declared host
+   prerequisite and the shell launcher as the manifest-owned entry point.
+3. The root agent and export skill should keep routing users to the manifest-
+   owned runtime launcher instead of source-only shared helpers.
+4. `CODEBASE_CONTEXT.md` is runtime output, not part of the manifest-owned
    payload, and should not be treated as install/remove ownership.
-4. The ecosystem should remain auditable through the shared `ecosystem-audit`
+5. The ecosystem should remain auditable through the shared `ecosystem-audit`
    platform rather than repository-governance-specific validation guidance.
 
 ## Artifact Quality Rubric
@@ -34,20 +39,22 @@ source repository or installed target repository.
    - Needs Work: the ecosystem drifts from explicit user constraints or leaves
       override rules ambiguous.
 - `operator-ergonomics`
-   - Strong: users can find the right entrypoint, understand the output path,
-      and rerun the export without friction.
+   - Strong: users can find the runtime launcher, understand Docker as the sole
+      host prerequisite, understand the output path, and rerun the export
+      without friction.
    - Needs Work: the ecosystem technically works but places too much manual
       reasoning burden on the operator.
 - `maintainability`
-   - Strong: guidance stays anchored to manifest-owned generator entrypoints and
-      avoids routing through source-only helpers.
+   - Strong: guidance stays anchored to manifest-owned runtime launcher and
+      Dockerfile assets while treating the Python generator as an internal
+      implementation detail.
    - Needs Work: export behavior depends on scattered or duplicated guidance.
 
 ## Behavior Quality Rubric
 
 - `correctness`
    - Evaluate whether the root agent and export guidance route work to the
-      manifest-owned generator entrypoints consistently.
+   manifest-owned runtime launcher consistently.
 - `completeness`
    - Evaluate whether the ecosystem's design explains both default broad export
       behavior and narrower user-directed pickup rules.
@@ -60,7 +67,9 @@ source repository or installed target repository.
 
 ## Evidence Sources
 
-- Generator entrypoints under `.github/ecosystems/codebase-context/`
+- Runtime Dockerfile, runtime launcher, and generator implementation under
+   `.github/ecosystems/codebase-context/`
+- Installed runtime metadata in the codebase-context manifest
 - The codebase-context agent and export skill definitions
 - Generated `CODEBASE_CONTEXT.md` output when a runtime example is available
 

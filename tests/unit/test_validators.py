@@ -216,10 +216,16 @@ def test_ubiquitous_language_tracks_quality_audit_terms(repo_root: Path) -> None
     ja_text = (repo_root / "docs" / "ja" / "ubiquitous-language.ja.md").read_text(encoding="utf-8")
 
     assert "work-quality audit" in en_text
+    assert "installed runtime contract" in en_text
+    assert "runtime launcher" in en_text
+    assert "runtime container" in en_text
     assert "rubric summary" in en_text
     assert "evidence basis" in en_text
     assert "upstream improvement feedback" in en_text
     assert "work-quality audit" in ja_text
+    assert "installed runtime contract" in ja_text
+    assert "runtime launcher" in ja_text
+    assert "runtime container" in ja_text
     assert "rubric summary" in ja_text
     assert "evidence basis" in ja_text
     assert "upstream improvement feedback" in ja_text
@@ -230,6 +236,7 @@ def test_codebase_context_sandbox_container_assets_are_documented(repo_root: Pat
     dockerfile_path = repo_root / "tests" / "sandbox" / "base" / "Dockerfile"
     runner_text = runner_path.read_text(encoding="utf-8")
     readme_text = (repo_root / "README.md").read_text(encoding="utf-8")
+    platform_text = (repo_root / ".github" / "ecosystems" / "README.md").read_text(encoding="utf-8")
     docs_en_text = (repo_root / "docs" / "en" / "ecosystems.md").read_text(encoding="utf-8")
     docs_ja_text = (repo_root / "docs" / "ja" / "ecosystems.ja.md").read_text(encoding="utf-8")
     ubiq_en_text = (repo_root / "docs" / "en" / "ubiquitous-language.md").read_text(encoding="utf-8")
@@ -239,16 +246,29 @@ def test_codebase_context_sandbox_container_assets_are_documented(repo_root: Pat
     assert runner_path.is_file()
     assert os.access(runner_path, os.X_OK)
     assert "docker build" in runner_text
+    assert "generate_codebase_context.sh" in runner_text
     assert "tests/sandbox/base/Dockerfile" not in readme_text or "base/Dockerfile" in readme_text
-    assert "test_codebase_context_installed_smoke.py" in runner_text
     assert "run_codebase_context_container_smoke.sh" in readme_text
-    assert "Docker sandbox" in readme_text
+    assert "runtime launcher" in readme_text
+    assert "runtime container" in readme_text
     assert "base/Dockerfile" in readme_text
+    assert "runtime-mode" in readme_text
+    assert "runtime-entrypoint" in platform_text
+    assert "shared-ownership-files" in platform_text
+    assert "runtime_container_lib.sh" in platform_text
     assert "run_codebase_context_container_smoke.sh" in docs_en_text
-    assert "Docker sandbox" in docs_en_text
+    assert "Installed Runtime Contract" in docs_en_text
+    assert "shared-ownership-files" in docs_en_text
+    assert "runtime launcher" in docs_en_text
+    assert "runtime container" in docs_en_text
+    assert "runtime_container_lib.sh" in docs_en_text
     assert "base/Dockerfile" in docs_en_text
     assert "run_codebase_context_container_smoke.sh" in docs_ja_text
-    assert "Docker sandbox" in docs_ja_text
+    assert "Installed Runtime Contract" in docs_ja_text
+    assert "shared-ownership-files" in docs_ja_text
+    assert "runtime launcher" in docs_ja_text
+    assert "runtime container" in docs_ja_text
+    assert "runtime_container_lib.sh" in docs_ja_text
     assert "base/Dockerfile" in docs_ja_text
     assert "sandbox smoke" in ubiq_en_text
     assert "sandbox smoke" in ubiq_ja_text

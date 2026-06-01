@@ -22,6 +22,11 @@ target repository.
    remain self-contained.
 9. `audit-files` should stay under `.github/ecosystems/<slug>/audit/` unless the
    manifest clearly owns a different audit path.
+10. Installed runtime metadata is optional. When `runtime-mode` is present,
+    `runtime-entrypoint` must reference a manifest-owned path,
+    `runtime-requires` must describe the supported host prerequisite set, and
+    runtime output must stay distinct from install/remove ownership unless the
+    manifest explicitly owns that output path.
 
 ## Installed Repository Notes
 

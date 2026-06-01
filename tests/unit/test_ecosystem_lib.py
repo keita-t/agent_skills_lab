@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from ecosystem_lib import (
     MANAGED_BLOCK_END,
     MANAGED_BLOCK_START,
@@ -64,7 +66,33 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
     assert manifest.audit_files == [
         ".github/ecosystems/repository-governance/audit/repository-governance-audit.md"
     ]
+    assert manifest.runtime_mode is None
+    assert manifest.runtime_entrypoint is None
+    assert manifest.runtime_requires == []
     assert ".github/ecosystems/repository-governance/MCP_TOOLS.json" not in manifest.ecosystem_files
+
+
+def test_load_ecosystem_manifest_reads_codebase_context_runtime_contract() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    manifest_path = (
+        repo_root
+        / ".github"
+        / "ecosystems"
+        / "codebase-context"
+        / "ECOSYSTEM.md"
+    )
+
+    manifest = load_ecosystem_manifest(manifest_path)
+
+    assert manifest.runtime_mode == "container"
+    assert (
+        manifest.runtime_entrypoint
+        == ".github/ecosystems/codebase-context/generate_codebase_context.sh"
+    )
+    assert manifest.runtime_requires == ["docker"]
+    assert manifest.shared_ownership_files == [".github/ecosystems/runtime_container_lib.sh"]
+    assert ".github/ecosystems/runtime_container_lib.sh" in manifest.ecosystem_files
+    assert ".github/ecosystems/codebase-context/Dockerfile" in manifest.ecosystem_files
 
 
 def test_load_ecosystem_manifest_reads_optional_audit_files(tmp_path: Path) -> None:
@@ -93,6 +121,129 @@ audit-files: [.github/ecosystems/ecosystem-audit/audit/core-rules.md]
     assert manifest.audit_files == [
         ".github/ecosystems/ecosystem-audit/audit/core-rules.md"
     ]
+
+
+def test_load_ecosystem_manifest_reads_optional_runtime_fields(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "ECOSYSTEM.md"
+    manifest_path.write_text(
+        """---
+slug: codebase-context
+name: Codebase Context
+description: Runtime-enabled ecosystem.
+status: active
+root-agent: codebase-context.agent.md
+agents: [codebase-context.agent.md]
+skills: [codebase-context-export]
+dependencies: [ecosystem-audit]
+ecosystem-files: [.github/ecosystems/runtime_container_lib.sh, .github/ecosystems/codebase-context/Dockerfile, .github/ecosystems/codebase-context/generate_codebase_context.sh]
+audit-files: [.github/ecosystems/codebase-context/audit/codebase-context-audit.md]
+shared-ownership-files: [.github/ecosystems/runtime_container_lib.sh]
+runtime-mode: container
+runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-requires: [docker]
+---
+
+# Codebase Context
+""",
+        encoding="utf-8",
+    )
+
+    manifest = load_ecosystem_manifest(manifest_path)
+
+    assert manifest.runtime_mode == "container"
+    assert (
+        manifest.runtime_entrypoint
+        == ".github/ecosystems/codebase-context/generate_codebase_context.sh"
+    )
+    assert manifest.runtime_requires == ["docker"]
+    assert manifest.shared_ownership_files == [".github/ecosystems/runtime_container_lib.sh"]
+
+
+def test_load_ecosystem_manifest_rejects_shared_ownership_path_outside_manifest_payload(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "ECOSYSTEM.md"
+    manifest_path.write_text(
+        """---
+slug: codebase-context
+name: Codebase Context
+description: Runtime-enabled ecosystem.
+status: active
+root-agent: codebase-context.agent.md
+agents: [codebase-context.agent.md]
+skills: [codebase-context-export]
+dependencies: [ecosystem-audit]
+ecosystem-files: [.github/ecosystems/codebase-context/generate_codebase_context.sh]
+shared-ownership-files: [.github/ecosystems/runtime_container_lib.sh]
+runtime-mode: container
+runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-requires: [docker]
+---
+
+# Codebase Context
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="shared-ownership-files"):
+        load_ecosystem_manifest(manifest_path)
+
+
+def test_load_ecosystem_manifest_rejects_incomplete_runtime_metadata(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "ECOSYSTEM.md"
+    manifest_path.write_text(
+        """---
+slug: codebase-context
+name: Codebase Context
+description: Runtime-enabled ecosystem.
+status: active
+root-agent: codebase-context.agent.md
+agents: [codebase-context.agent.md]
+skills: [codebase-context-export]
+dependencies: [ecosystem-audit]
+ecosystem-files: [.github/ecosystems/codebase-context/generate_codebase_context.sh]
+runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-requires: [docker]
+---
+
+# Codebase Context
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="runtime-mode"):
+        load_ecosystem_manifest(manifest_path)
+
+
+def test_load_ecosystem_manifest_rejects_runtime_entrypoint_outside_manifest_payload(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "ECOSYSTEM.md"
+    manifest_path.write_text(
+        """---
+slug: codebase-context
+name: Codebase Context
+description: Runtime-enabled ecosystem.
+status: active
+root-agent: codebase-context.agent.md
+agents: [codebase-context.agent.md]
+skills: [codebase-context-export]
+dependencies: [ecosystem-audit]
+ecosystem-files: [.github/ecosystems/codebase-context/Dockerfile]
+runtime-mode: container
+runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-requires: [docker]
+---
+
+# Codebase Context
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="manifest-owned path"):
+        load_ecosystem_manifest(manifest_path)
 
 
 def test_manifest_owned_relative_paths_match_repository_governance_contract() -> None:
@@ -128,6 +279,10 @@ def test_manifest_owned_relative_paths_include_audit_files() -> None:
         ecosystem_files=[],
         manifest_path=Path(".github/ecosystems/ecosystem-audit/ECOSYSTEM.md"),
         audit_files=[".github/ecosystems/ecosystem-audit/audit/core-rules.md"],
+        shared_ownership_files=[],
+        runtime_mode=None,
+        runtime_entrypoint=None,
+        runtime_requires=[],
     )
 
     relative_paths = manifest_owned_relative_paths(manifest)

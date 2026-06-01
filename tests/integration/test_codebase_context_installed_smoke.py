@@ -53,10 +53,17 @@ def run_installed_wrapper(target_root: Path, *args: str) -> subprocess.Completed
     )
 
 
+def require_docker() -> None:
+    if shutil.which("docker") is None:
+        pytest.skip("docker is required for this test")
+
+
 @pytest.mark.integration
 def test_installed_codebase_context_wrapper_runs_directly_for_narrow_scope(
     tmp_path: Path,
 ) -> None:
+    require_docker()
+
     target_root = tmp_path / "target-repo"
     target_root.mkdir()
     init_git_repo(target_root)
@@ -89,6 +96,8 @@ def test_installed_codebase_context_wrapper_runs_directly_for_narrow_scope(
 def test_installed_codebase_context_wrapper_reports_empty_scope_failure(
     tmp_path: Path,
 ) -> None:
+    require_docker()
+
     target_root = tmp_path / "target-repo"
     target_root.mkdir()
     init_git_repo(target_root)

@@ -55,6 +55,9 @@ repository or installed target repository.
   file focused on ecosystem-specific interpretations of those dimensions.
 - Prefer checks that can be grounded in implemented behavior, shipped files,
   or documented contracts already owned by the ecosystem.
+- When the ecosystem opts into the shared installed runtime contract, audit the
+  runtime launcher, declared host prerequisite set, and runtime outputs as a
+  behavior contract distinct from the manifest-owned payload.
 - When the ecosystem has generated output, distinguish runtime output from the
   manifest-owned payload explicitly.
 - If the ecosystem depends on another installable ecosystem, mention only the

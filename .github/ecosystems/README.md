@@ -10,10 +10,34 @@ shared audit assets for ecosystems managed in this repository.
 - Manifest-owned payload is defined by the listed agents, skills,
   `ecosystem-files`, `audit-files`, and the manifest itself.
 
+## Installed Runtime Contract
+- Installed runtime is optional. Ecosystems that do not execute installed code
+  in target repositories omit runtime metadata entirely.
+- Runtime-enabled ecosystems may declare `runtime-mode`,
+  `runtime-entrypoint`, and `runtime-requires` in manifest frontmatter.
+- Ecosystems may also declare `shared-ownership-files` for manifest-owned paths
+  that multiple installed ecosystems are allowed to co-own explicitly.
+- Runtime assets still belong in `ecosystem-files`; runtime metadata describes
+  execution behavior and host prerequisites, not extra ownership.
+- Delivery copies a duplicate manifest-owned path only when every owning
+  ecosystem declares that exact path in `shared-ownership-files`; removals keep
+  the shared path in place until the last installed owner is removed.
+- Supported installed runtime mode today is `container`, which standardizes on
+  a manifest-owned launcher and disposable Docker execution.
+- Runtime-enabled launchers may source the shared
+  `.github/ecosystems/runtime_container_lib.sh` helper to reuse the bind-mount
+  probe and `docker cp` fallback transport needed for Docker-outside-of-Docker
+  environments.
+- Runtime-enabled smoke should invoke the declared runtime launcher directly so
+  the runtime container remains the only execution boundary.
+
 ## Shared Delivery Helper
 - [deliver_ecosystem.py](deliver_ecosystem.py): Execute manifest-owned install
   or remove workflows against a target `owner/repo`, resolve manifest
   dependencies, and prepare a PR-based delivery flow.
+- [runtime_container_lib.sh](runtime_container_lib.sh): Shared shell helper for
+  installed `container` runtimes, including repo-root argument normalization,
+  bind-mount probing, and copy-based fallback transport.
 
 ## Installed Ecosystems
 - [ecosystem-audit/ECOSYSTEM.md](ecosystem-audit/ECOSYSTEM.md):
@@ -23,9 +47,9 @@ shared audit assets for ecosystems managed in this repository.
   scenarios for newly added ecosystems.
 - [codebase-context/ECOSYSTEM.md](codebase-context/ECOSYSTEM.md):
   Export a repository into a single markdown context file for large-context
-  models, with default broad coverage, explicit user pickup rules, and a
-  manifest-declared audit pack that can assess export usefulness and operator
-  experience.
+  models, with default broad coverage, explicit user pickup rules, a shared
+  installed runtime contract in `container` mode, and a manifest-declared
+  audit pack that can assess export usefulness and operator experience.
 - [repository-governance/ECOSYSTEM.md](repository-governance/ECOSYSTEM.md):
   Repository documentation governance, bootstrap, TODO progress tracking,
   ecosystem manifest and delivery orchestration, and a governance-specific

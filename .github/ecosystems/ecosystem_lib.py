@@ -80,6 +80,64 @@ class EcosystemManifest:
     ecosystem_files: list[str]
     manifest_path: Path
     audit_files: list[str] = field(default_factory=list)
+    shared_ownership_files: list[str] = field(default_factory=list)
+    runtime_mode: str | None = None
+    runtime_entrypoint: str | None = None
+    runtime_requires: list[str] = field(default_factory=list)
+
+
+def _require_string_list(
+    metadata: dict[str, object],
+    key: str,
+    path: Path,
+) -> list[str]:
+    value = metadata.get(key)
+    if not isinstance(value, list):
+        raise RuntimeError(f"Manifest key must be a list: {key}: {path}")
+    return [str(item) for item in value]
+
+
+def _load_runtime_metadata(
+    metadata: dict[str, object],
+    path: Path,
+) -> tuple[str | None, str | None, list[str]]:
+    runtime_mode_value = metadata.get("runtime-mode")
+    runtime_mode = str(runtime_mode_value) if runtime_mode_value is not None else None
+
+    runtime_entrypoint_value = metadata.get("runtime-entrypoint")
+    runtime_entrypoint = (
+        str(runtime_entrypoint_value) if runtime_entrypoint_value is not None else None
+    )
+
+    runtime_requires_value = metadata.get("runtime-requires", [])
+    if not isinstance(runtime_requires_value, list):
+        raise RuntimeError(f"Manifest key must be a list: runtime-requires: {path}")
+    runtime_requires = [str(item) for item in runtime_requires_value]
+
+    if runtime_mode is None:
+        if runtime_entrypoint is not None or runtime_requires:
+            raise RuntimeError(
+                "Runtime metadata requires runtime-mode when runtime-entrypoint or "
+                f"runtime-requires are set: {path}"
+            )
+        return None, None, []
+
+    if runtime_mode != "container":
+        raise RuntimeError(
+            f"Unsupported runtime-mode '{runtime_mode}' in manifest: {path}"
+        )
+
+    if runtime_entrypoint is None:
+        raise RuntimeError(
+            f"runtime-entrypoint is required when runtime-mode is set: {path}"
+        )
+
+    if not runtime_requires:
+        raise RuntimeError(
+            f"runtime-requires must list at least one prerequisite when runtime-mode is set: {path}"
+        )
+
+    return runtime_mode, runtime_entrypoint, runtime_requires
 
 
 def manifest_owned_relative_paths(manifest: EcosystemManifest) -> list[str]:
@@ -108,19 +166,59 @@ def load_ecosystem_manifest(path: Path) -> EcosystemManifest:
     if missing:
         raise RuntimeError(f"Manifest is missing required keys {missing}: {path}")
 
-    return EcosystemManifest(
+    runtime_mode, runtime_entrypoint, runtime_requires = _load_runtime_metadata(
+        metadata,
+        path,
+    )
+
+    manifest = EcosystemManifest(
         slug=str(metadata["slug"]),
         name=str(metadata["name"]),
         description=str(metadata["description"]),
         status=str(metadata["status"]),
         root_agent=str(metadata["root-agent"]),
-        agents=list(metadata["agents"]),
-        skills=list(metadata["skills"]),
-        dependencies=list(metadata["dependencies"]),
-        ecosystem_files=list(metadata["ecosystem-files"]),
-        audit_files=list(metadata.get("audit-files", [])),
+        agents=_require_string_list(metadata, "agents", path),
+        skills=_require_string_list(metadata, "skills", path),
+        dependencies=_require_string_list(metadata, "dependencies", path),
+        ecosystem_files=_require_string_list(metadata, "ecosystem-files", path),
+        audit_files=_require_string_list(
+            {**metadata, "audit-files": metadata.get("audit-files", [])},
+            "audit-files",
+            path,
+        ),
+        shared_ownership_files=_require_string_list(
+            {**metadata, "shared-ownership-files": metadata.get("shared-ownership-files", [])},
+            "shared-ownership-files",
+            path,
+        ),
         manifest_path=path,
+        runtime_mode=runtime_mode,
+        runtime_entrypoint=runtime_entrypoint,
+        runtime_requires=runtime_requires,
     )
+
+    invalid_shared_ownership_paths = [
+        relative_path
+        for relative_path in manifest.shared_ownership_files
+        if relative_path not in manifest_owned_relative_paths(manifest)
+    ]
+    if invalid_shared_ownership_paths:
+        raise RuntimeError(
+            "shared-ownership-files must reference manifest-owned paths: "
+            + ", ".join(invalid_shared_ownership_paths)
+            + f": {path}"
+        )
+
+    if (
+        manifest.runtime_entrypoint is not None
+        and manifest.runtime_entrypoint not in manifest_owned_relative_paths(manifest)
+    ):
+        raise RuntimeError(
+            "runtime-entrypoint must reference a manifest-owned path: "
+            f"{manifest.runtime_entrypoint}: {path}"
+        )
+
+    return manifest
 
 
 def load_ecosystem_manifests(repo_root: Path) -> list[EcosystemManifest]:
