@@ -37,6 +37,13 @@ If you prefer to run the delivery script directly, use
 python .github/ecosystems/deliver_ecosystem.py install repository-governance owner/repo
 ```
 
+### Ecosystem installation and quality improvement loop
+
+Installing an ecosystem into another repository is proposed as a pull request.
+Review that PR actively and feed findings back into this source repository so
+the ecosystem keeps improving through the loop. Even features that feel rough at
+first should get steadily better as feedback accumulates.
+
 ### Development runtime
 
 The repository ships a [dev container](.devcontainer/devcontainer.json) that
@@ -96,7 +103,7 @@ python .github/ecosystems/deliver_ecosystem.py install repository-governance own
 
 ### ecosystem のインストールと品質改善ループ
 
-他のリポジトリへのインストールは、PRとして提案されます。PRの内容を積極的にレビューし、指摘を本リポジトリへとフィードバックすることで、ecosystem はその改善ループによって確実に品質向上していきます。はじめは微妙な機能でも、フィードバックを重ねるうちにどんどん良くなっていくはずです。
+他のリポジトリへの ecosystem のインストールは、PRとして提案されます。PRの内容を積極的にレビューし、指摘を本リポジトリへとフィードバックすることで、ecosystem はその改善ループによって確実に品質向上していきます。はじめは微妙な機能でも、フィードバックを重ねるうちにどんどん良くなっていくはずです。
 
 ### 開発環境
 
