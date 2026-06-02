@@ -710,7 +710,11 @@ def test_generator_smart_mode_explicit_include_uses_exact_shared_index_budget(
         for index in range(80)
     ]
     content_by_path = {
-        relative_path: "def main():\n    return 1\n"
+        relative_path: (
+            "def main():\n"
+            + "".join(f"    value_{line} = {line}\n" for line in range(8))
+            + "    return value_7\n"
+        )
         for relative_path in relative_paths
     }
     for relative_path, content in content_by_path.items():
@@ -754,4 +758,4 @@ def test_generator_smart_mode_explicit_include_uses_exact_shared_index_budget(
     output = output_path.read_text(encoding="utf-8")
 
     assert "# Smart mode stub: signatures only." not in output
-    assert output.count("    return 1") == len(relative_paths)
+    assert output.count("    value_7 = 7") == len(relative_paths)
