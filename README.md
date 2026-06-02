@@ -1,4 +1,3 @@
-６# agent_skills_lab
 
 ## English
 
