@@ -133,6 +133,104 @@ runtime_container_compute_workdir() {
   printf '%s\n' "${repo_root}"
 }
 
+runtime_container_normalize_absolute_path() {
+  local path="$1"
+  local part=""
+  local path_parts=()
+  local normalized_parts=()
+  local IFS="/"
+
+  if [[ "${path}" != /* ]]; then
+    echo "Expected an absolute path: ${path}" >&2
+    return 1
+  fi
+
+  read -r -a path_parts <<< "${path}"
+  for part in "${path_parts[@]}"; do
+    case "${part}" in
+      ""|".")
+        ;;
+      "..")
+        if [[ ${#normalized_parts[@]} -gt 0 ]]; then
+          unset 'normalized_parts[${#normalized_parts[@]}-1]'
+        fi
+        ;;
+      *)
+        normalized_parts+=("${part}")
+        ;;
+    esac
+  done
+
+  if [[ ${#normalized_parts[@]} -eq 0 ]]; then
+    printf '/\n'
+    return 0
+  fi
+
+  printf '/%s' "${normalized_parts[0]}"
+  for part in "${normalized_parts[@]:1}"; do
+    printf '/%s' "${part}"
+  done
+  printf '\n'
+}
+
+runtime_container_parent_directory() {
+  local path="$1"
+  local parent="${path%/*}"
+
+  if [[ "${parent}" == "${path}" ]]; then
+    printf '.\n'
+    return 0
+  fi
+  if [[ -z "${parent}" ]]; then
+    printf '/\n'
+    return 0
+  fi
+
+  printf '%s\n' "${parent}"
+}
+
+runtime_container_host_output_path() {
+  local repo_root="$1"
+  local output_path=""
+
+  if [[ ${RUNTIME_CONTAINER_OUTPUT_WAS_EXPLICIT} -eq 0 ]]; then
+    return 1
+  fi
+
+  if [[ ${RUNTIME_CONTAINER_OUTPUT_ARGUMENT_IS_ABSOLUTE} -eq 1 ]]; then
+    output_path="${RUNTIME_CONTAINER_OUTPUT_ARGUMENT}"
+  else
+    output_path="${repo_root}/${RUNTIME_CONTAINER_OUTPUT_ARGUMENT}"
+  fi
+
+  runtime_container_normalize_absolute_path "${output_path}"
+}
+
+runtime_container_output_is_inside_repo() {
+  local repo_root="$1"
+  local normalized_repo_root=""
+  local normalized_output_path=""
+
+  if [[ ${RUNTIME_CONTAINER_OUTPUT_WAS_EXPLICIT} -eq 0 ]]; then
+    return 0
+  fi
+
+  normalized_repo_root="$(runtime_container_normalize_absolute_path "${repo_root}")" || return 1
+  normalized_output_path="$(runtime_container_host_output_path "${repo_root}")" || return 1
+
+  [[ "${normalized_output_path}" == "${normalized_repo_root}" || "${normalized_output_path}" == "${normalized_repo_root}"/* ]]
+}
+
+runtime_container_output_requires_copy_fallback() {
+  local repo_root="$1"
+
+  if [[ ${RUNTIME_CONTAINER_OUTPUT_WAS_EXPLICIT} -eq 0 ]]; then
+    return 1
+  fi
+
+  ! runtime_container_output_is_inside_repo "${repo_root}"
+}
+
 runtime_container_build_image() {
   local runtime_image="$1"
   local runtime_dockerfile="$2"
@@ -185,23 +283,27 @@ runtime_container_run_with_copy_fallback() {
   local needs_output_copy=0
   local container_id=""
   local output_parent=""
+  local host_output_temp=""
+  local normalized_repo_root=""
   local fallback_index=0
   local container_args=()
   local fallback_workdir="${container_repo_root}"
 
   if [[ -n "${default_output_name}" ]]; then
     container_output_path="${container_repo_root}/${default_output_name}"
-    host_output_path="${repo_root}/${default_output_name}"
+    host_output_path="$(runtime_container_normalize_absolute_path "${repo_root}/${default_output_name}")" || return 1
     needs_output_copy=1
   fi
 
   if [[ ${RUNTIME_CONTAINER_OUTPUT_WAS_EXPLICIT} -eq 1 ]]; then
-    if [[ ${RUNTIME_CONTAINER_OUTPUT_ARGUMENT_IS_ABSOLUTE} -eq 1 ]]; then
-      host_output_path="${RUNTIME_CONTAINER_OUTPUT_ARGUMENT}"
-      container_output_path="${container_output_root}${RUNTIME_CONTAINER_OUTPUT_ARGUMENT}"
+    host_output_path="$(runtime_container_host_output_path "${repo_root}")" || return 1
+    normalized_repo_root="$(runtime_container_normalize_absolute_path "${repo_root}")" || return 1
+    if [[ "${host_output_path}" == "${normalized_repo_root}" ]]; then
+      container_output_path="${container_repo_root}"
+    elif [[ "${host_output_path}" == "${normalized_repo_root}"/* ]]; then
+      container_output_path="${container_repo_root}/${host_output_path#${normalized_repo_root}/}"
     else
-      host_output_path="${repo_root}/${RUNTIME_CONTAINER_OUTPUT_ARGUMENT}"
-      container_output_path="${container_repo_root}/${RUNTIME_CONTAINER_OUTPUT_ARGUMENT}"
+      container_output_path="${container_output_root}${host_output_path}"
     fi
     needs_output_copy=1
   fi
@@ -264,12 +366,16 @@ runtime_container_run_with_copy_fallback() {
   fi
 
   if [[ ${needs_output_copy} -eq 1 ]]; then
-    output_parent="${host_output_path%/*}"
-    if [[ -z "${output_parent}" || "${output_parent}" == "${host_output_path}" ]]; then
-      output_parent="."
-    fi
+    output_parent="$(runtime_container_parent_directory "${host_output_path}")"
     mkdir -p "${output_parent}"
-    if ! docker cp "${container_id}:${container_output_path}" "${host_output_path}"; then
+    host_output_temp="$(mktemp "${output_parent}/.${host_output_path##*/}.tmp.XXXXXX")"
+    if ! docker cp "${container_id}:${container_output_path}" - | tar -xOf - > "${host_output_temp}"; then
+      rm -f "${host_output_temp}"
+      docker rm -f "${container_id}" >/dev/null 2>&1 || true
+      return 1
+    fi
+    if ! mv -f "${host_output_temp}" "${host_output_path}"; then
+      rm -f "${host_output_temp}"
       docker rm -f "${container_id}" >/dev/null 2>&1 || true
       return 1
     fi
@@ -284,7 +390,8 @@ runtime_container_run() {
   local container_workdir="$3"
   local default_output_name="$4"
 
-  if runtime_container_bind_mount_probe "${runtime_image}" "${repo_root}"; then
+  if ! runtime_container_output_requires_copy_fallback "${repo_root}" \
+    && runtime_container_bind_mount_probe "${runtime_image}" "${repo_root}"; then
     runtime_container_run_with_bind_mounts "${runtime_image}" "${repo_root}" "${container_workdir}"
     return 0
   fi
