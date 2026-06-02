@@ -628,23 +628,6 @@ def estimate_tokens(text: str) -> int:
     return max(1, math.ceil(len(text) / TOKEN_CHAR_RATIO))
 
 
-def estimate_section_separator_tokens(section_count: int) -> int:
-    if section_count <= 1:
-        return 0
-    return (section_count - 1) * estimate_tokens("\n\n")
-
-
-def estimate_index_path_tokens(relative_path: str, index_depth: int) -> int:
-    parts = relative_path.split("/")
-    visible_parts = parts[:index_depth]
-    if len(parts) > index_depth:
-        visible_parts.append("...")
-    # Add a small connector/indent allowance per rendered tree line. Directory
-    # lines are shared in the real index, so summing each path is conservative.
-    estimated_characters = sum(len(part) + 8 for part in visible_parts)
-    return estimate_tokens("x" * estimated_characters)
-
-
 def tokenize_task(task: str | None) -> set[str]:
     if not task:
         return set()
@@ -797,33 +780,17 @@ def render_stub_content(relative_path: str, content: str) -> str:
     return render_generic_stub(relative_path, content)
 
 
-def minimum_smart_markdown_tokens(
-    selected_paths: list[str],
-    stub_sections: dict[str, str],
+def estimate_smart_markdown_tokens(
+    selected_representations: dict[str, str],
     output_lang: str,
     index_depth: int,
 ) -> int:
+    selected_paths = sorted(selected_representations)
     index_text = build_index(selected_paths, index_depth)
-    codebase_text = "\n\n".join(stub_sections[path] for path in selected_paths)
-    return estimate_tokens(build_markdown(index_text, codebase_text, lang=output_lang))
-
-
-def base_empty_smart_markdown_tokens(output_lang: str) -> int:
-    return estimate_tokens(build_markdown(".", "", lang=output_lang))
-
-
-def estimate_additive_smart_markdown_tokens(
-    selected_paths: list[str],
-    section_tokens: dict[str, int],
-    index_path_tokens: dict[str, int],
-    output_lang: str,
-) -> int:
-    return (
-        base_empty_smart_markdown_tokens(output_lang)
-        + sum(index_path_tokens[path] for path in selected_paths)
-        + estimate_section_separator_tokens(len(selected_paths))
-        + sum(section_tokens[path] for path in selected_paths)
+    codebase_text = "\n\n".join(
+        selected_representations[path] for path in selected_paths
     )
+    return estimate_tokens(build_markdown(index_text, codebase_text, lang=output_lang))
 
 
 def render_smart_codebase(
@@ -851,19 +818,6 @@ def render_smart_codebase(
         )
         for relative_path in selected_paths
     }
-    full_section_tokens = {
-        relative_path: estimate_tokens(section)
-        for relative_path, section in full_sections.items()
-    }
-    stub_section_tokens = {
-        relative_path: estimate_tokens(section)
-        for relative_path, section in stub_sections.items()
-    }
-    index_path_tokens = {
-        relative_path: estimate_index_path_tokens(relative_path, index_depth)
-        for relative_path in selected_paths
-    }
-
     required_paths = set(selected_paths) if explicit_include else set()
     scored_paths = sorted(
         selected_paths,
@@ -880,9 +834,12 @@ def render_smart_codebase(
     )
 
     if explicit_include:
-        minimum_tokens = minimum_smart_markdown_tokens(
-            selected_paths,
-            stub_sections,
+        minimum_representations = {
+            relative_path: stub_sections[relative_path]
+            for relative_path in selected_paths
+        }
+        minimum_tokens = estimate_smart_markdown_tokens(
+            minimum_representations,
             output_lang,
             index_depth,
         )
@@ -892,57 +849,43 @@ def render_smart_codebase(
             )
 
     selected_representations: dict[str, str] = {}
-    selected_estimated_tokens = base_empty_smart_markdown_tokens(output_lang)
-    selected_section_count = 0
 
     if explicit_include:
-        selected_representations = {
-            relative_path: stub_sections[relative_path]
-            for relative_path in selected_paths
-        }
-        selected_estimated_tokens = estimate_additive_smart_markdown_tokens(
-            selected_paths,
-            stub_section_tokens,
-            index_path_tokens,
-            output_lang,
-        )
-        selected_section_count = len(selected_representations)
+        selected_representations = minimum_representations
 
     for relative_path in scored_paths:
         if relative_path in selected_representations:
-            token_delta = (
-                full_section_tokens[relative_path] - stub_section_tokens[relative_path]
+            candidate_representations = dict(selected_representations)
+            candidate_representations[relative_path] = full_sections[relative_path]
+            candidate_tokens = estimate_smart_markdown_tokens(
+                candidate_representations,
+                output_lang,
+                index_depth,
             )
-            if selected_estimated_tokens + token_delta <= budget_tokens:
-                selected_representations[relative_path] = full_sections[relative_path]
-                selected_estimated_tokens += token_delta
+            if candidate_tokens <= budget_tokens:
+                selected_representations = candidate_representations
             continue
 
-        separator_tokens = estimate_section_separator_tokens(selected_section_count + 1) - (
-            estimate_section_separator_tokens(selected_section_count)
-        )
-        full_candidate_tokens = (
-            selected_estimated_tokens
-            + index_path_tokens[relative_path]
-            + separator_tokens
-            + full_section_tokens[relative_path]
+        full_candidate_representations = dict(selected_representations)
+        full_candidate_representations[relative_path] = full_sections[relative_path]
+        full_candidate_tokens = estimate_smart_markdown_tokens(
+            full_candidate_representations,
+            output_lang,
+            index_depth,
         )
         if full_candidate_tokens <= budget_tokens:
-            selected_representations[relative_path] = full_sections[relative_path]
-            selected_estimated_tokens = full_candidate_tokens
-            selected_section_count += 1
+            selected_representations = full_candidate_representations
             continue
 
-        stub_candidate_tokens = (
-            selected_estimated_tokens
-            + index_path_tokens[relative_path]
-            + separator_tokens
-            + stub_section_tokens[relative_path]
+        stub_candidate_representations = dict(selected_representations)
+        stub_candidate_representations[relative_path] = stub_sections[relative_path]
+        stub_candidate_tokens = estimate_smart_markdown_tokens(
+            stub_candidate_representations,
+            output_lang,
+            index_depth,
         )
         if stub_candidate_tokens <= budget_tokens:
-            selected_representations[relative_path] = stub_sections[relative_path]
-            selected_estimated_tokens = stub_candidate_tokens
-            selected_section_count += 1
+            selected_representations = stub_candidate_representations
             continue
 
         if relative_path in required_paths:

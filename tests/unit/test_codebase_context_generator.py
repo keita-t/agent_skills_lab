@@ -635,49 +635,39 @@ def test_generator_smart_mode_errors_when_include_stubs_exceed_budget(
         )
 
 
-def test_generator_smart_mode_explicit_include_tracks_stub_budget_additively(
+def test_generator_smart_mode_explicit_include_rejects_full_candidate_over_budget(
     tmp_path: Path,
     codebase_context_generator,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    repo_root = tmp_path / "plain-repo-smart-include-additive-budget"
+    repo_root = tmp_path / "plain-repo-smart-include-exact-full-budget"
     repo_root.mkdir()
     (repo_root / ".github").mkdir()
     relative_path = "src/app.py"
-    content = "def main():\n" + ("    x = 1\n" * 4)
+    content = "def main():\n" + ("    x = 1\n" * 20)
     write_text(repo_root / relative_path, content)
 
     stub_section = codebase_context_generator.render_file_section(
         relative_path,
         codebase_context_generator.render_stub_content(relative_path, content),
     )
-    stub_section_tokens = {
-        relative_path: codebase_context_generator.estimate_tokens(stub_section)
-    }
-    index_path_tokens = {
-        relative_path: codebase_context_generator.estimate_index_path_tokens(
-            relative_path,
-            codebase_context_generator.DEFAULT_INDEX_DEPTH,
-        )
-    }
-    budget_tokens = codebase_context_generator.estimate_additive_smart_markdown_tokens(
-        [relative_path],
-        stub_section_tokens,
-        index_path_tokens,
-        "ja",
+    full_section = codebase_context_generator.render_file_section(
+        relative_path,
+        content,
     )
-    full_section_tokens = codebase_context_generator.estimate_tokens(
-        codebase_context_generator.render_file_section(relative_path, content)
-    )
-    minimum_tokens = codebase_context_generator.minimum_smart_markdown_tokens(
-        [relative_path],
+    stub_tokens = codebase_context_generator.estimate_smart_markdown_tokens(
         {relative_path: stub_section},
         "ja",
         codebase_context_generator.DEFAULT_INDEX_DEPTH,
     )
-    token_delta = full_section_tokens - stub_section_tokens[relative_path]
-    assert full_section_tokens > stub_section_tokens[relative_path]
-    assert minimum_tokens + token_delta <= budget_tokens
+    full_tokens = codebase_context_generator.estimate_smart_markdown_tokens(
+        {relative_path: full_section},
+        "ja",
+        codebase_context_generator.DEFAULT_INDEX_DEPTH,
+    )
+    budget_tokens = full_tokens - 1
+
+    assert stub_tokens <= budget_tokens < full_tokens
 
     monkeypatch.setitem(
         codebase_context_generator.SMART_BUDGET_TOKENS,
@@ -705,3 +695,63 @@ def test_generator_smart_mode_explicit_include_tracks_stub_budget_additively(
 
     assert "# Smart mode stub: signatures only." in output
     assert "    x = 1" not in output
+
+
+def test_generator_smart_mode_explicit_include_uses_exact_shared_index_budget(
+    tmp_path: Path,
+    codebase_context_generator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo_root = tmp_path / "plain-repo-smart-include-shared-index-budget"
+    repo_root.mkdir()
+    (repo_root / ".github").mkdir()
+    relative_paths = [
+        f"src/shared/file_{index:03}.py"
+        for index in range(80)
+    ]
+    content_by_path = {
+        relative_path: "def main():\n    return 1\n"
+        for relative_path in relative_paths
+    }
+    for relative_path, content in content_by_path.items():
+        write_text(repo_root / relative_path, content)
+
+    full_representations = {
+        relative_path: codebase_context_generator.render_file_section(
+            relative_path,
+            content,
+        )
+        for relative_path, content in content_by_path.items()
+    }
+    budget_tokens = codebase_context_generator.estimate_smart_markdown_tokens(
+        full_representations,
+        "ja",
+        codebase_context_generator.DEFAULT_INDEX_DEPTH,
+    )
+
+    monkeypatch.setitem(
+        codebase_context_generator.SMART_BUDGET_TOKENS,
+        "low",
+        budget_tokens,
+    )
+
+    output_path = repo_root / "smart-include.md"
+    codebase_context_generator.main(
+        [
+            "--repo-root",
+            str(repo_root),
+            "--mode",
+            "smart",
+            "--budget",
+            "low",
+            "--include",
+            "src/shared/**",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    output = output_path.read_text(encoding="utf-8")
+
+    assert "# Smart mode stub: signatures only." not in output
+    assert output.count("    return 1") == len(relative_paths)
