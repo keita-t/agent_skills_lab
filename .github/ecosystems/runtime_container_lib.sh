@@ -284,6 +284,7 @@ runtime_container_run_with_copy_fallback() {
   local container_id=""
   local output_parent=""
   local host_output_temp=""
+  local normalized_repo_root=""
   local fallback_index=0
   local container_args=()
   local fallback_workdir="${container_repo_root}"
@@ -296,7 +297,14 @@ runtime_container_run_with_copy_fallback() {
 
   if [[ ${RUNTIME_CONTAINER_OUTPUT_WAS_EXPLICIT} -eq 1 ]]; then
     host_output_path="$(runtime_container_host_output_path "${repo_root}")" || return 1
-    container_output_path="${container_output_root}${host_output_path}"
+    normalized_repo_root="$(runtime_container_normalize_absolute_path "${repo_root}")" || return 1
+    if [[ "${host_output_path}" == "${normalized_repo_root}" ]]; then
+      container_output_path="${container_repo_root}"
+    elif [[ "${host_output_path}" == "${normalized_repo_root}"/* ]]; then
+      container_output_path="${container_repo_root}/${host_output_path#${normalized_repo_root}/}"
+    else
+      container_output_path="${container_output_root}${host_output_path}"
+    fi
     needs_output_copy=1
   fi
 

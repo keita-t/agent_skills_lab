@@ -812,6 +812,20 @@ def base_empty_smart_markdown_tokens(output_lang: str) -> int:
     return estimate_tokens(build_markdown(".", "", lang=output_lang))
 
 
+def estimate_additive_smart_markdown_tokens(
+    selected_paths: list[str],
+    section_tokens: dict[str, int],
+    index_path_tokens: dict[str, int],
+    output_lang: str,
+) -> int:
+    return (
+        base_empty_smart_markdown_tokens(output_lang)
+        + sum(index_path_tokens[path] for path in selected_paths)
+        + estimate_section_separator_tokens(len(selected_paths))
+        + sum(section_tokens[path] for path in selected_paths)
+    )
+
+
 def render_smart_codebase(
     selected_paths: list[str],
     text_files: dict[str, str],
@@ -886,7 +900,12 @@ def render_smart_codebase(
             relative_path: stub_sections[relative_path]
             for relative_path in selected_paths
         }
-        selected_estimated_tokens = minimum_tokens
+        selected_estimated_tokens = estimate_additive_smart_markdown_tokens(
+            selected_paths,
+            stub_section_tokens,
+            index_path_tokens,
+            output_lang,
+        )
         selected_section_count = len(selected_representations)
 
     for relative_path in scored_paths:
