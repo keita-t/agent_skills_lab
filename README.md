@@ -94,6 +94,10 @@ agent_skills_lab は ecosystem を開発する場所であると同時に、`rep
 python .github/ecosystems/deliver_ecosystem.py install repository-governance owner/repo
 ```
 
+### ecosystem のインストールと品質改善ループ
+
+他のリポジトリへのインストールは、PRとして提案されます。PRの内容を積極的にレビューし、指摘を本リポジトリへとフィードバックすることで、ecosystem はその改善ループによって確実に品質向上していきます。はじめは微妙な機能でも、フィードバックを重ねるうちにどんどん良くなっていくはずです。
+
 ### 開発環境
 
 リポジトリには Python 3.11 と Docker がすぐ使える [dev container](.devcontainer/devcontainer.json) が同梱されています。VS Code でリポジトリを開き、**Reopen in Container** を選ぶだけで環境が整います。
