@@ -8,7 +8,7 @@ IMAGE_TAG="${IMAGE_TAG:-agent-skills-lab/codebase-context-sandbox:local}"
 mkdir -p "${REPO_ROOT}/.tmp"
 SANDBOX_ROOT="$(mktemp -d "${REPO_ROOT}/.tmp/codebase-context-smoke.XXXXXX")"
 TARGET_ROOT="${SANDBOX_ROOT}/target-repo"
-LAUNCHER="${TARGET_ROOT}/.github/ecosystems/codebase-context/generate_codebase_context.sh"
+LAUNCHER="${TARGET_ROOT}/.ai_ecosystems/codebase-context/generate_codebase_context.sh"
 SANDBOX_NAME="$(basename "${SANDBOX_ROOT}")"
 PREP_SCRIPT="${SANDBOX_ROOT}/prepare_target.py"
 CONTAINER_ID=""
@@ -34,7 +34,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-sys.path.insert(0, "/workspace/.github/ecosystems")
+sys.path.insert(0, "/workspace/.ai_ecosystems")
 
 from ecosystem_delivery_service import apply_delivery_changes, build_install_changeset
 

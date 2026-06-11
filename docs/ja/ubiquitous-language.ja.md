@@ -26,7 +26,7 @@ maintainer が明示的に憲章編集を指示した場合にのみ憲章へ反
 |---|---|
 | agent_skills_lab | custom agents、skills、installable ecosystems の開発と実験のためのラボ。 |
 | ecosystem | manifest が ownership を持つ agent、skill、helper file をひとまとまりで target repository に届ける再利用可能なパッケージ。 |
-| manifest | `.github/ecosystems/<slug>/ECOSYSTEM.md` にある、ecosystem の ownership、dependency、install payload を定義する Markdown contract。 |
+| manifest | `.ai_ecosystems/<slug>/ECOSYSTEM.md` にある、ecosystem の ownership、dependency、install payload を定義する Markdown contract。 |
 | ownership contract | install と remove の対象として manifest が所有を宣言するファイル集合。 |
 | installed runtime contract | ownership を増やさずに、install 済み ecosystem が target repository 上でどう実行されるかを記述する optional な manifest metadata。 |
 | runtime launcher | installed runtime を宣言した ecosystem で、operator が target repository から起動する manifest-owned entrypoint。 |

@@ -34,8 +34,7 @@ def install_codebase_context(target_root: Path) -> None:
 def installed_wrapper_path(target_root: Path) -> Path:
     return (
         target_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )
@@ -54,8 +53,17 @@ def run_installed_wrapper(target_root: Path, *args: str) -> subprocess.Completed
 
 
 def require_docker() -> None:
-    if shutil.which("docker") is None:
+    docker_path = shutil.which("docker")
+    if docker_path is None:
         pytest.skip("docker is required for this test")
+    result = subprocess.run(
+        [docker_path, "info"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        pytest.skip("docker daemon access is required for this test")
 
 
 @pytest.mark.integration

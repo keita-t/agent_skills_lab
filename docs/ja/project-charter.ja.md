@@ -34,5 +34,5 @@ maintainer がこの憲章の編集を明示的に指示しない限り、用語
   ガバナンスと更新ポリシー。
 - [docs/TODO.md](../TODO.md): 現在の TODO と追跡メモ。
 - [docs/en/project-charter.md](../en/project-charter.md): 英語版の対応文書。
-- [.github/ecosystems/README.md](../../.github/ecosystems/README.md):
+- [.ai_ecosystems/README.md](../../.ai_ecosystems/README.md):
   implementation-facing ecosystem index。

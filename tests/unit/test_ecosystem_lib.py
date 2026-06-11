@@ -9,12 +9,16 @@ from ecosystem_lib import (
     MANAGED_BLOCK_START,
     EcosystemManifest,
     copy_path,
+    detect_agent_hosts,
     find_repo_root,
+    host_agent_destination_relative_path,
+    host_skill_destination_relative_path,
     load_ecosystem_manifest,
     manifest_owned_relative_paths,
     merge_managed_block,
     parse_frontmatter,
     resolve_manifest_dependency_closure,
+    resolve_agent_hosts,
 )
 
 
@@ -40,8 +44,7 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     manifest_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "repository-governance"
         / "ECOSYSTEM.md"
     )
@@ -61,23 +64,22 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
         "todo-progress-governance",
     ]
     assert manifest.dependencies == ["ecosystem-audit"]
-    assert ".github/ecosystems/repository-governance/assets/templates" in manifest.ecosystem_files
-    assert ".github/ecosystems/repository-governance/validate_repository_governance.py" not in manifest.ecosystem_files
+    assert ".ai_ecosystems/repository-governance/assets/templates" in manifest.ecosystem_files
+    assert ".ai_ecosystems/repository-governance/validate_repository_governance.py" not in manifest.ecosystem_files
     assert manifest.audit_files == [
-        ".github/ecosystems/repository-governance/audit/repository-governance-audit.md"
+        ".ai_ecosystems/repository-governance/audit/repository-governance-audit.md"
     ]
     assert manifest.runtime_mode is None
     assert manifest.runtime_entrypoint is None
     assert manifest.runtime_requires == []
-    assert ".github/ecosystems/repository-governance/MCP_TOOLS.json" not in manifest.ecosystem_files
+    assert ".ai_ecosystems/repository-governance/MCP_TOOLS.json" not in manifest.ecosystem_files
 
 
 def test_load_ecosystem_manifest_reads_codebase_context_runtime_contract() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     manifest_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "ECOSYSTEM.md"
     )
@@ -87,12 +89,12 @@ def test_load_ecosystem_manifest_reads_codebase_context_runtime_contract() -> No
     assert manifest.runtime_mode == "container"
     assert (
         manifest.runtime_entrypoint
-        == ".github/ecosystems/codebase-context/generate_codebase_context.sh"
+        == ".ai_ecosystems/codebase-context/generate_codebase_context.sh"
     )
     assert manifest.runtime_requires == ["docker"]
-    assert manifest.shared_ownership_files == [".github/ecosystems/runtime_container_lib.sh"]
-    assert ".github/ecosystems/runtime_container_lib.sh" in manifest.ecosystem_files
-    assert ".github/ecosystems/codebase-context/Dockerfile" in manifest.ecosystem_files
+    assert manifest.shared_ownership_files == [".ai_ecosystems/runtime_container_lib.sh"]
+    assert ".ai_ecosystems/runtime_container_lib.sh" in manifest.ecosystem_files
+    assert ".ai_ecosystems/codebase-context/Dockerfile" in manifest.ecosystem_files
 
 
 def test_load_ecosystem_manifest_reads_optional_audit_files(tmp_path: Path) -> None:
@@ -108,7 +110,7 @@ agents: [ecosystem-audit.agent.md]
 skills: []
 dependencies: []
 ecosystem-files: []
-audit-files: [.github/ecosystems/ecosystem-audit/audit/core-rules.md]
+audit-files: [.ai_ecosystems/ecosystem-audit/audit/core-rules.md]
 ---
 
 # Ecosystem Audit
@@ -119,7 +121,7 @@ audit-files: [.github/ecosystems/ecosystem-audit/audit/core-rules.md]
     manifest = load_ecosystem_manifest(manifest_path)
 
     assert manifest.audit_files == [
-        ".github/ecosystems/ecosystem-audit/audit/core-rules.md"
+        ".ai_ecosystems/ecosystem-audit/audit/core-rules.md"
     ]
 
 
@@ -135,11 +137,11 @@ root-agent: codebase-context.agent.md
 agents: [codebase-context.agent.md]
 skills: [codebase-context-export]
 dependencies: [ecosystem-audit]
-ecosystem-files: [.github/ecosystems/runtime_container_lib.sh, .github/ecosystems/codebase-context/Dockerfile, .github/ecosystems/codebase-context/generate_codebase_context.sh]
-audit-files: [.github/ecosystems/codebase-context/audit/codebase-context-audit.md]
-shared-ownership-files: [.github/ecosystems/runtime_container_lib.sh]
+ecosystem-files: [.ai_ecosystems/runtime_container_lib.sh, .ai_ecosystems/codebase-context/Dockerfile, .ai_ecosystems/codebase-context/generate_codebase_context.sh]
+audit-files: [.ai_ecosystems/codebase-context/audit/codebase-context-audit.md]
+shared-ownership-files: [.ai_ecosystems/runtime_container_lib.sh]
 runtime-mode: container
-runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-entrypoint: .ai_ecosystems/codebase-context/generate_codebase_context.sh
 runtime-requires: [docker]
 ---
 
@@ -153,10 +155,10 @@ runtime-requires: [docker]
     assert manifest.runtime_mode == "container"
     assert (
         manifest.runtime_entrypoint
-        == ".github/ecosystems/codebase-context/generate_codebase_context.sh"
+        == ".ai_ecosystems/codebase-context/generate_codebase_context.sh"
     )
     assert manifest.runtime_requires == ["docker"]
-    assert manifest.shared_ownership_files == [".github/ecosystems/runtime_container_lib.sh"]
+    assert manifest.shared_ownership_files == [".ai_ecosystems/runtime_container_lib.sh"]
 
 
 def test_load_ecosystem_manifest_rejects_shared_ownership_path_outside_manifest_payload(
@@ -173,10 +175,10 @@ root-agent: codebase-context.agent.md
 agents: [codebase-context.agent.md]
 skills: [codebase-context-export]
 dependencies: [ecosystem-audit]
-ecosystem-files: [.github/ecosystems/codebase-context/generate_codebase_context.sh]
-shared-ownership-files: [.github/ecosystems/runtime_container_lib.sh]
+ecosystem-files: [.ai_ecosystems/codebase-context/generate_codebase_context.sh]
+shared-ownership-files: [.ai_ecosystems/runtime_container_lib.sh]
 runtime-mode: container
-runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-entrypoint: .ai_ecosystems/codebase-context/generate_codebase_context.sh
 runtime-requires: [docker]
 ---
 
@@ -203,8 +205,8 @@ root-agent: codebase-context.agent.md
 agents: [codebase-context.agent.md]
 skills: [codebase-context-export]
 dependencies: [ecosystem-audit]
-ecosystem-files: [.github/ecosystems/codebase-context/generate_codebase_context.sh]
-runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+ecosystem-files: [.ai_ecosystems/codebase-context/generate_codebase_context.sh]
+runtime-entrypoint: .ai_ecosystems/codebase-context/generate_codebase_context.sh
 runtime-requires: [docker]
 ---
 
@@ -231,9 +233,9 @@ root-agent: codebase-context.agent.md
 agents: [codebase-context.agent.md]
 skills: [codebase-context-export]
 dependencies: [ecosystem-audit]
-ecosystem-files: [.github/ecosystems/codebase-context/Dockerfile]
+ecosystem-files: [.ai_ecosystems/codebase-context/Dockerfile]
 runtime-mode: container
-runtime-entrypoint: .github/ecosystems/codebase-context/generate_codebase_context.sh
+runtime-entrypoint: .ai_ecosystems/codebase-context/generate_codebase_context.sh
 runtime-requires: [docker]
 ---
 
@@ -250,8 +252,7 @@ def test_manifest_owned_relative_paths_match_repository_governance_contract() ->
     repo_root = Path(__file__).resolve().parents[2]
     manifest_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "repository-governance"
         / "ECOSYSTEM.md"
     )
@@ -259,11 +260,11 @@ def test_manifest_owned_relative_paths_match_repository_governance_contract() ->
     manifest = load_ecosystem_manifest(manifest_path)
     relative_paths = manifest_owned_relative_paths(manifest)
 
-    assert ".github/agents/governance-repository-context-manager.agent.md" in relative_paths
-    assert ".github/skills/repository-governance-bootstrap" in relative_paths
-    assert ".github/ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_paths
-    assert ".github/ecosystems/repository-governance/ECOSYSTEM.md" in relative_paths
-    assert ".github/ecosystems/deliver_ecosystem.py" not in relative_paths
+    assert ".ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md" in relative_paths
+    assert ".ai_ecosystems/repository-governance/skills/repository-governance-bootstrap" in relative_paths
+    assert ".ai_ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_paths
+    assert ".ai_ecosystems/repository-governance/ECOSYSTEM.md" in relative_paths
+    assert ".ai_ecosystems/deliver_ecosystem.py" not in relative_paths
 
 
 def test_manifest_owned_relative_paths_include_audit_files() -> None:
@@ -277,8 +278,8 @@ def test_manifest_owned_relative_paths_include_audit_files() -> None:
         skills=[],
         dependencies=[],
         ecosystem_files=[],
-        manifest_path=Path(".github/ecosystems/ecosystem-audit/ECOSYSTEM.md"),
-        audit_files=[".github/ecosystems/ecosystem-audit/audit/core-rules.md"],
+        manifest_path=Path(".ai_ecosystems/ecosystem-audit/ECOSYSTEM.md"),
+        audit_files=[".ai_ecosystems/ecosystem-audit/audit/core-rules.md"],
         shared_ownership_files=[],
         runtime_mode=None,
         runtime_entrypoint=None,
@@ -287,7 +288,7 @@ def test_manifest_owned_relative_paths_include_audit_files() -> None:
 
     relative_paths = manifest_owned_relative_paths(manifest)
 
-    assert ".github/ecosystems/ecosystem-audit/audit/core-rules.md" in relative_paths
+    assert ".ai_ecosystems/ecosystem-audit/audit/core-rules.md" in relative_paths
 
 
 def test_resolve_manifest_dependency_closure_orders_dependencies_first(
@@ -296,7 +297,7 @@ def test_resolve_manifest_dependency_closure_orders_dependencies_first(
     repo_root = tmp_path / "repo"
 
     def write_manifest(slug: str, dependencies: list[str]) -> None:
-        manifest_path = repo_root / ".github" / "ecosystems" / slug / "ECOSYSTEM.md"
+        manifest_path = repo_root / ".ai_ecosystems" / slug / "ECOSYSTEM.md"
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         dependency_text = ", ".join(dependencies)
         manifest_path.write_text(
@@ -361,3 +362,65 @@ def test_find_repo_root_locates_current_repository() -> None:
     repo_root = find_repo_root(start)
 
     assert repo_root == Path(__file__).resolve().parents[2]
+
+
+def test_detect_agent_hosts_uses_target_markers_and_default_fallback(
+    tmp_path: Path,
+) -> None:
+    blank_repo = tmp_path / "blank"
+    blank_repo.mkdir()
+
+    assert detect_agent_hosts(blank_repo) == ["github-copilot"]
+
+    multi_host_repo = tmp_path / "multi-host"
+    (multi_host_repo / ".github").mkdir(parents=True)
+    (multi_host_repo / ".github" / "copilot-instructions.md").write_text(
+        "copilot\n",
+        encoding="utf-8",
+    )
+    (multi_host_repo / "CLAUDE.md").write_text("claude\n", encoding="utf-8")
+    (multi_host_repo / "AGENTS.md").write_text("codex\n", encoding="utf-8")
+    (multi_host_repo / ".cursor").mkdir()
+
+    assert detect_agent_hosts(multi_host_repo) == [
+        "github-copilot",
+        "claude-code",
+        "codex",
+        "cursor",
+    ]
+
+
+def test_resolve_agent_hosts_accepts_explicit_hosts_and_all(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+
+    assert resolve_agent_hosts(["claude-code", "codex"], repo) == [
+        "claude-code",
+        "codex",
+    ]
+    assert resolve_agent_hosts(["all"], repo) == [
+        "github-copilot",
+        "claude-code",
+        "codex",
+        "cursor",
+    ]
+
+
+def test_host_adapter_destination_paths() -> None:
+    assert (
+        host_agent_destination_relative_path(
+            "github-copilot",
+            "example.agent.md",
+        )
+        == ".github/agents/example.agent.md"
+    )
+    assert (
+        host_agent_destination_relative_path("codex", "example.agent.md")
+        is None
+    )
+    assert (
+        host_skill_destination_relative_path("cursor", "example-skill")
+        == ".cursor/skills/example-skill"
+    )

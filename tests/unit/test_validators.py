@@ -1,24 +1,65 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from ecosystem_lib import load_ecosystem_manifest, manifest_owned_relative_paths
 
 
+def test_no_legacy_github_ecosystems_references_remain(repo_root: Path) -> None:
+    ignored_directories = {".git", ".pytest_cache", ".tmp", "__pycache__"}
+    offenders: list[str] = []
+    legacy_path = ".github" + "/ecosystems"
+
+    for path in repo_root.rglob("*"):
+        if any(part in ignored_directories for part in path.parts):
+            continue
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if legacy_path in text:
+            offenders.append(str(path.relative_to(repo_root)))
+
+    assert offenders == []
+
+
+def test_no_non_hidden_ecosystem_directory_references_remain(repo_root: Path) -> None:
+    ignored_directories = {".git", ".pytest_cache", ".tmp", "__pycache__"}
+    offenders: list[str] = []
+    old_directory = "ai" + "_ecosystems"
+    hidden_directory = "." + old_directory
+
+    assert not (repo_root / old_directory).exists()
+
+    for path in repo_root.rglob("*"):
+        if any(part in ignored_directories for part in path.parts):
+            continue
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if old_directory in text.replace(hidden_directory, ""):
+            offenders.append(str(path.relative_to(repo_root)))
+
+    assert offenders == []
+
+
 def test_legacy_validator_files_are_removed(repo_root: Path) -> None:
+    assert not (repo_root / ".github" / "ecosystems").exists()
     retired_paths = [
-        repo_root / ".github" / "ecosystems" / "validate_ecosystem_registry.py",
-        repo_root / ".github" / "ecosystems" / "validate_ecosystem_registry.sh",
-        repo_root / ".github" / "ecosystems" / "ecosystem_registry_validation_service.py",
+        repo_root / ".ai_ecosystems" / "validate_ecosystem_registry.py",
+        repo_root / ".ai_ecosystems" / "validate_ecosystem_registry.sh",
+        repo_root / ".ai_ecosystems" / "ecosystem_registry_validation_service.py",
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "repository-governance"
         / "validate_repository_governance.py",
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "repository-governance"
         / "validate_repository_governance.sh",
     ]
@@ -30,8 +71,7 @@ def test_legacy_validator_files_are_removed(repo_root: Path) -> None:
 def test_ecosystem_audit_manifest_ships_template_and_smoke_assets(repo_root: Path) -> None:
     manifest_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "ecosystem-audit"
         / "ECOSYSTEM.md"
     )
@@ -39,20 +79,19 @@ def test_ecosystem_audit_manifest_ships_template_and_smoke_assets(repo_root: Pat
     manifest = load_ecosystem_manifest(manifest_path)
     relative_paths = manifest_owned_relative_paths(manifest)
 
-    assert ".github/ecosystems/ecosystem-audit/assets/templates" in manifest.ecosystem_files
-    assert ".github/ecosystems/ecosystem-audit/assets/smoke-scenarios" in manifest.ecosystem_files
-    assert ".github/ecosystems/ecosystem-audit/audit/core-rules.md" in relative_paths
-    assert ".github/ecosystems/ecosystem-audit/audit/report-contract.md" in relative_paths
-    assert ".github/ecosystems/ecosystem-audit/audit/work-quality-rubric.md" in relative_paths
-    assert ".github/ecosystems/ecosystem-audit/assets/templates" in relative_paths
-    assert ".github/ecosystems/ecosystem-audit/assets/smoke-scenarios" in relative_paths
+    assert ".ai_ecosystems/ecosystem-audit/assets/templates" in manifest.ecosystem_files
+    assert ".ai_ecosystems/ecosystem-audit/assets/smoke-scenarios" in manifest.ecosystem_files
+    assert ".ai_ecosystems/ecosystem-audit/audit/core-rules.md" in relative_paths
+    assert ".ai_ecosystems/ecosystem-audit/audit/report-contract.md" in relative_paths
+    assert ".ai_ecosystems/ecosystem-audit/audit/work-quality-rubric.md" in relative_paths
+    assert ".ai_ecosystems/ecosystem-audit/assets/templates" in relative_paths
+    assert ".ai_ecosystems/ecosystem-audit/assets/smoke-scenarios" in relative_paths
 
 
 def test_shared_work_quality_rubric_defines_qualitative_scale(repo_root: Path) -> None:
     rubric_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "ecosystem-audit"
         / "audit"
         / "work-quality-rubric.md"
@@ -75,8 +114,7 @@ def test_audit_pack_template_explains_manifest_owned_extension_contract(
 ) -> None:
     template_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "ecosystem-audit"
         / "assets"
         / "templates"
@@ -86,7 +124,7 @@ def test_audit_pack_template_explains_manifest_owned_extension_contract(
     normalized = " ".join(text.split())
 
     assert "audit-files" in text
-    assert ".github/ecosystems/<slug>/audit/" in text
+    assert ".ai_ecosystems/<slug>/audit/" in text
     assert "manifest-owned payload" in normalized
     assert "shared `ecosystem-audit` platform" in text
     assert "runtime output" in normalized
@@ -100,8 +138,7 @@ def test_new_ecosystem_smoke_scenario_covers_source_and_target_audit(
 ) -> None:
     scenario_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "ecosystem-audit"
         / "assets"
         / "smoke-scenarios"
@@ -124,8 +161,7 @@ def test_new_ecosystem_smoke_scenario_covers_source_and_target_audit(
 def test_report_contract_supports_rubric_first_quality_output(repo_root: Path) -> None:
     contract_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "ecosystem-audit"
         / "audit"
         / "report-contract.md"
@@ -145,7 +181,7 @@ def test_report_contract_supports_rubric_first_quality_output(repo_root: Path) -
 def test_repository_docs_no_longer_reference_retired_validators(repo_root: Path) -> None:
     paths = [
         repo_root / "README.md",
-        repo_root / ".github" / "ecosystems" / "README.md",
+        repo_root / ".ai_ecosystems" / "README.md",
         repo_root / "docs" / "en" / "ecosystems.md",
         repo_root / "docs" / "ja" / "ecosystems.ja.md",
     ]
@@ -173,14 +209,12 @@ def test_ecosystem_docs_include_rubric_first_audit_report_example(repo_root: Pat
 def test_ecosystem_audit_packs_define_quality_rubrics(repo_root: Path) -> None:
     paths = [
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "repository-governance"
         / "audit"
         / "repository-governance-audit.md",
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "audit"
         / "codebase-context-audit.md",
@@ -198,8 +232,7 @@ def test_repository_governance_audit_pack_covers_single_language_ubiquitous_lang
 ) -> None:
     audit_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "repository-governance"
         / "audit"
         / "repository-governance-audit.md"
@@ -229,4 +262,3 @@ def test_ubiquitous_language_tracks_quality_audit_terms(repo_root: Path) -> None
     assert "rubric summary" in ja_text
     assert "evidence basis" in ja_text
     assert "upstream improvement feedback" in ja_text
-

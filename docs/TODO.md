@@ -44,7 +44,7 @@ templates remains intentionally narrow and should be made explicit in follow-up
 guidance.
 
 Status: not started
-Trace: .github/ecosystems/repository-governance/assets/templates/bilingual
+Trace: .ai_ecosystems/repository-governance/assets/templates/bilingual
 
 ## Resolved Concerns Record
 

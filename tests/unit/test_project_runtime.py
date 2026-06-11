@@ -26,8 +26,7 @@ def test_codebase_context_runtime_wrapper_requires_docker(
 
     script_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )
@@ -64,8 +63,7 @@ def test_codebase_context_runtime_wrapper_builds_and_runs_docker_image(
 
     script_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )
@@ -91,7 +89,7 @@ def test_codebase_context_runtime_wrapper_builds_and_runs_docker_image(
 
     assert len(log_lines) == 3
     assert "build --tag agent-skills-lab/codebase-context-runtime:local --file" in log_lines[0]
-    assert str(repo_root / ".github" / "ecosystems" / "codebase-context" / "Dockerfile") in log_lines[0]
+    assert str(repo_root / ".ai_ecosystems" / "codebase-context" / "Dockerfile") in log_lines[0]
     assert "run --rm --entrypoint sh" in log_lines[1]
     assert f"--volume {repo_root}:{repo_root}" in log_lines[1]
     assert "agent-skills-lab/codebase-context-runtime:local" in log_lines[1]
@@ -123,8 +121,7 @@ def test_codebase_context_runtime_wrapper_forwards_smart_mode_args(
 
     script_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )
@@ -196,8 +193,7 @@ def test_codebase_context_runtime_wrapper_falls_back_to_docker_cp_when_bind_moun
 
     script_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )
@@ -272,8 +268,7 @@ def test_codebase_context_runtime_wrapper_maps_subdirectory_workdir_for_copy_fal
 
     script_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )
@@ -339,8 +334,7 @@ def test_codebase_context_runtime_wrapper_maps_absolute_repo_output_to_fallback_
 
     script_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )
@@ -410,8 +404,7 @@ def test_codebase_context_runtime_wrapper_uses_copy_fallback_for_external_output
 
     script_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.sh"
     )

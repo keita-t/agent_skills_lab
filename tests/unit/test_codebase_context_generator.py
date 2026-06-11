@@ -11,8 +11,7 @@ import pytest
 def codebase_context_generator(repo_root: Path, load_module_from_path):
     module_path = (
         repo_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "codebase-context"
         / "generate_codebase_context.py"
     )

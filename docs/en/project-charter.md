@@ -37,5 +37,5 @@ here unless a maintainer has explicitly instructed editing this charter.
 - [docs/TODO.md](../TODO.md): current backlog and follow-up design notes.
 - [docs/ja/project-charter.ja.md](../ja/project-charter.ja.md): Japanese
   counterpart.
-- [.github/ecosystems/README.md](../../.github/ecosystems/README.md):
+- [.ai_ecosystems/README.md](../../.ai_ecosystems/README.md):
   implementation-facing ecosystem index.

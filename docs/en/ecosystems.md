@@ -2,9 +2,9 @@
 
 This document summarizes the ecosystems currently managed in this repository.
 The implementation-facing inventory is anchored by
-[.github/ecosystems/README.md](../../.github/ecosystems/README.md), and each
-ecosystem definition is anchored by its manifest under `.github/ecosystems/`.
-The shared files directly under `.github/ecosystems/` are support
+[.ai_ecosystems/README.md](../../.ai_ecosystems/README.md), and each
+ecosystem definition is anchored by its manifest under `.ai_ecosystems/`.
+The shared files directly under `.ai_ecosystems/` are support
 infrastructure, not separate ecosystems by themselves.
 
 ## Related Documents
@@ -37,9 +37,24 @@ infrastructure, not separate ecosystems by themselves.
 - The only supported installed runtime mode today is `container`, which uses a
   manifest-owned launcher and disposable Docker execution.
 - Runtime-enabled launchers may also reuse the shared
-  `.github/ecosystems/runtime_container_lib.sh` helper for bind-mount probing
+  `.ai_ecosystems/runtime_container_lib.sh` helper for bind-mount probing
   and `docker cp` fallback transport when the host Docker daemon cannot see the
   current workspace path directly.
+
+## AI Tool Host Delivery
+
+- Manifest `agents` and `skills` are logical member names backed by canonical
+  source files under `.ai_ecosystems/<slug>/agents/` and
+  `.ai_ecosystems/<slug>/skills/`.
+- Delivery host adapters copy those canonical files into selected AI tool
+  native paths: GitHub Copilot uses `.github/agents/` and `.github/skills/`,
+  Claude Code uses `.claude/agents/` and `.claude/skills/`, Codex uses
+  `.agents/skills/`, and Cursor uses `.cursor/skills/`.
+- If no host is specified, delivery detects target repository markers and
+  installs into every detected host. If no marker exists, it falls back to
+  GitHub Copilot.
+- Delivery does not modify target repository root/global instructions such as
+  `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md`.
 
 ## Current Inventory
 
@@ -54,15 +69,15 @@ infrastructure, not separate ecosystems by themselves.
 ### `ecosystem-audit`
 
 Canonical manifest:
-[.github/ecosystems/ecosystem-audit/ECOSYSTEM.md](../../.github/ecosystems/ecosystem-audit/ECOSYSTEM.md)
+[.ai_ecosystems/ecosystem-audit/ECOSYSTEM.md](../../.ai_ecosystems/ecosystem-audit/ECOSYSTEM.md)
 
 | Area | Current implementation |
 |---|---|
-| Root agent | [.github/agents/ecosystem-audit.agent.md](../../.github/agents/ecosystem-audit.agent.md) |
+| Root agent | [.ai_ecosystems/ecosystem-audit/agents/ecosystem-audit.agent.md](../../.ai_ecosystems/ecosystem-audit/agents/ecosystem-audit.agent.md) |
 | Skills | None |
 | Ownership contract | Agent, listed ecosystem-owned files, listed audit files, and the manifest itself |
-| Ecosystem-owned files | Starter assets under `.github/ecosystems/ecosystem-audit/assets/` |
-| Audit files | Shared core rules, report contract, and work-quality rubric under `.github/ecosystems/ecosystem-audit/audit/` |
+| Ecosystem-owned files | Starter assets under `.ai_ecosystems/ecosystem-audit/assets/` |
+| Audit files | Shared core rules, report contract, and work-quality rubric under `.ai_ecosystems/ecosystem-audit/audit/` |
 | Extension model | Other ecosystems declare additional `audit-files` in their own manifests so ecosystem-specific checks stay owned by the ecosystem they describe |
 | Starter assets | Ships an audit-pack template and a manual smoke scenario for newly added ecosystems |
 | Output model | Rubric-first reports that summarize quality by dimension before evidence-backed findings |
@@ -88,7 +103,7 @@ rubric-first audit report.
 3. Findings
   - warning
     - Dimension: recovery-behavior
-    - Rule source: `.github/ecosystems/repository-governance/audit/repository-governance-audit.md`
+    - Rule source: `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md`
     - Evidence basis: definition-inferred
     - Confidence: medium
     - Impact: Maintainers may know the happy path but still hesitate when the installed docs set is incomplete.
@@ -97,9 +112,9 @@ rubric-first audit report.
     - Improvement feedback: upstream-ecosystem-feedback - add one short missing-doc recovery branch to installed guidance.
 
 4. Files and manifests inspected
-  - `.github/ecosystems/repository-governance/ECOSYSTEM.md`
+  - `.ai_ecosystems/repository-governance/ECOSYSTEM.md`
   - `docs/README.md`
-  - `.github/agents/governance-repository-context-manager.agent.md`
+  - `.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md`
 
 5. Suggested follow-up
   - Add one explicit recovery step for incomplete installed docs sets.
@@ -109,17 +124,17 @@ rubric-first audit report.
 ### `codebase-context`
 
 Canonical manifest:
-[.github/ecosystems/codebase-context/ECOSYSTEM.md](../../.github/ecosystems/codebase-context/ECOSYSTEM.md)
+[.ai_ecosystems/codebase-context/ECOSYSTEM.md](../../.ai_ecosystems/codebase-context/ECOSYSTEM.md)
 
 | Area | Current implementation |
 |---|---|
-| Root agent | [.github/agents/codebase-context.agent.md](../../.github/agents/codebase-context.agent.md) |
-| Skills | [.github/skills/codebase-context-export/SKILL.md](../../.github/skills/codebase-context-export/SKILL.md) |
+| Root agent | [.ai_ecosystems/codebase-context/agents/codebase-context.agent.md](../../.ai_ecosystems/codebase-context/agents/codebase-context.agent.md) |
+| Skills | [.ai_ecosystems/codebase-context/skills/codebase-context-export/SKILL.md](../../.ai_ecosystems/codebase-context/skills/codebase-context-export/SKILL.md) |
 | Ownership contract | Agent, skill, listed ecosystem-owned files, listed audit files, and the manifest itself |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem-owned files | The shared `.github/ecosystems/runtime_container_lib.sh` transport helper, plus the runtime Dockerfile, shell launcher, and generator under `.github/ecosystems/codebase-context/` |
-| Audit files | `.github/ecosystems/codebase-context/audit/codebase-context-audit.md` |
-| Installed runtime | Shared installed runtime contract in `container` mode, with `generate_codebase_context.sh` as the runtime launcher, `.github/ecosystems/runtime_container_lib.sh` as the shared transport helper, and Docker as the only declared host prerequisite |
+| Ecosystem-owned files | The shared `.ai_ecosystems/runtime_container_lib.sh` transport helper, plus the runtime Dockerfile, shell launcher, and generator under `.ai_ecosystems/codebase-context/` |
+| Audit files | `.ai_ecosystems/codebase-context/audit/codebase-context-audit.md` |
+| Installed runtime | Shared installed runtime contract in `container` mode, with `generate_codebase_context.sh` as the runtime launcher, `.ai_ecosystems/runtime_container_lib.sh` as the shared transport helper, and Docker as the only declared host prerequisite |
 | Quality focus | Export usefulness, signal-to-noise balance, pickup-rule obedience, and operator experience |
 | Default export behavior | Generates `CODEBASE_CONTEXT.md` at the repository root in `simple` mode, exporting the full filtered source code plus useful supporting files in one markdown snapshot |
 | Smart export behavior | `smart` mode uses `--budget low|medium|high` and optional `--task` text to produce a token-budgeted, task-aware snapshot with full or stubbed file representations |
@@ -130,17 +145,17 @@ Canonical manifest:
 ### `repository-governance`
 
 Canonical manifest:
-[.github/ecosystems/repository-governance/ECOSYSTEM.md](../../.github/ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/repository-governance/ECOSYSTEM.md](../../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
 
 | Area | Current implementation |
 |---|---|
-| Root agent | [.github/agents/governance-repository-context-manager.agent.md](../../.github/agents/governance-repository-context-manager.agent.md) |
-| Specialized agents | [.github/agents/governance-ecosystem-manifest.agent.md](../../.github/agents/governance-ecosystem-manifest.agent.md), [.github/agents/governance-ecosystem-delivery.agent.md](../../.github/agents/governance-ecosystem-delivery.agent.md) |
-| Skills | [.github/skills/repository-governance-bootstrap/SKILL.md](../../.github/skills/repository-governance-bootstrap/SKILL.md), [.github/skills/repository-doc-governance/SKILL.md](../../.github/skills/repository-doc-governance/SKILL.md), [.github/skills/todo-progress-governance/SKILL.md](../../.github/skills/todo-progress-governance/SKILL.md) |
+| Root agent | [.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md) |
+| Specialized agents | [.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md), [.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md) |
+| Skills | [.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md), [.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md), [.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md) |
 | Ownership contract | Agents, skills, listed ecosystem-owned files, listed audit files, and the manifest itself |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem-owned files | Template assets under `.github/ecosystems/repository-governance/` |
-| Audit files | `.github/ecosystems/repository-governance/audit/repository-governance-audit.md` |
+| Ecosystem-owned files | Template assets under `.ai_ecosystems/repository-governance/` |
+| Audit files | `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md` |
 | Installed runtime | None declared. This ecosystem ships no installed executable runtime. |
 | Install portability rule | Repository-local links inside installable markdown must resolve within the manifest-owned payload so installed artifacts stay self-contained in target repositories. |
 | Quality focus | Document clarity, navigability, bilingual alignment quality, and operator usability |
@@ -161,5 +176,5 @@ ecosystem entries.
 
 | Path | Role |
 |---|---|
-| [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) | Execute manifest-owned install or remove workflows against a target `owner/repo`, including declared dependencies, and prepare a PR-based delivery flow. |
-| [.github/ecosystems/runtime_container_lib.sh](../../.github/ecosystems/runtime_container_lib.sh) | Provide shared shell transport for installed `container` runtimes, including bind-mount probing and `docker cp` fallback execution when the Docker host cannot resolve the current workspace path. |
+| [.ai_ecosystems/deliver_ecosystem.py](../../.ai_ecosystems/deliver_ecosystem.py) | Execute manifest-owned install or remove workflows against a target `owner/repo`, including declared dependencies, and prepare a PR-based delivery flow. |
+| [.ai_ecosystems/runtime_container_lib.sh](../../.ai_ecosystems/runtime_container_lib.sh) | Provide shared shell transport for installed `container` runtimes, including bind-mount probing and `docker cp` fallback execution when the Docker host cannot resolve the current workspace path. |

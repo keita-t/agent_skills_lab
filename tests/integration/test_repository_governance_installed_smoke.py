@@ -32,8 +32,7 @@ def install_repository_governance(target_root: Path) -> None:
 def apply_bilingual_template_pack(target_root: Path) -> None:
     template_root = (
         target_root
-        / ".github"
-        / "ecosystems"
+        / ".ai_ecosystems"
         / "repository-governance"
         / "assets"
         / "templates"

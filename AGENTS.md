@@ -8,6 +8,7 @@ documentation live under `docs/`.
 Read these first when operating as an AI coding or documentation agent.
 
 [docs/README.md](docs/README.md)
+[docs/AI_AGENT_INSTRUCTIONS.md](docs/AI_AGENT_INSTRUCTIONS.md)
 [docs/en/ecosystems.md](docs/en/ecosystems.md)
 [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md)
 [docs/en/project-charter.md](docs/en/project-charter.md)
@@ -15,8 +16,8 @@ Read these first when operating as an AI coding or documentation agent.
 [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md)
 [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md)
 [docs/TODO.md](docs/TODO.md)
-[.github/ecosystems/README.md](.github/ecosystems/README.md)
-[.github/ecosystems/repository-governance/ECOSYSTEM.md](.github/ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/README.md](.ai_ecosystems/README.md)
+[.ai_ecosystems/repository-governance/ECOSYSTEM.md](.ai_ecosystems/repository-governance/ECOSYSTEM.md)
 
 ## 日本語
 
@@ -25,6 +26,7 @@ Read these first when operating as an AI coding or documentation agent.
 AI が実装や docs 更新を行うときは、まず次を読みます。
 
 [docs/README.md](docs/README.md)
+[docs/AI_AGENT_INSTRUCTIONS.md](docs/AI_AGENT_INSTRUCTIONS.md)
 [docs/ja/ecosystems.ja.md](docs/ja/ecosystems.ja.md)
 [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md)
 [docs/en/project-charter.md](docs/en/project-charter.md)
@@ -32,5 +34,5 @@ AI が実装や docs 更新を行うときは、まず次を読みます。
 [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md)
 [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md)
 [docs/TODO.md](docs/TODO.md)
-[.github/ecosystems/README.md](.github/ecosystems/README.md)
-[.github/ecosystems/repository-governance/ECOSYSTEM.md](.github/ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/README.md](.ai_ecosystems/README.md)
+[.ai_ecosystems/repository-governance/ECOSYSTEM.md](.ai_ecosystems/repository-governance/ECOSYSTEM.md)

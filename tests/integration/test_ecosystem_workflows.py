@@ -47,8 +47,8 @@ def test_execute_delivery_plan_round_trips_manifest_owned_payload(tmp_path: Path
     assert (clone_path / ".github" / "agents" / "ecosystem-audit.agent.md").is_file()
     assert (clone_path / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").is_file()
     assert (clone_path / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").is_file()
-    assert not (clone_path / ".github" / "ecosystems" / "mcp_server.py").exists()
-    assert not (clone_path / ".github" / "ecosystems" / "deliver_ecosystem.py").exists()
+    assert not (clone_path / ".ai_ecosystems" / "mcp_server.py").exists()
+    assert not (clone_path / ".ai_ecosystems" / "deliver_ecosystem.py").exists()
 
     remove_result = execute_delivery_plan(
         action="remove",
@@ -60,7 +60,7 @@ def test_execute_delivery_plan_round_trips_manifest_owned_payload(tmp_path: Path
 
     assert remove_result.pr_url == "https://example.com/ecosystem-repository-governance-remove"
     assert remove_result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
-    assert not (clone_path / ".github" / "ecosystems" / "ecosystem-audit").exists()
-    assert not (clone_path / ".github" / "ecosystems" / "repository-governance").exists()
+    assert not (clone_path / ".ai_ecosystems" / "ecosystem-audit").exists()
+    assert not (clone_path / ".ai_ecosystems" / "repository-governance").exists()
     assert not (clone_path / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").exists()
     assert preserved_file.read_text(encoding="utf-8") == "keep me\n"

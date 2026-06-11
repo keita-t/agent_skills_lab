@@ -28,7 +28,7 @@ wait for explicit maintainer instruction and update the charter instead.
 |---|---|
 | agent_skills_lab | A development and experimentation lab for custom agents, skills, and installable ecosystems. |
 | ecosystem | A reusable package of manifest-owned agents, skills, and helper files delivered together into a target repository. |
-| manifest | The Markdown contract at `.github/ecosystems/<slug>/ECOSYSTEM.md` that defines an ecosystem's ownership, dependencies, and install payload. |
+| manifest | The Markdown contract at `.ai_ecosystems/<slug>/ECOSYSTEM.md` that defines an ecosystem's ownership, dependencies, and install payload. |
 | ownership contract | The set of files that a manifest claims for install and remove operations. |
 | installed runtime contract | Optional manifest metadata that describes how an installed ecosystem executes in a target repository without changing ownership. |
 | runtime launcher | The manifest-owned entrypoint that operators run in target repositories when an ecosystem declares installed runtime behavior. |

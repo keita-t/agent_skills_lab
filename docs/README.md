@@ -23,12 +23,14 @@ editing prose.
   project vocabulary and context-alignment reference.
 3. [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md):
   canonical rules for documentation updates and bilingual sync.
-4. [docs/en/ecosystems.md](./en/ecosystems.md): current repository ecosystem
+4. [docs/AI_AGENT_INSTRUCTIONS.md](./AI_AGENT_INSTRUCTIONS.md):
+  shared operational guidance for AI coding and documentation agents.
+5. [docs/en/ecosystems.md](./en/ecosystems.md): current repository ecosystem
   inventory with manifest crosswalks.
-5. [docs/TODO.md](./TODO.md): current backlog and design-review notes.
-6. [.github/ecosystems/README.md](../.github/ecosystems/README.md):
+6. [docs/TODO.md](./TODO.md): current backlog and design-review notes.
+7. [.ai_ecosystems/README.md](../.ai_ecosystems/README.md):
   implementation-facing ecosystem index.
-7. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md):
+8. [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md):
    active repository-governance manifest.
 
 ## Choose By Need
@@ -39,14 +41,16 @@ editing prose.
   [docs/en/ubiquitous-language.md](./en/ubiquitous-language.md)
 - Need rules for rewriting documentation:
   [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md)
+- Need shared AI agent operating instructions:
+  [docs/AI_AGENT_INSTRUCTIONS.md](./AI_AGENT_INSTRUCTIONS.md)
 - Need the current ecosystem inventory in repository-facing form:
   [docs/en/ecosystems.md](./en/ecosystems.md)
 - Need the current backlog or follow-up design notes:
   [docs/TODO.md](./TODO.md)
 - Need the ecosystem inventory:
-  [.github/ecosystems/README.md](../.github/ecosystems/README.md)
+  [.ai_ecosystems/README.md](../.ai_ecosystems/README.md)
 - Need the implementation-facing manifest for one ecosystem:
-  [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md)
+  [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
 - Need the Japanese charter:
   [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md)
 
@@ -66,10 +70,11 @@ root の `docs/` には共有の案内文書とガバナンス文書を残しま
 1. [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md): repository 固有の前提と明示された判断。
 2. [docs/ja/ubiquitous-language.ja.md](./ja/ubiquitous-language.ja.md): 共有語彙と文脈合わせの参照文書。
 3. [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md): docs 更新と英日同期の正本ルール。
-4. [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md): 現在の repository ecosystem inventory と manifest 対応表。
-5. [docs/TODO.md](./TODO.md): 現在の TODO と設計レビューのメモ。
-6. [.github/ecosystems/README.md](../.github/ecosystems/README.md): implementation-facing ecosystem index。
-7. [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md): 有効な repository-governance manifest。
+4. [docs/AI_AGENT_INSTRUCTIONS.md](./AI_AGENT_INSTRUCTIONS.md): AI coding / documentation agent 向けの共通運用ガイダンス。
+5. [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md): 現在の repository ecosystem inventory と manifest 対応表。
+6. [docs/TODO.md](./TODO.md): 現在の TODO と設計レビューのメモ。
+7. [.ai_ecosystems/README.md](../.ai_ecosystems/README.md): implementation-facing ecosystem index。
+8. [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md): 有効な repository-governance manifest。
 
 ## 目的別の参照先
 
@@ -79,13 +84,15 @@ root の `docs/` には共有の案内文書とガバナンス文書を残しま
   [docs/ja/ubiquitous-language.ja.md](./ja/ubiquitous-language.ja.md)
 - docs の改稿ルールを確認したい:
   [docs/DOCUMENTATION_UPDATE_RULES.md](./DOCUMENTATION_UPDATE_RULES.md)
+- AI agent 共通の運用指示を確認したい:
+  [docs/AI_AGENT_INSTRUCTIONS.md](./AI_AGENT_INSTRUCTIONS.md)
 - 現在の ecosystem inventory を repository 向けの要約で見たい:
   [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md)
 - 現在の TODO や追跡メモを見たい:
   [docs/TODO.md](./TODO.md)
 - ecosystem inventory を確認したい:
-  [.github/ecosystems/README.md](../.github/ecosystems/README.md)
+  [.ai_ecosystems/README.md](../.ai_ecosystems/README.md)
 - 実装向け manifest を確認したい:
-  [.github/ecosystems/repository-governance/ECOSYSTEM.md](../.github/ecosystems/repository-governance/ECOSYSTEM.md)
+  [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
 - 英語版憲章を確認したい:
   [docs/en/project-charter.md](./en/project-charter.md)

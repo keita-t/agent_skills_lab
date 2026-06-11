@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# agent_skills_lab
+>>>>>>> 4a78c77 (feat: Add repository governance documentation and skills)
 
 ## English
 
@@ -24,16 +28,20 @@ agent_skills_lab is both the place where ecosystems are developed and a live tar
 ### Installing an ecosystem into another repository
 
 Use the
-[Ecosystem Delivery Orchestrator](.github/agents/governance-ecosystem-delivery.agent.md)
+[Ecosystem Delivery Orchestrator](.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md)
 agent to drive the install or remove workflow interactively. It prepares a
 PR-based delivery flow and resolves any declared dependencies automatically —
 for example, installing `repository-governance` also brings in `ecosystem-audit`.
+If you do not specify an AI tool host, delivery detects target repository
+markers and installs into every detected host. If no marker exists, it falls
+back to GitHub Copilot for compatibility. Delivery does not modify target root
+instructions such as `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md`.
 
 If you prefer to run the delivery script directly, use
-[deliver_ecosystem.py](.github/ecosystems/deliver_ecosystem.py):
+[deliver_ecosystem.py](.ai_ecosystems/deliver_ecosystem.py):
 
 ```bash
-python .github/ecosystems/deliver_ecosystem.py install repository-governance owner/repo
+python .ai_ecosystems/deliver_ecosystem.py install --target-repo owner/repo --ecosystem repository-governance
 ```
 
 ### Ecosystem installation and quality improvement loop
@@ -62,7 +70,9 @@ The agents that make up the ecosystem are powered by AI and therefore can make c
 - [docs/en/project-charter.md](docs/en/project-charter.md) — Repository scope and maintainer decisions
 - [docs/en/ubiquitous-language.md](docs/en/ubiquitous-language.md) — Shared vocabulary used throughout this project
 - [docs/README.md](docs/README.md) — Bilingual documentation map
-- [.github/ecosystems/README.md](.github/ecosystems/README.md) — Implementation-facing ecosystem index
+- [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) — Documentation update rules
+- [docs/AI_AGENT_INSTRUCTIONS.md](docs/AI_AGENT_INSTRUCTIONS.md) — Shared AI agent operating guidance
+- [.ai_ecosystems/README.md](.ai_ecosystems/README.md) — Implementation-facing ecosystem index
 
 ---
 
@@ -90,14 +100,19 @@ agent_skills_lab は ecosystem を開発する場所であると同時に、`rep
 
 ### 別のリポジトリへのインストール
 
-[Ecosystem Delivery Orchestrator](.github/agents/governance-ecosystem-delivery.agent.md)
+[Ecosystem Delivery Orchestrator](.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md)
 エージェントを使うと、インストール・削除のワークフローを対話形式で進められます。PR ベースのデリバリーフローを準備し、宣言済みの依存関係を自動で解決します（例：`repository-governance` をインストールすると `ecosystem-audit` も一緒に入ります）。
+AI ツール host を指定しない場合、delivery は target repository の marker
+を検出し、検出されたすべての host に配布します。marker がない場合は
+互換性のため GitHub Copilot に fallback します。target repository の
+`AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md` のような root
+instructions は変更しません。
 
 スクリプトを直接実行する場合は
-[deliver_ecosystem.py](.github/ecosystems/deliver_ecosystem.py) を使います：
+[deliver_ecosystem.py](.ai_ecosystems/deliver_ecosystem.py) を使います：
 
 ```bash
-python .github/ecosystems/deliver_ecosystem.py install repository-governance owner/repo
+python .ai_ecosystems/deliver_ecosystem.py install --target-repo owner/repo --ecosystem repository-governance
 ```
 
 ### ecosystem のインストールと品質改善ループ
@@ -120,4 +135,6 @@ ecosystem を構成するエージェントは、 AI によって動作してい
 - [docs/ja/project-charter.ja.md](docs/ja/project-charter.ja.md) — リポジトリの目的と maintainer の判断
 - [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md) — このプロジェクト全体で使う共有語彙
 - [docs/README.md](docs/README.md) — 英日対応のドキュメント案内
-- [.github/ecosystems/README.md](.github/ecosystems/README.md) — 実装向け ecosystem index
+- [docs/DOCUMENTATION_UPDATE_RULES.md](docs/DOCUMENTATION_UPDATE_RULES.md) — docs 更新ルール
+- [docs/AI_AGENT_INSTRUCTIONS.md](docs/AI_AGENT_INSTRUCTIONS.md) — AI agent 共通の運用ガイダンス
+- [.ai_ecosystems/README.md](.ai_ecosystems/README.md) — 実装向け ecosystem index

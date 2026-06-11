@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib.util
-import shutil
 import sys
 from pathlib import Path
 
@@ -9,7 +8,7 @@ import pytest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ECOSYSTEMS_DIR = REPO_ROOT / ".github" / "ecosystems"
+ECOSYSTEMS_DIR = REPO_ROOT / ".ai_ecosystems"
 REPOSITORY_GOVERNANCE_DIR = ECOSYSTEMS_DIR / "repository-governance"
 
 for path in (ECOSYSTEMS_DIR, REPOSITORY_GOVERNANCE_DIR):
@@ -33,7 +32,22 @@ def blank_repo(tmp_path: Path) -> Path:
 def isolated_repo(tmp_path: Path, repo_root: Path) -> Path:
     repo = tmp_path / "isolated-repo"
     repo.mkdir()
-    shutil.copytree(repo_root / ".github", repo / ".github")
+    from ecosystem_delivery_service import apply_delivery_changes, build_install_changeset
+
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=repo,
+            ecosystem_slug="repository-governance",
+            source_root=repo_root,
+        )
+    )
+    apply_delivery_changes(
+        build_install_changeset(
+            target_root=repo,
+            ecosystem_slug="codebase-context",
+            source_root=repo_root,
+        )
+    )
     return repo
 
 

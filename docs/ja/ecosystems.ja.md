@@ -2,9 +2,9 @@
 
 この文書は、このリポジトリで現在管理している ecosystem を要約した一覧です。
 実装向け inventory は
-[.github/ecosystems/README.md](../../.github/ecosystems/README.md) に集約し、
-各 ecosystem の定義は `.github/ecosystems/` 配下の manifest に紐づきます。
-`.github/ecosystems/` 直下の共有ファイルは共有インフラであり、
+[.ai_ecosystems/README.md](../../.ai_ecosystems/README.md) に集約し、
+各 ecosystem の定義は `.ai_ecosystems/` 配下の manifest に紐づきます。
+`.ai_ecosystems/` 直下の共有ファイルは共有インフラであり、
 それ自体は別 ecosystem ではありません。
 
 ## 関連文書
@@ -37,7 +37,22 @@
 	launcher と disposable Docker execution を共通契約とする。
 - runtime-enabled launcher は、host Docker daemon から現在の workspace path が
 	直接見えない場合に備えて、bind-mount probe と `docker cp` fallback transport
-	を共有 helper `.github/ecosystems/runtime_container_lib.sh` で再利用できる。
+	を共有 helper `.ai_ecosystems/runtime_container_lib.sh` で再利用できる。
+
+## AI Tool Host Delivery
+
+- manifest の `agents` と `skills` は logical member name として扱い、正本
+	file は `.ai_ecosystems/<slug>/agents/` と
+	`.ai_ecosystems/<slug>/skills/` に置く。
+- delivery host adapter が、その正本 file を選択された AI tool の native path
+	へ copy する。GitHub Copilot は `.github/agents/` と `.github/skills/`、
+	Claude Code は `.claude/agents/` と `.claude/skills/`、Codex は
+	`.agents/skills/`、Cursor は `.cursor/skills/` を使う。
+- host が指定されない場合、delivery は target repository の marker を検出し、
+	検出されたすべての host に install する。marker がない場合は
+	互換性のため GitHub Copilot に fallback する。
+- delivery は target repository の `AGENTS.md`、`CLAUDE.md`、
+	`.github/copilot-instructions.md` のような root/global instructions を変更しない。
 
 ## 現在の Inventory
 
@@ -52,15 +67,15 @@
 ### `ecosystem-audit`
 
 正本 manifest:
-[.github/ecosystems/ecosystem-audit/ECOSYSTEM.md](../../.github/ecosystems/ecosystem-audit/ECOSYSTEM.md)
+[.ai_ecosystems/ecosystem-audit/ECOSYSTEM.md](../../.ai_ecosystems/ecosystem-audit/ECOSYSTEM.md)
 
 | 項目 | 現在の実装 |
 |---|---|
-| Root agent | [.github/agents/ecosystem-audit.agent.md](../../.github/agents/ecosystem-audit.agent.md) |
+| Root agent | [.ai_ecosystems/ecosystem-audit/agents/ecosystem-audit.agent.md](../../.ai_ecosystems/ecosystem-audit/agents/ecosystem-audit.agent.md) |
 | Skills | なし |
 | Ownership contract | agent、listed ecosystem-owned files、listed audit files、および manifest 自体 |
-| Ecosystem 固有 files | `.github/ecosystems/ecosystem-audit/assets/` 配下の starter asset |
-| Audit files | `.github/ecosystems/ecosystem-audit/audit/` 配下の shared core rules、report contract、work-quality rubric |
+| Ecosystem 固有 files | `.ai_ecosystems/ecosystem-audit/assets/` 配下の starter asset |
+| Audit files | `.ai_ecosystems/ecosystem-audit/audit/` 配下の shared core rules、report contract、work-quality rubric |
 | 拡張モデル | 他 ecosystem は manifest の `audit-files` で追加の audit file を宣言し、ecosystem 固有の監査責務を自分で所有する |
 | Starter asset | 新しい ecosystem 向けの audit pack template と manual smoke scenario を同梱する |
 | 出力モデル | 品質次元ごとの要約を先に出し、その後に根拠付き所見を続ける rubric-first report |
@@ -84,7 +99,7 @@
 3. Findings
 	- warning
 	  - Dimension: recovery-behavior
-	  - Rule source: `.github/ecosystems/repository-governance/audit/repository-governance-audit.md`
+	  - Rule source: `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md`
 	  - Evidence basis: definition-inferred
 	  - Confidence: medium
 	  - Impact: install 済み docs が一部欠けたとき、maintainer は正常系は理解できても回復手順に迷いやすい。
@@ -93,9 +108,9 @@
 	  - Improvement feedback: upstream-ecosystem-feedback - install 済み guidance に missing-doc recovery の短い分岐を 1 つ追加する。
 
 4. Files and manifests inspected
-	- `.github/ecosystems/repository-governance/ECOSYSTEM.md`
+	- `.ai_ecosystems/repository-governance/ECOSYSTEM.md`
 	- `docs/README.md`
-	- `.github/agents/governance-repository-context-manager.agent.md`
+	- `.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md`
 
 5. Suggested follow-up
 	- install 済み docs セットが不完全な場合の recovery step を 1 つ追加する。
@@ -105,17 +120,17 @@
 ### `codebase-context`
 
 正本 manifest:
-[.github/ecosystems/codebase-context/ECOSYSTEM.md](../../.github/ecosystems/codebase-context/ECOSYSTEM.md)
+[.ai_ecosystems/codebase-context/ECOSYSTEM.md](../../.ai_ecosystems/codebase-context/ECOSYSTEM.md)
 
 | 項目 | 現在の実装 |
 |---|---|
-| Root agent | [.github/agents/codebase-context.agent.md](../../.github/agents/codebase-context.agent.md) |
-| Skills | [.github/skills/codebase-context-export/SKILL.md](../../.github/skills/codebase-context-export/SKILL.md) |
+| Root agent | [.ai_ecosystems/codebase-context/agents/codebase-context.agent.md](../../.ai_ecosystems/codebase-context/agents/codebase-context.agent.md) |
+| Skills | [.ai_ecosystems/codebase-context/skills/codebase-context-export/SKILL.md](../../.ai_ecosystems/codebase-context/skills/codebase-context-export/SKILL.md) |
 | Ownership contract | agent、skill、listed ecosystem-owned files、listed audit files、および manifest 自体 |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem 固有 files | 共有 helper `.github/ecosystems/runtime_container_lib.sh` と、`.github/ecosystems/codebase-context/` 配下の runtime Dockerfile、shell launcher、generator |
-| Audit files | `.github/ecosystems/codebase-context/audit/codebase-context-audit.md` |
-| Installed runtime | shared installed runtime contract の `container` mode。`generate_codebase_context.sh` を runtime launcher、`.github/ecosystems/runtime_container_lib.sh` を共有 transport helper とし、host prerequisite は Docker のみ |
+| Ecosystem 固有 files | 共有 helper `.ai_ecosystems/runtime_container_lib.sh` と、`.ai_ecosystems/codebase-context/` 配下の runtime Dockerfile、shell launcher、generator |
+| Audit files | `.ai_ecosystems/codebase-context/audit/codebase-context-audit.md` |
+| Installed runtime | shared installed runtime contract の `container` mode。`generate_codebase_context.sh` を runtime launcher、`.ai_ecosystems/runtime_container_lib.sh` を共有 transport helper とし、host prerequisite は Docker のみ |
 | 品質観点 | export の有用性、signal-to-noise、pickup rule の順守、operator experience |
 | 既定の export 挙動 | `simple` mode で repository root の `CODEBASE_CONTEXT.md` を生成し、full filtered source code と useful supporting files を 1 つの markdown snapshot にまとめる |
 | Smart export 挙動 | `smart` mode は `--budget low|medium|high` と任意の `--task` text を使い、full/stub representation を組み合わせた token-budgeted かつ task-aware な snapshot を生成する |
@@ -126,17 +141,17 @@
 ### `repository-governance`
 
 正本 manifest:
-[.github/ecosystems/repository-governance/ECOSYSTEM.md](../../.github/ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/repository-governance/ECOSYSTEM.md](../../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
 
 | 項目 | 現在の実装 |
 |---|---|
-| Root agent | [.github/agents/governance-repository-context-manager.agent.md](../../.github/agents/governance-repository-context-manager.agent.md) |
-| Specialized agents | [.github/agents/governance-ecosystem-manifest.agent.md](../../.github/agents/governance-ecosystem-manifest.agent.md), [.github/agents/governance-ecosystem-delivery.agent.md](../../.github/agents/governance-ecosystem-delivery.agent.md) |
-| Skills | [.github/skills/repository-governance-bootstrap/SKILL.md](../../.github/skills/repository-governance-bootstrap/SKILL.md), [.github/skills/repository-doc-governance/SKILL.md](../../.github/skills/repository-doc-governance/SKILL.md), [.github/skills/todo-progress-governance/SKILL.md](../../.github/skills/todo-progress-governance/SKILL.md) |
+| Root agent | [.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md) |
+| Specialized agents | [.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md), [.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md) |
+| Skills | [.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md), [.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md), [.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md) |
 | Ownership contract | agents、skills、listed ecosystem-owned files、listed audit files、および manifest 自体 |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem 固有 files | `.github/ecosystems/repository-governance/` 配下の template assets |
-| Audit files | `.github/ecosystems/repository-governance/audit/repository-governance-audit.md` |
+| Ecosystem 固有 files | `.ai_ecosystems/repository-governance/` 配下の template assets |
+| Audit files | `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md` |
 | Installed runtime | 宣言なし。install 後に実行する executable runtime は持たない。 |
 | Install portability rule | installable markdown 内の repository-local link は manifest-owned payload の内側で解決できなければならず、install 後の artifact は target repository 内で self-contained に保つ。 |
 | 品質観点 | 文書の clarity、navigability、英日整合の質、operator usability |
@@ -157,5 +172,5 @@ container smoke runner も続けて実行します。
 
 | Path | 役割 |
 |---|---|
-| [.github/ecosystems/deliver_ecosystem.py](../../.github/ecosystems/deliver_ecosystem.py) | 宣言された dependency も含めて manifest-owned install/remove workflow を target `owner/repo` に適用し、PR ベース delivery を準備する。 |
-| [.github/ecosystems/runtime_container_lib.sh](../../.github/ecosystems/runtime_container_lib.sh) | install 済み `container` runtime 向けの共有 shell transport helper。bind-mount probe と、Docker host が現在の workspace path を解決できない場合の `docker cp` fallback 実行を担う。 |
+| [.ai_ecosystems/deliver_ecosystem.py](../../.ai_ecosystems/deliver_ecosystem.py) | 宣言された dependency も含めて manifest-owned install/remove workflow を target `owner/repo` に適用し、PR ベース delivery を準備する。 |
+| [.ai_ecosystems/runtime_container_lib.sh](../../.ai_ecosystems/runtime_container_lib.sh) | install 済み `container` runtime 向けの共有 shell transport helper。bind-mount probe と、Docker host が現在の workspace path を解決できない場合の `docker cp` fallback 実行を担う。 |
