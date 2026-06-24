@@ -30,8 +30,8 @@ editing prose.
 6. [docs/TODO.md](./TODO.md): current backlog and design-review notes.
 7. [.ai_ecosystems/README.md](../.ai_ecosystems/README.md):
   implementation-facing ecosystem index.
-8. [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md):
-   active repository-governance manifest.
+8. [.ai_ecosystems/repository-docs/ECOSYSTEM.md](../.ai_ecosystems/repository-docs/ECOSYSTEM.md):
+   active repository-docs manifest.
 
 ## Choose By Need
 
@@ -50,7 +50,7 @@ editing prose.
 - Need the ecosystem inventory:
   [.ai_ecosystems/README.md](../.ai_ecosystems/README.md)
 - Need the implementation-facing manifest for one ecosystem:
-  [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
+  [.ai_ecosystems/repository-docs/ECOSYSTEM.md](../.ai_ecosystems/repository-docs/ECOSYSTEM.md)
 - Need the Japanese charter:
   [docs/ja/project-charter.ja.md](./ja/project-charter.ja.md)
 
@@ -74,7 +74,7 @@ root の `docs/` には共有の案内文書とガバナンス文書を残しま
 5. [docs/ja/ecosystems.ja.md](./ja/ecosystems.ja.md): 現在の repository ecosystem inventory と manifest 対応表。
 6. [docs/TODO.md](./TODO.md): 現在の TODO と設計レビューのメモ。
 7. [.ai_ecosystems/README.md](../.ai_ecosystems/README.md): implementation-facing ecosystem index。
-8. [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md): 有効な repository-governance manifest。
+8. [.ai_ecosystems/repository-docs/ECOSYSTEM.md](../.ai_ecosystems/repository-docs/ECOSYSTEM.md): 有効な repository-docs manifest。
 
 ## 目的別の参照先
 
@@ -93,6 +93,6 @@ root の `docs/` には共有の案内文書とガバナンス文書を残しま
 - ecosystem inventory を確認したい:
   [.ai_ecosystems/README.md](../.ai_ecosystems/README.md)
 - 実装向け manifest を確認したい:
-  [.ai_ecosystems/repository-governance/ECOSYSTEM.md](../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
+  [.ai_ecosystems/repository-docs/ECOSYSTEM.md](../.ai_ecosystems/repository-docs/ECOSYSTEM.md)
 - 英語版憲章を確認したい:
   [docs/en/project-charter.md](./en/project-charter.md)

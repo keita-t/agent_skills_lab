@@ -67,11 +67,11 @@ shared audit assets for ecosystems managed in this repository.
   models, with default broad coverage, explicit user pickup rules, a shared
   installed runtime contract in `container` mode, and a manifest-declared
   audit pack that can assess export usefulness and operator experience.
-- [repository-governance/ECOSYSTEM.md](repository-governance/ECOSYSTEM.md):
-  Repository documentation governance, bootstrap, TODO progress tracking,
-  ecosystem manifest and delivery orchestration, and a governance-specific
-  audit pack that can assess document and operator quality as well as
-  structural conformance.
+- [repository-docs/ECOSYSTEM.md](repository-docs/ECOSYSTEM.md):
+  Repository documentation governance, docs refactoring, bootstrap, TODO
+  progress tracking, ecosystem manifest and delivery orchestration, and a
+  docs-specific audit pack that can assess document and operator quality as
+  well as structural conformance.
 
 ## Maintenance Rules
 - Keep one ecosystem per subdirectory under `.ai_ecosystems/`.

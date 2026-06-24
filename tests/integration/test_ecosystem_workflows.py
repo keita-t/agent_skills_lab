@@ -33,7 +33,7 @@ def test_execute_delivery_plan_round_trips_manifest_owned_payload(tmp_path: Path
     install_result = execute_delivery_plan(
         action="install",
         target_repo="octo/example-repo",
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
         working_directory=tmp_path,
         runner=runner,
     )
@@ -42,8 +42,8 @@ def test_execute_delivery_plan_round_trips_manifest_owned_payload(tmp_path: Path
     preserved_file = clone_path / "README.md"
     preserved_file.write_text("keep me\n", encoding="utf-8")
 
-    assert install_result.pr_url == "https://example.com/ecosystem-repository-governance-install"
-    assert install_result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
+    assert install_result.pr_url == "https://example.com/ecosystem-repository-docs-install"
+    assert install_result.resolved_ecosystems == ["ecosystem-audit", "repository-docs"]
     assert (clone_path / ".github" / "agents" / "ecosystem-audit.agent.md").is_file()
     assert (clone_path / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").is_file()
     assert (clone_path / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").is_file()
@@ -53,14 +53,14 @@ def test_execute_delivery_plan_round_trips_manifest_owned_payload(tmp_path: Path
     remove_result = execute_delivery_plan(
         action="remove",
         target_repo="octo/example-repo",
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
         working_directory=tmp_path,
         runner=runner,
     )
 
-    assert remove_result.pr_url == "https://example.com/ecosystem-repository-governance-remove"
-    assert remove_result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
+    assert remove_result.pr_url == "https://example.com/ecosystem-repository-docs-remove"
+    assert remove_result.resolved_ecosystems == ["ecosystem-audit", "repository-docs"]
     assert not (clone_path / ".ai_ecosystems" / "ecosystem-audit").exists()
-    assert not (clone_path / ".ai_ecosystems" / "repository-governance").exists()
+    assert not (clone_path / ".ai_ecosystems" / "repository-docs").exists()
     assert not (clone_path / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").exists()
     assert preserved_file.read_text(encoding="utf-8") == "keep me\n"

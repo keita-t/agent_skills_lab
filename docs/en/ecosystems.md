@@ -15,10 +15,11 @@ infrastructure, not separate ecosystems by themselves.
 ## Snapshot
 
 - Active ecosystem count: 3
-- Current ecosystem slugs: `ecosystem-audit`, `codebase-context`, `repository-governance`
+- Current ecosystem slugs: `ecosystem-audit`, `codebase-context`, `repository-docs`
 - Current root responsibilities: shared ecosystem auditing and work-quality
   feedback, repository codebase export for large-context models, plus
-  repository documentation governance, bootstrap, and TODO progress tracking.
+  repository documentation governance, docs refactoring, bootstrap, and TODO
+  progress tracking.
 - Manifest direction: ownership and dependency contract first.
 
 ## Installed Runtime Contract
@@ -62,7 +63,7 @@ infrastructure, not separate ecosystems by themselves.
 |---|---|---|---|---|---|
 | `ecosystem-audit` | `active` | Provide a shared audit platform for ecosystem manifests, installed ecosystem payloads, and rubric-first work-quality feedback. | `ecosystem-audit.agent.md` | None | Installable into other repositories and extended through manifest-declared `audit-files`. |
 | `codebase-context` | `active` | Export a repository into one markdown context file for large-context models. | `codebase-context.agent.md` | `codebase-context-export` | Installable into other repositories. `simple` mode exports the full filtered source code plus useful supporting files by default, while `smart` mode uses token-budgeted task-aware selection. Explicit user pickup rules can narrow or override scope. Uses the shared installed runtime contract in `container` mode. |
-| `repository-governance` | `active` | Repository documentation governance, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`, `repository-doc-governance`, `todo-progress-governance` | Self-hosted in this repository and installable into other repositories. Depends on `ecosystem-audit`, ships a governance-specific audit pack, and declares no installed runtime. |
+| `repository-docs` | `active` | Repository documentation governance, docs refactoring, bootstrap, and TODO progress tracking. | `governance-repository-context-manager.agent.md` | `docs-bootstrap`, `docs-sync`, `docs-refactor`, `todo-maintenance` | Self-hosted in this repository and installable into other repositories. Depends on `ecosystem-audit`, ships a docs-specific audit pack, and declares no installed runtime. |
 
 ## Ecosystem Details
 
@@ -89,8 +90,8 @@ rubric-first audit report.
 
 ```md
 1. Scope summary
-  - Installed target repository audit for `repository-governance`
-  - Shared core rules, shared work-quality rubric, and the governance audit
+  - Installed target repository audit for `repository-docs`
+  - Shared core rules, shared work-quality rubric, and the repository-docs audit
     pack were applied
 
 2. Rubric summary
@@ -103,7 +104,7 @@ rubric-first audit report.
 3. Findings
   - warning
     - Dimension: recovery-behavior
-    - Rule source: `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md`
+    - Rule source: `.ai_ecosystems/repository-docs/audit/repository-docs-audit.md`
     - Evidence basis: definition-inferred
     - Confidence: medium
     - Impact: Maintainers may know the happy path but still hesitate when the installed docs set is incomplete.
@@ -112,9 +113,9 @@ rubric-first audit report.
     - Improvement feedback: upstream-ecosystem-feedback - add one short missing-doc recovery branch to installed guidance.
 
 4. Files and manifests inspected
-  - `.ai_ecosystems/repository-governance/ECOSYSTEM.md`
+  - `.ai_ecosystems/repository-docs/ECOSYSTEM.md`
   - `docs/README.md`
-  - `.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md`
+  - `.ai_ecosystems/repository-docs/agents/governance-repository-context-manager.agent.md`
 
 5. Suggested follow-up
   - Add one explicit recovery step for incomplete installed docs sets.
@@ -142,32 +143,32 @@ Canonical manifest:
 | Runtime output | The generated markdown snapshot is runtime output and is not part of the manifest-owned install payload |
 | Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) uses the shared [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) to prepare a temporary target repository, then invokes the installed runtime launcher directly so the runtime container is the only execution boundary for the export itself. |
 
-### `repository-governance`
+### `repository-docs`
 
 Canonical manifest:
-[.ai_ecosystems/repository-governance/ECOSYSTEM.md](../../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/repository-docs/ECOSYSTEM.md](../../.ai_ecosystems/repository-docs/ECOSYSTEM.md)
 
 | Area | Current implementation |
 |---|---|
-| Root agent | [.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md) |
-| Specialized agents | [.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md), [.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md) |
-| Skills | [.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md), [.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md), [.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md) |
+| Root agent | [.ai_ecosystems/repository-docs/agents/governance-repository-context-manager.agent.md](../../.ai_ecosystems/repository-docs/agents/governance-repository-context-manager.agent.md) |
+| Specialized agents | [.ai_ecosystems/repository-docs/agents/governance-ecosystem-manifest.agent.md](../../.ai_ecosystems/repository-docs/agents/governance-ecosystem-manifest.agent.md), [.ai_ecosystems/repository-docs/agents/governance-ecosystem-delivery.agent.md](../../.ai_ecosystems/repository-docs/agents/governance-ecosystem-delivery.agent.md) |
+| Skills | [.ai_ecosystems/repository-docs/skills/docs-bootstrap/SKILL.md](../../.ai_ecosystems/repository-docs/skills/docs-bootstrap/SKILL.md), [.ai_ecosystems/repository-docs/skills/docs-sync/SKILL.md](../../.ai_ecosystems/repository-docs/skills/docs-sync/SKILL.md), [.ai_ecosystems/repository-docs/skills/docs-refactor/SKILL.md](../../.ai_ecosystems/repository-docs/skills/docs-refactor/SKILL.md), [.ai_ecosystems/repository-docs/skills/todo-maintenance/SKILL.md](../../.ai_ecosystems/repository-docs/skills/todo-maintenance/SKILL.md) |
 | Ownership contract | Agents, skills, listed ecosystem-owned files, listed audit files, and the manifest itself |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem-owned files | Template assets under `.ai_ecosystems/repository-governance/` |
-| Audit files | `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md` |
+| Ecosystem-owned files | Template assets under `.ai_ecosystems/repository-docs/` |
+| Audit files | `.ai_ecosystems/repository-docs/audit/repository-docs-audit.md` |
 | Installed runtime | None declared. This ecosystem ships no installed executable runtime. |
 | Install portability rule | Repository-local links inside installable markdown must resolve within the manifest-owned payload so installed artifacts stay self-contained in target repositories. |
-| Quality focus | Document clarity, navigability, bilingual alignment quality, and operator usability |
+| Quality focus | Document clarity, codebase alignment, natural-language readability, diagram fit, bilingual alignment quality, and operator usability |
 | Audit flow | The shared `ecosystem-audit` platform applies shared core rules, the shared work-quality rubric, and this ecosystem's audit pack on demand |
-| Installed-target smoke | [tests/sandbox/run_repository_governance_container_smoke.sh](../../tests/sandbox/run_repository_governance_container_smoke.sh) installs the ecosystem into a temporary repository, applies the shipped bilingual template pack, and runs the smoke inside the repo-contained Docker sandbox built from the shared [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile). |
+| Installed-target smoke | [tests/sandbox/run_repository_docs_container_smoke.sh](../../tests/sandbox/run_repository_docs_container_smoke.sh) installs the ecosystem into a temporary repository, applies the shipped bilingual template pack, and runs the smoke inside the repo-contained Docker sandbox built from the shared [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile). |
 
-## CI
+## Validation
 
-[.github/workflows/ci.yml](../../.github/workflows/ci.yml) is the canonical
-GitHub Actions entrypoint for repository validation. It runs the full
-`python -m pytest -q` suite on the host runner and then executes both sandbox
-container smoke runners.
+This repository does not currently install a GitHub Actions workflow. Run
+`python -m pytest -q` locally when validation is needed. The sandbox smoke
+scripts under `tests/sandbox/` remain available for manual installed-target
+checks.
 
 ## Shared Ecosystem Infrastructure
 

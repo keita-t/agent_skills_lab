@@ -37,10 +37,11 @@ maintainer が明示的に憲章編集を指示した場合にのみ憲章へ反
 | rubric summary | 品質次元、rating、evidence basis、confidence を detailed finding より先に要約する audit section。 |
 | evidence basis | finding が artifact-observed、runtime-observed、definition-inferred のどれに基づくかを示すラベル。 |
 | upstream improvement feedback | local repair だけでなく、source ecosystem 側へ返す改善提案。 |
+| documentation refactoring | stable docs の主張、文章、図解を現在のコードベースに合わせ、実装ログ的または関係の薄い設計履歴表現を残さないように改稿する repository-docs workflow。 |
 | sandbox smoke | install 済み ecosystem の挙動を検証するための repo 同梱 Docker workflow。runtime-free ecosystem は sandbox container 内で完結でき、runtime-enabled ecosystem は install 済み runtime launcher を流用して runtime container を唯一の実行境界として使う。 |
 | source repository | reusable ecosystem asset を authoring し、delivery 前に監査する側の repository。 |
 | target repository | ecosystem の manifest-owned payload を install または remove workflow で受け取る側の repository。 |
-| repository-governance | repository docs、更新ルール、template、audit guidance、関連オーケストレーション guidance を扱う ecosystem。 |
+| repository-docs | repository docs、documentation refactoring、更新ルール、template、audit guidance、関連オーケストレーション guidance を扱う ecosystem。 |
 | ユビキタス言語 | 方針文書ではなく、maintainer と agent の文脈合わせを助ける共有語彙レイヤー。 |
 
 ## Related Documents

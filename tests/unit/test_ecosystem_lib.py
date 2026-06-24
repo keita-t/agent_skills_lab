@@ -40,18 +40,18 @@ Body line
     assert body == "Body line"
 
 
-def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
+def test_load_ecosystem_manifest_reads_repository_docs_manifest() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     manifest_path = (
         repo_root
         / ".ai_ecosystems"
-        / "repository-governance"
+        / "repository-docs"
         / "ECOSYSTEM.md"
     )
 
     manifest = load_ecosystem_manifest(manifest_path)
 
-    assert manifest.slug == "repository-governance"
+    assert manifest.slug == "repository-docs"
     assert manifest.root_agent == "governance-repository-context-manager.agent.md"
     assert manifest.agents == [
         "governance-repository-context-manager.agent.md",
@@ -59,20 +59,21 @@ def test_load_ecosystem_manifest_reads_repository_governance_manifest() -> None:
         "governance-ecosystem-delivery.agent.md",
     ]
     assert manifest.skills == [
-        "repository-governance-bootstrap",
-        "repository-doc-governance",
-        "todo-progress-governance",
+        "docs-bootstrap",
+        "docs-sync",
+        "docs-refactor",
+        "todo-maintenance",
     ]
     assert manifest.dependencies == ["ecosystem-audit"]
-    assert ".ai_ecosystems/repository-governance/assets/templates" in manifest.ecosystem_files
-    assert ".ai_ecosystems/repository-governance/validate_repository_governance.py" not in manifest.ecosystem_files
+    assert ".ai_ecosystems/repository-docs/assets/templates" in manifest.ecosystem_files
+    assert ".ai_ecosystems/repository-docs/validate_repository_docs.py" not in manifest.ecosystem_files
     assert manifest.audit_files == [
-        ".ai_ecosystems/repository-governance/audit/repository-governance-audit.md"
+        ".ai_ecosystems/repository-docs/audit/repository-docs-audit.md"
     ]
     assert manifest.runtime_mode is None
     assert manifest.runtime_entrypoint is None
     assert manifest.runtime_requires == []
-    assert ".ai_ecosystems/repository-governance/MCP_TOOLS.json" not in manifest.ecosystem_files
+    assert ".ai_ecosystems/repository-docs/MCP_TOOLS.json" not in manifest.ecosystem_files
 
 
 def test_load_ecosystem_manifest_reads_codebase_context_runtime_contract() -> None:
@@ -248,22 +249,25 @@ runtime-requires: [docker]
         load_ecosystem_manifest(manifest_path)
 
 
-def test_manifest_owned_relative_paths_match_repository_governance_contract() -> None:
+def test_manifest_owned_relative_paths_match_repository_docs_contract() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     manifest_path = (
         repo_root
         / ".ai_ecosystems"
-        / "repository-governance"
+        / "repository-docs"
         / "ECOSYSTEM.md"
     )
 
     manifest = load_ecosystem_manifest(manifest_path)
     relative_paths = manifest_owned_relative_paths(manifest)
 
-    assert ".ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md" in relative_paths
-    assert ".ai_ecosystems/repository-governance/skills/repository-governance-bootstrap" in relative_paths
-    assert ".ai_ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_paths
-    assert ".ai_ecosystems/repository-governance/ECOSYSTEM.md" in relative_paths
+    assert ".ai_ecosystems/repository-docs/agents/governance-repository-context-manager.agent.md" in relative_paths
+    assert ".ai_ecosystems/repository-docs/skills/docs-bootstrap" in relative_paths
+    assert ".ai_ecosystems/repository-docs/skills/docs-sync" in relative_paths
+    assert ".ai_ecosystems/repository-docs/skills/docs-refactor" in relative_paths
+    assert ".ai_ecosystems/repository-docs/skills/todo-maintenance" in relative_paths
+    assert ".ai_ecosystems/repository-docs/audit/repository-docs-audit.md" in relative_paths
+    assert ".ai_ecosystems/repository-docs/ECOSYSTEM.md" in relative_paths
     assert ".ai_ecosystems/deliver_ecosystem.py" not in relative_paths
 
 
@@ -319,14 +323,14 @@ ecosystem-files: []
         )
 
     write_manifest("ecosystem-audit", [])
-    write_manifest("repository-governance", ["ecosystem-audit"])
-    write_manifest("product-docs", ["repository-governance"])
+    write_manifest("repository-docs", ["ecosystem-audit"])
+    write_manifest("product-docs", ["repository-docs"])
 
     closure = resolve_manifest_dependency_closure(repo_root, "product-docs")
 
     assert [manifest.slug for manifest in closure] == [
         "ecosystem-audit",
-        "repository-governance",
+        "repository-docs",
         "product-docs",
     ]
 

@@ -1,6 +1,6 @@
-# Repository Governance Audit Pack
+# Repository Docs Audit Pack
 
-Apply these checks only when the `repository-governance` ecosystem is present in
+Apply these checks only when the `repository-docs` ecosystem is present in
 the source repository or installed target repository.
 
 ## Structural Checks
@@ -17,15 +17,17 @@ the source repository or installed target repository.
    documentation update rules.
 3. The English and Japanese ecosystem inventory docs should stay aligned with
    the installed ecosystems and current manifest-owned payload contracts.
-4. Relative Markdown links inside the repository-governance docs pack should
+4. Relative Markdown links inside the repository-docs docs pack should
    resolve successfully inside the current repository.
 5. `docs/TODO.md` should preserve the routine-maintenance versus explicit-human-
    approval distinction for structural reorganization.
+6. Documentation refactoring guidance should require codebase-grounded
+   crosschecks before prose rewrites.
 
 ## Template Pack Checks
 
 1. The shipped template packs under
-   `.ai_ecosystems/repository-governance/assets/templates/` should still
+   `.ai_ecosystems/repository-docs/assets/templates/` should still
    contain their own documentation map and update rules.
 2. Installed guidance should refer users to the shared audit agent for
    on-demand validation instead of requiring Python validator execution in the
@@ -41,7 +43,7 @@ the source repository or installed target repository.
 - `completeness`
    - Strong: required docs, template packs, and installed guidance cover both
       steady-state use and typical maintenance tasks.
-   - Needs Work: core repository-governance workflows are left implicit or only
+   - Needs Work: core repository-docs workflows are left implicit or only
       partially described.
 - `constraint-adherence`
    - Strong: docs preserve manifest-owned boundaries, bilingual alignment, and
@@ -58,15 +60,36 @@ the source repository or installed target repository.
       duplication and keep ownership clear between manifests, templates, and docs.
    - Needs Work: the same policy or routing guidance must be synchronized in too
       many places.
+- `codebase-alignment`
+   - Strong: docs claims are traceable to current implementation, tests,
+      manifests, or stable workflows, and stale or contradictory prose is
+      removed during refactoring.
+   - Needs Work: docs preserve outdated claims, design logs, or speculative
+      wording that is not anchored to current code.
+- `readability`
+   - Strong: refactored prose is natural, objective, and clear for human
+      readers while keeping precise names and contracts intact.
+   - Needs Work: prose remains mechanical, implementation-log-like, or hard to
+      scan after refactoring.
+- `diagram-fit`
+   - Strong: Mermaid diagrams are used only when they improve comprehension,
+      and fragile ASCII diagrams are replaced when the diagram remains useful.
+   - Needs Work: diagrams are decorative, duplicate tables, or use
+      environment-dependent ASCII layouts that are likely to break.
 
 ## Behavior Quality Rubric
 
 - `correctness`
    - Evaluate whether governance agents and skills route users to the correct
-      workflows for docs sync, bootstrap, TODO governance, and audit.
+      workflows for docs sync, docs refactoring, bootstrap, TODO governance,
+      and audit.
 - `clarity`
    - Evaluate whether prompts and guidance set clear expectations for what the
       governance workflows will change and what they will leave untouched.
+- `refactoring-behavior`
+   - Evaluate whether the docs refactoring workflow checks the codebase first,
+      removes weakly related implementation-history prose, improves natural
+      language quality, and follows the repository Mermaid policy.
 - `recovery-behavior`
    - Evaluate whether the ecosystem explains how to recover from missing docs,
       misalignment, or incomplete repository context without guessing.
@@ -78,7 +101,7 @@ the source repository or installed target repository.
 
 - Repository-facing docs under `docs/`, `README.md`, and `CLAUDE.md`
 - Installed template packs under
-   `.ai_ecosystems/repository-governance/assets/templates/`
+   `.ai_ecosystems/repository-docs/assets/templates/`
 - Governance agent and skill definitions that route work inside the ecosystem
 
 ## Upstream Improvement Feedback

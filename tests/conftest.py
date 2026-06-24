@@ -9,9 +9,9 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ECOSYSTEMS_DIR = REPO_ROOT / ".ai_ecosystems"
-REPOSITORY_GOVERNANCE_DIR = ECOSYSTEMS_DIR / "repository-governance"
+REPOSITORY_DOCS_DIR = ECOSYSTEMS_DIR / "repository-docs"
 
-for path in (ECOSYSTEMS_DIR, REPOSITORY_GOVERNANCE_DIR):
+for path in (ECOSYSTEMS_DIR, REPOSITORY_DOCS_DIR):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
@@ -37,7 +37,7 @@ def isolated_repo(tmp_path: Path, repo_root: Path) -> Path:
     apply_delivery_changes(
         build_install_changeset(
             target_root=repo,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
             source_root=repo_root,
         )
     )

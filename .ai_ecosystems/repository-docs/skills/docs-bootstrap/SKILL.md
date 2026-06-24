@@ -1,11 +1,11 @@
 ---
-name: repository-governance-bootstrap
-description: 'Bootstrap or repair repository documentation governance, documentation maps, TODO progress governance, and audit entry points. Use for initial setup, policy installation, or reusable repository context scaffolding.'
-ecosystem: repository-governance
+name: docs-bootstrap
+description: 'Bootstrap or repair repository docs, documentation maps, TODO tracking, and audit entry points. Use for initial setup, policy installation, or reusable repository context scaffolding.'
+ecosystem: repository-docs
 argument-hint: 'Describe the target repository, current docs state, and whether you want single-language or bilingual governance.'
 ---
 
-# Repository Governance Bootstrap
+# Docs Bootstrap
 
 ## When To Use
 - Initialize a repository with reusable documentation-governance scaffolding.
@@ -23,7 +23,7 @@ use to understand and maintain the repository.
 - Desired language mode: single-language or bilingual.
 - Whether existing docs should be preserved, merged, or replaced.
 - Whether existing backlog or TODO content should be migrated into the
-   canonical `docs/TODO.md` path used by the governance pack.
+   canonical `docs/TODO.md` path used by the repository docs pack.
 
 ## Procedure
 1. Inspect the repository entry points and current documentation structure.
@@ -33,8 +33,8 @@ use to understand and maintain the repository.
    routing docs, template-based canonical files, and audit guidance.
 4. Ensure repository-level entry points link to the canonical docs map and the
    documentation update rules.
-5. Choose a pack from [single-language templates](../../../.ai_ecosystems/repository-governance/assets/templates/single-language/README.md)
-   or [bilingual templates](../../../.ai_ecosystems/repository-governance/assets/templates/bilingual/README.md)
+5. Choose a pack from [single-language templates](../../../.ai_ecosystems/repository-docs/assets/templates/single-language/README.md)
+   or [bilingual templates](../../../.ai_ecosystems/repository-docs/assets/templates/bilingual/README.md)
    and adapt it to the target repository. Keep project-charter files minimal
    unless explicit charter content was supplied by the user or maintainers,
    and install or adapt the ubiquitous-language doc as the editable home for
@@ -49,10 +49,10 @@ use to understand and maintain the repository.
    to source-only shared helpers.
 8. After bootstrap or repair, ask the Ecosystem Audit Agent to audit the target
    repository using the shared core rules and the shipped
-   `repository-governance` audit pack. State whether the repository should be
+   `repository-docs` audit pack. State whether the repository should be
    checked in bilingual or single-language mode. When reviewing a template pack
    or another checkout before bootstrap, inspect the matching template pack path
-   together with the repository-governance audit file.
+   together with the repository-docs audit file.
 
 ## Rules
 1. Do not overwrite repository-specific documentation wholesale without a

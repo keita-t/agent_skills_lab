@@ -1,20 +1,20 @@
 ---
-slug: repository-governance
-name: Repository Governance
-description: Repository documentation governance, bootstrap, and TODO progress-tracking ecosystem.
+slug: repository-docs
+name: Repository Docs
+description: Repository documentation governance, refactoring, bootstrap, and TODO progress-tracking ecosystem.
 status: active
 root-agent: governance-repository-context-manager.agent.md
 agents: [governance-repository-context-manager.agent.md, governance-ecosystem-manifest.agent.md, governance-ecosystem-delivery.agent.md]
-skills: [repository-governance-bootstrap, repository-doc-governance, todo-progress-governance]
+skills: [docs-bootstrap, docs-sync, docs-refactor, todo-maintenance]
 dependencies: [ecosystem-audit]
-ecosystem-files: [.ai_ecosystems/repository-governance/assets/templates]
-audit-files: [.ai_ecosystems/repository-governance/audit/repository-governance-audit.md]
+ecosystem-files: [.ai_ecosystems/repository-docs/assets/templates]
+audit-files: [.ai_ecosystems/repository-docs/audit/repository-docs-audit.md]
 ---
 
-# Repository Governance Ecosystem
+# Repository Docs Ecosystem
 
-This ecosystem packages a thin orchestration agent and three canonical skills
-for repository documentation governance.
+This ecosystem packages a thin orchestration agent and four canonical skills
+for repository documentation governance and refactoring.
 
 ## Members
 - Root agent: `governance-repository-context-manager.agent.md`
@@ -22,10 +22,10 @@ for repository documentation governance.
   `governance-ecosystem-manifest.agent.md`,
   `governance-ecosystem-delivery.agent.md`
 - Skills:
-  `repository-governance-bootstrap`, `repository-doc-governance`,
-  `todo-progress-governance`
-- Source canonical agents: `.ai_ecosystems/repository-governance/agents/`
-- Source canonical skills: `.ai_ecosystems/repository-governance/skills/`
+  `docs-bootstrap`, `docs-sync`,
+  `docs-refactor`, `todo-maintenance`
+- Source canonical agents: `.ai_ecosystems/repository-docs/agents/`
+- Source canonical skills: `.ai_ecosystems/repository-docs/skills/`
 
 ## Install Payload
 - Treat listed agents and skills as logical member names. Delivery host
@@ -36,9 +36,9 @@ for repository documentation governance.
 - Codex target: `.agents/skills/*`.
 - Cursor target: `.cursor/skills/*`.
 - Copy the ecosystem-owned files listed in frontmatter from
-  `.ai_ecosystems/repository-governance/`.
+  `.ai_ecosystems/repository-docs/`.
 - Copy the audit files listed in frontmatter from
-  `.ai_ecosystems/repository-governance/`.
+  `.ai_ecosystems/repository-docs/`.
 - Copy this manifest into the target project's `.ai_ecosystems/` tree.
 - Treat the listed agents, skills, ecosystem-owned files, audit files, and this
   manifest as the full install/remove ownership contract.
@@ -49,11 +49,11 @@ for repository documentation governance.
   `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md`.
 
 ## Notes
-- Template packs and repository-governance-specific validation assets are owned
+- Template packs and repository-docs-specific validation assets are owned
   by this ecosystem directory so install payload and validation dependencies
   stay explicit in the manifest.
-- Repository-governance-specific audits now live in manifest-declared audit
-  files and are applied through the shared `ecosystem-audit` platform.
+- Repository-docs-specific audits live in manifest-declared audit files and
+  are applied through the shared `ecosystem-audit` platform.
 - Legacy validator scripts may remain in the source repository during
   migration, but they are not part of the shipped manifest-owned payload.
 - Source-only shared helpers under `.ai_ecosystems/` may be mentioned as

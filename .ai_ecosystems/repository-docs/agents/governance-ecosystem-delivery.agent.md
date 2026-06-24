@@ -1,7 +1,7 @@
 ---
 name: "Ecosystem Delivery Orchestrator"
 description: "Install or remove an ecosystem into a target repository by applying manifest-owned payloads and preparing a PR-based workflow. Use when a target owner/repo and ecosystem slug are specified."
-ecosystem: repository-governance
+ecosystem: repository-docs
 tools: [read, edit, search, execute]
 ---
 

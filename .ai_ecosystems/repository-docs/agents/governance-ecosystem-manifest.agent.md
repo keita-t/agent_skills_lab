@@ -1,7 +1,7 @@
 ---
 name: "Ecosystem Manifest Governor"
 description: "Validate and refine ecosystem manifests, ownership contracts, and membership structure. Use when defining a new ecosystem, shrinking manifest fields, or checking agent and skill frontmatter alignment."
-ecosystem: repository-governance
+ecosystem: repository-docs
 tools: [read, edit, search, execute]
 ---
 

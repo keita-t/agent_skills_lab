@@ -17,7 +17,7 @@ Read these first when operating as an AI coding or documentation agent.
 [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md)
 [docs/TODO.md](docs/TODO.md)
 [.ai_ecosystems/README.md](.ai_ecosystems/README.md)
-[.ai_ecosystems/repository-governance/ECOSYSTEM.md](.ai_ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/repository-docs/ECOSYSTEM.md](.ai_ecosystems/repository-docs/ECOSYSTEM.md)
 
 ## 日本語
 
@@ -35,4 +35,4 @@ AI が実装や docs 更新を行うときは、まず次を読みます。
 [docs/ja/ubiquitous-language.ja.md](docs/ja/ubiquitous-language.ja.md)
 [docs/TODO.md](docs/TODO.md)
 [.ai_ecosystems/README.md](.ai_ecosystems/README.md)
-[.ai_ecosystems/repository-governance/ECOSYSTEM.md](.ai_ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/repository-docs/ECOSYSTEM.md](.ai_ecosystems/repository-docs/ECOSYSTEM.md)

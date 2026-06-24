@@ -104,7 +104,7 @@ def create_test_ecosystem_source_root(
 def test_build_install_changeset_uses_manifest_owned_paths_only(tmp_path) -> None:
     result = build_install_changeset(
         target_root=tmp_path / "target-repo",
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
     )
 
     relative_destinations = {change.relative_destination for change in result}
@@ -114,16 +114,19 @@ def test_build_install_changeset_uses_manifest_owned_paths_only(tmp_path) -> Non
     assert ".github/agents/governance-ecosystem-manifest.agent.md" in relative_destinations
     assert ".github/agents/governance-ecosystem-delivery.agent.md" in relative_destinations
     assert ".github/agents/ecosystem-audit.agent.md" in relative_destinations
-    assert ".github/skills/repository-governance-bootstrap" in relative_destinations
+    assert ".github/skills/docs-bootstrap" in relative_destinations
+    assert ".github/skills/docs-sync" in relative_destinations
+    assert ".github/skills/docs-refactor" in relative_destinations
+    assert ".github/skills/todo-maintenance" in relative_destinations
     assert ".ai_ecosystems/ecosystem-audit/ECOSYSTEM.md" in relative_destinations
     assert ".ai_ecosystems/ecosystem-audit/audit/core-rules.md" in relative_destinations
     assert ".ai_ecosystems/ecosystem-audit/audit/report-contract.md" in relative_destinations
     assert ".ai_ecosystems/ecosystem-audit/audit/work-quality-rubric.md" in relative_destinations
     assert ".ai_ecosystems/ecosystem-audit/assets/templates" in relative_destinations
     assert ".ai_ecosystems/ecosystem-audit/assets/smoke-scenarios" in relative_destinations
-    assert ".ai_ecosystems/repository-governance/ECOSYSTEM.md" in relative_destinations
-    assert ".ai_ecosystems/repository-governance/assets/templates" in relative_destinations
-    assert ".ai_ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_destinations
+    assert ".ai_ecosystems/repository-docs/ECOSYSTEM.md" in relative_destinations
+    assert ".ai_ecosystems/repository-docs/assets/templates" in relative_destinations
+    assert ".ai_ecosystems/repository-docs/audit/repository-docs-audit.md" in relative_destinations
     assert ".ai_ecosystems/ecosystem_lib.py" not in relative_destinations
     assert ".github/ECOSYSTEM_REGISTRY.md" not in relative_destinations
 
@@ -158,7 +161,7 @@ def test_build_install_changeset_supports_claude_code_host(tmp_path) -> None:
 
     result = build_install_changeset(
         target_root=target_root,
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
         agent_hosts=["claude-code"],
     )
 
@@ -166,9 +169,12 @@ def test_build_install_changeset_supports_claude_code_host(tmp_path) -> None:
 
     assert ".claude/agents/governance-repository-context-manager.agent.md" in relative_destinations
     assert ".claude/agents/governance-ecosystem-manifest.agent.md" in relative_destinations
-    assert ".claude/skills/repository-governance-bootstrap" in relative_destinations
+    assert ".claude/skills/docs-bootstrap" in relative_destinations
+    assert ".claude/skills/docs-sync" in relative_destinations
+    assert ".claude/skills/docs-refactor" in relative_destinations
+    assert ".claude/skills/todo-maintenance" in relative_destinations
     assert ".github/agents/governance-repository-context-manager.agent.md" not in relative_destinations
-    assert ".github/skills/repository-governance-bootstrap" not in relative_destinations
+    assert ".github/skills/docs-bootstrap" not in relative_destinations
 
 
 def test_build_install_changeset_supports_codex_and_cursor_skill_hosts(tmp_path) -> None:
@@ -218,16 +224,16 @@ def test_build_install_changeset_auto_detects_multiple_hosts(tmp_path) -> None:
 def test_build_remove_changeset_lists_only_existing_manifest_owned_paths(isolated_repo) -> None:
     result = build_remove_changeset(
         target_root=isolated_repo,
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
     )
 
     relative_destinations = [change.relative_destination for change in result]
 
     assert result
     assert all(change.action == "remove" for change in result)
-    assert ".ai_ecosystems/repository-governance/ECOSYSTEM.md" in relative_destinations
-    assert ".ai_ecosystems/repository-governance/assets/templates" in relative_destinations
-    assert ".ai_ecosystems/repository-governance/audit/repository-governance-audit.md" in relative_destinations
+    assert ".ai_ecosystems/repository-docs/ECOSYSTEM.md" in relative_destinations
+    assert ".ai_ecosystems/repository-docs/assets/templates" in relative_destinations
+    assert ".ai_ecosystems/repository-docs/audit/repository-docs-audit.md" in relative_destinations
     assert ".github/agents/governance-repository-context-manager.agent.md" in relative_destinations
     assert ".github/agents/governance-ecosystem-manifest.agent.md" in relative_destinations
     assert ".github/agents/governance-ecosystem-delivery.agent.md" in relative_destinations
@@ -380,7 +386,7 @@ def test_apply_delivery_changes_copies_manifest_owned_paths(tmp_path) -> None:
     actions = apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
@@ -391,17 +397,17 @@ def test_apply_delivery_changes_copies_manifest_owned_paths(tmp_path) -> None:
     assert (target_root / ".ai_ecosystems" / "ecosystem-audit" / "audit" / "core-rules.md").is_file()
     assert (target_root / ".ai_ecosystems" / "ecosystem-audit" / "audit" / "work-quality-rubric.md").is_file()
     assert (target_root / ".ai_ecosystems" / "ecosystem-audit" / "assets" / "templates" / "audit-pack-template.md").is_file()
-    assert (target_root / ".ai_ecosystems" / "repository-governance" / "assets" / "templates").is_dir()
+    assert (target_root / ".ai_ecosystems" / "repository-docs" / "assets" / "templates").is_dir()
     installed_skill = (
         target_root
         / ".github"
         / "skills"
-        / "repository-governance-bootstrap"
+        / "docs-bootstrap"
         / "SKILL.md"
     ).read_text(encoding="utf-8")
     assert "deliver_ecosystem.py" not in installed_skill
     assert "validate_ecosystem_registry.sh" not in installed_skill
-    assert "validate_repository_governance.sh" not in installed_skill
+    assert "validate_repository_docs.sh" not in installed_skill
     assert "Ecosystem Audit Agent" in installed_skill
     assert "Ecosystem Delivery Orchestrator agent" in installed_skill
     assert not (target_root / ".ai_ecosystems" / "ecosystem_lib.py").exists()
@@ -413,7 +419,7 @@ def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path
     apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
@@ -433,40 +439,52 @@ def test_apply_delivery_changes_installs_actionable_validation_guidance(tmp_path
         target_root
         / ".github"
         / "skills"
-        / "repository-governance-bootstrap"
+        / "docs-bootstrap"
         / "SKILL.md"
     ).read_text(encoding="utf-8")
     docs_skill = (
         target_root
         / ".github"
         / "skills"
-        / "repository-doc-governance"
+        / "docs-sync"
+        / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    refactoring_skill = (
+        target_root
+        / ".github"
+        / "skills"
+        / "docs-refactor"
         / "SKILL.md"
     ).read_text(encoding="utf-8")
 
     manifest_agent_normalized = " ".join(manifest_agent.split())
     context_agent_normalized = " ".join(context_agent.split())
     bootstrap_skill_normalized = " ".join(bootstrap_skill.split())
+    refactoring_skill_normalized = " ".join(refactoring_skill.split())
 
     assert "Ecosystem Audit Agent" in manifest_agent
     assert "validate_ecosystem_registry.sh --repo-root ." not in manifest_agent
-    assert "validate_repository_governance.sh" not in manifest_agent
+    assert "validate_repository_docs.sh" not in manifest_agent
     assert "Run the package validator" not in context_agent
     assert "Ecosystem Audit Agent" in context_agent
-    assert ".ai_ecosystems/repository-governance/assets/templates/<mode>" in context_agent
+    assert ".ai_ecosystems/repository-docs/assets/templates/<mode>" in context_agent
     assert "validate_ecosystem_registry.sh --repo-root ." not in context_agent
-    assert "validate_repository_governance.sh" not in context_agent
+    assert "validate_repository_docs.sh" not in context_agent
     assert "Ecosystem Audit Agent" in bootstrap_skill
     assert "validate_ecosystem_registry.sh --repo-root ." not in bootstrap_skill
-    assert "validate_repository_governance.sh" not in bootstrap_skill
-    assert "canonical `docs/TODO.md` path used by the governance pack" in bootstrap_skill
+    assert "validate_repository_docs.sh" not in bootstrap_skill
+    assert "canonical `docs/TODO.md` path used by the repository docs pack" in bootstrap_skill
     assert "bilingual or single-language mode" in bootstrap_skill_normalized
     assert "ecosystem registry validator" not in bootstrap_skill
     assert "another canonical path" not in bootstrap_skill
     assert "bootstrap output has been applied" in docs_skill
     assert "Ecosystem Audit Agent" in docs_skill
-    assert ".ai_ecosystems/repository-governance/assets/templates/<mode>" in docs_skill
-    assert "validate_repository_governance.sh" not in docs_skill
+    assert ".ai_ecosystems/repository-docs/assets/templates/<mode>" in docs_skill
+    assert "validate_repository_docs.sh" not in docs_skill
+    assert "codebase-grounded cleanup" in context_agent_normalized
+    assert "implementation-log" in refactoring_skill
+    assert "Mermaid diagram" in refactoring_skill_normalized
+    assert "ASCII diagrams" in refactoring_skill_normalized
 
 
 def test_apply_delivery_changes_installs_codebase_context_payload(tmp_path) -> None:
@@ -572,14 +590,14 @@ def test_apply_delivery_changes_removes_existing_manifest_owned_paths(tmp_path) 
     apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
     actions = apply_delivery_changes(
         build_remove_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
@@ -588,7 +606,7 @@ def test_apply_delivery_changes_removes_existing_manifest_owned_paths(tmp_path) 
     assert not (target_root / ".github" / "agents" / "governance-ecosystem-manifest.agent.md").exists()
     assert not (target_root / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").exists()
     assert not (target_root / ".ai_ecosystems" / "ecosystem-audit").exists()
-    assert not (target_root / ".ai_ecosystems" / "repository-governance").exists()
+    assert not (target_root / ".ai_ecosystems" / "repository-docs").exists()
     assert preserved_file.read_text(encoding="utf-8") == "keep me\n"
 
 
@@ -650,7 +668,7 @@ def test_remove_preserves_shared_dependency_needed_by_other_installed_ecosystem(
     apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
     apply_delivery_changes(
@@ -663,12 +681,12 @@ def test_remove_preserves_shared_dependency_needed_by_other_installed_ecosystem(
     actions = apply_delivery_changes(
         build_remove_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
     assert actions
-    assert not (target_root / ".ai_ecosystems" / "repository-governance").exists()
+    assert not (target_root / ".ai_ecosystems" / "repository-docs").exists()
     assert (target_root / ".ai_ecosystems" / "ecosystem-audit").exists()
     assert (target_root / ".ai_ecosystems" / "codebase-context").exists()
 
@@ -679,14 +697,14 @@ def test_apply_delivery_changes_skips_identical_existing_manifest_payload(tmp_pa
     apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
     actions = apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
@@ -708,7 +726,7 @@ def test_apply_delivery_changes_rejects_modified_existing_manifest_payload(tmp_p
         apply_delivery_changes(
             build_install_changeset(
                 target_root=target_root,
-                ecosystem_slug="repository-governance",
+                ecosystem_slug="repository-docs",
             )
         )
 
@@ -724,7 +742,7 @@ def test_apply_delivery_changes_rejects_removing_modified_manifest_payload(tmp_p
     apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
     modified_file = (
@@ -739,7 +757,7 @@ def test_apply_delivery_changes_rejects_removing_modified_manifest_payload(tmp_p
         apply_delivery_changes(
             build_remove_changeset(
                 target_root=target_root,
-                ecosystem_slug="repository-governance",
+                ecosystem_slug="repository-docs",
             )
         )
 
@@ -750,21 +768,21 @@ def test_apply_delivery_changes_rejects_removing_modified_manifest_payload(tmp_p
 
 
 def test_prepare_branch_name_uses_default_pattern() -> None:
-    assert prepare_branch_name("repository-governance", "install") == "ecosystem-repository-governance-install"
+    assert prepare_branch_name("repository-docs", "install") == "ecosystem-repository-docs-install"
 
 
 def test_generate_pr_body_lists_file_actions() -> None:
     body = generate_pr_body(
-        "repository-governance",
+        "repository-docs",
         "install",
-        ["ecosystem-audit", "repository-governance"],
+        ["ecosystem-audit", "repository-docs"],
         ["github-copilot"],
         ["copy /tmp/target/.github/agents/governance-ecosystem-delivery.agent.md"],
     )
 
     assert "Ecosystem install" in body
-    assert "repository-governance" in body
-    assert "ecosystem-audit, repository-governance" in body
+    assert "repository-docs" in body
+    assert "ecosystem-audit, repository-docs" in body
     assert "github-copilot" in body
     assert "copy /tmp/target/.github/agents/governance-ecosystem-delivery.agent.md" in body
 
@@ -775,7 +793,7 @@ def test_execute_delivery_plan_runs_clone_branch_commit_push_and_pr(tmp_path) ->
     result = execute_delivery_plan(
         action="install",
         target_repo="octo/example-repo",
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
         working_directory=tmp_path,
         runner=runner,
     )
@@ -783,18 +801,18 @@ def test_execute_delivery_plan_runs_clone_branch_commit_push_and_pr(tmp_path) ->
     command_prefixes = [command for command, _ in runner.commands]
 
     assert result.pr_url == "https://example.com/pr/123"
-    assert result.branch_name == "ecosystem-repository-governance-install"
-    assert result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
+    assert result.branch_name == "ecosystem-repository-docs-install"
+    assert result.resolved_ecosystems == ["ecosystem-audit", "repository-docs"]
     assert result.agent_hosts == ["github-copilot"]
     assert command_prefixes == [
         ("gh", "repo", "clone", "octo/example-repo", str(tmp_path / "example-repo")),
         ("gh", "repo", "view", "octo/example-repo", "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name"),
         ("git", "status", "--short"),
-        ("git", "switch", "-c", "ecosystem-repository-governance-install"),
+        ("git", "switch", "-c", "ecosystem-repository-docs-install"),
         ("git", "add", "--all"),
-        ("git", "commit", "-m", "Install repository-governance ecosystem"),
-        ("git", "push", "--set-upstream", "origin", "ecosystem-repository-governance-install"),
-        ("gh", "pr", "create", "--base", "main", "--head", "ecosystem-repository-governance-install", "--title", "Install repository-governance ecosystem", "--body", result.pr_body),
+        ("git", "commit", "-m", "Install repository-docs ecosystem"),
+        ("git", "push", "--set-upstream", "origin", "ecosystem-repository-docs-install"),
+        ("gh", "pr", "create", "--base", "main", "--head", "ecosystem-repository-docs-install", "--title", "Install repository-docs ecosystem", "--body", result.pr_body),
     ]
     assert (tmp_path / "example-repo" / ".github" / "agents" / "governance-ecosystem-delivery.agent.md").is_file()
 
@@ -805,7 +823,7 @@ def test_execute_delivery_plan_dry_run_skips_branch_and_pr(tmp_path) -> None:
     result = execute_delivery_plan(
         action="install",
         target_repo="octo/example-repo",
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
         working_directory=tmp_path,
         runner=runner,
         dry_run=True,
@@ -815,7 +833,7 @@ def test_execute_delivery_plan_dry_run_skips_branch_and_pr(tmp_path) -> None:
 
     assert result.pr_url is None
     assert result.committed is False
-    assert result.resolved_ecosystems == ["ecosystem-audit", "repository-governance"]
+    assert result.resolved_ecosystems == ["ecosystem-audit", "repository-docs"]
     assert result.agent_hosts == ["github-copilot"]
     assert command_prefixes == [
         ("gh", "repo", "clone", "octo/example-repo", str(tmp_path / "example-repo")),
@@ -829,7 +847,7 @@ def test_execute_delivery_plan_remove_noop_skips_branch_and_pr(tmp_path) -> None
     result = execute_delivery_plan(
         action="remove",
         target_repo="octo/example-repo",
-        ecosystem_slug="repository-governance",
+        ecosystem_slug="repository-docs",
         working_directory=tmp_path,
         runner=runner,
     )

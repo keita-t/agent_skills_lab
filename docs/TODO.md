@@ -38,16 +38,16 @@ Trace: docs/DOCUMENTATION_UPDATE_RULES.md
 
 ### Template evolution policy for self-hosted docs
 
-This repository now uses repository-governance templates as its own stable
+This repository now uses repository-docs templates as its own stable
 documentation base. The policy for when self-host docs should diverge from the
 templates remains intentionally narrow and should be made explicit in follow-up
 guidance.
 
 Status: not started
-Trace: .ai_ecosystems/repository-governance/assets/templates/bilingual
+Trace: .ai_ecosystems/repository-docs/assets/templates/bilingual
 
 ## Resolved Concerns Record
 
-- Moved repository-governance-owned templates and validators out of the bootstrap
+- Moved repository-docs-owned templates and validators out of the bootstrap
   skill directory and into the ecosystem directory to make install payload
   ownership explicit.

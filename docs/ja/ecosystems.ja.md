@@ -15,8 +15,8 @@
 ## スナップショット
 
 - Active ecosystem 数: 3
-- 現在の ecosystem slug: `ecosystem-audit`、`codebase-context`、`repository-governance`
-- 現在の主責務: 共有 ecosystem 監査と仕事の質フィードバック、large-context model 向けの repository codebase export、repository documentation governance、bootstrap、TODO progress tracking。
+- 現在の ecosystem slug: `ecosystem-audit`、`codebase-context`、`repository-docs`
+- 現在の主責務: 共有 ecosystem 監査と仕事の質フィードバック、large-context model 向けの repository codebase export、repository documentation governance、docs refactoring、bootstrap、TODO progress tracking。
 - manifest の方向性: ownership と dependency の structural contract を優先する。
 
 ## Installed Runtime Contract
@@ -60,7 +60,7 @@
 |---|---|---|---|---|---|
 | `ecosystem-audit` | `active` | ecosystem manifest、install 済み payload、仕事の質を rubric-first で監査する共通 platform。 | `ecosystem-audit.agent.md` | なし | 他 repository へ install でき、manifest の `audit-files` で各 ecosystem から拡張できる。 |
 | `codebase-context` | `active` | repository を large-context model 向けの単一 markdown context file に export する。 | `codebase-context.agent.md` | `codebase-context-export` | 他 repository へ install できる。`simple` mode は既定で full filtered source code と useful supporting files を export し、`smart` mode は token-budgeted かつ task-aware な選定を行う。ユーザーの明示 pickup rule がある場合はその指定で scope を上書きする。shared installed runtime contract に `container` mode で opt-in している。 |
-| `repository-governance` | `active` | repository documentation governance、bootstrap、TODO progress tracking。 | `governance-repository-context-manager.agent.md` | `repository-governance-bootstrap`、`repository-doc-governance`、`todo-progress-governance` | この repository 自身で self-host しつつ、他 repository へ install できる。`ecosystem-audit` に依存し、governance 専用の audit pack を同梱し、installed runtime は宣言しない。 |
+| `repository-docs` | `active` | repository documentation governance、docs refactoring、bootstrap、TODO progress tracking。 | `governance-repository-context-manager.agent.md` | `docs-bootstrap`、`docs-sync`、`docs-refactor`、`todo-maintenance` | この repository 自身で self-host しつつ、他 repository へ install できる。`ecosystem-audit` に依存し、docs 専用の audit pack を同梱し、installed runtime は宣言しない。 |
 
 ## Ecosystem Details
 
@@ -86,8 +86,8 @@
 
 ```md
 1. Scope summary
-	- `repository-governance` を install した target repository に対する監査
-	- shared core rules、shared work-quality rubric、governance audit pack を適用
+	- `repository-docs` を install した target repository に対する監査
+	- shared core rules、shared work-quality rubric、repository-docs audit pack を適用
 
 2. Rubric summary
 	| Dimension | Rating | Evidence basis | Confidence | Short rationale |
@@ -99,7 +99,7 @@
 3. Findings
 	- warning
 	  - Dimension: recovery-behavior
-	  - Rule source: `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md`
+	  - Rule source: `.ai_ecosystems/repository-docs/audit/repository-docs-audit.md`
 	  - Evidence basis: definition-inferred
 	  - Confidence: medium
 	  - Impact: install 済み docs が一部欠けたとき、maintainer は正常系は理解できても回復手順に迷いやすい。
@@ -108,9 +108,9 @@
 	  - Improvement feedback: upstream-ecosystem-feedback - install 済み guidance に missing-doc recovery の短い分岐を 1 つ追加する。
 
 4. Files and manifests inspected
-	- `.ai_ecosystems/repository-governance/ECOSYSTEM.md`
+	- `.ai_ecosystems/repository-docs/ECOSYSTEM.md`
 	- `docs/README.md`
-	- `.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md`
+	- `.ai_ecosystems/repository-docs/agents/governance-repository-context-manager.agent.md`
 
 5. Suggested follow-up
 	- install 済み docs セットが不完全な場合の recovery step を 1 つ追加する。
@@ -138,32 +138,32 @@
 | Runtime output | 生成された markdown snapshot は runtime output であり、manifest-owned install payload には含めない |
 | Installed-target smoke | [tests/sandbox/run_codebase_context_container_smoke.sh](../../tests/sandbox/run_codebase_context_container_smoke.sh) が、共有の [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) を使って一時 target repository を準備し、その後 install 済み runtime launcher を直接呼び出す。export 自体の実行境界は runtime container の 1 回だけになる。 |
 
-### `repository-governance`
+### `repository-docs`
 
 正本 manifest:
-[.ai_ecosystems/repository-governance/ECOSYSTEM.md](../../.ai_ecosystems/repository-governance/ECOSYSTEM.md)
+[.ai_ecosystems/repository-docs/ECOSYSTEM.md](../../.ai_ecosystems/repository-docs/ECOSYSTEM.md)
 
 | 項目 | 現在の実装 |
 |---|---|
-| Root agent | [.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-repository-context-manager.agent.md) |
-| Specialized agents | [.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-manifest.agent.md), [.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md](../../.ai_ecosystems/repository-governance/agents/governance-ecosystem-delivery.agent.md) |
-| Skills | [.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-governance-bootstrap/SKILL.md), [.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/repository-doc-governance/SKILL.md), [.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md](../../.ai_ecosystems/repository-governance/skills/todo-progress-governance/SKILL.md) |
+| Root agent | [.ai_ecosystems/repository-docs/agents/governance-repository-context-manager.agent.md](../../.ai_ecosystems/repository-docs/agents/governance-repository-context-manager.agent.md) |
+| Specialized agents | [.ai_ecosystems/repository-docs/agents/governance-ecosystem-manifest.agent.md](../../.ai_ecosystems/repository-docs/agents/governance-ecosystem-manifest.agent.md), [.ai_ecosystems/repository-docs/agents/governance-ecosystem-delivery.agent.md](../../.ai_ecosystems/repository-docs/agents/governance-ecosystem-delivery.agent.md) |
+| Skills | [.ai_ecosystems/repository-docs/skills/docs-bootstrap/SKILL.md](../../.ai_ecosystems/repository-docs/skills/docs-bootstrap/SKILL.md), [.ai_ecosystems/repository-docs/skills/docs-sync/SKILL.md](../../.ai_ecosystems/repository-docs/skills/docs-sync/SKILL.md), [.ai_ecosystems/repository-docs/skills/docs-refactor/SKILL.md](../../.ai_ecosystems/repository-docs/skills/docs-refactor/SKILL.md), [.ai_ecosystems/repository-docs/skills/todo-maintenance/SKILL.md](../../.ai_ecosystems/repository-docs/skills/todo-maintenance/SKILL.md) |
 | Ownership contract | agents、skills、listed ecosystem-owned files、listed audit files、および manifest 自体 |
 | Dependencies | `ecosystem-audit` |
-| Ecosystem 固有 files | `.ai_ecosystems/repository-governance/` 配下の template assets |
-| Audit files | `.ai_ecosystems/repository-governance/audit/repository-governance-audit.md` |
+| Ecosystem 固有 files | `.ai_ecosystems/repository-docs/` 配下の template assets |
+| Audit files | `.ai_ecosystems/repository-docs/audit/repository-docs-audit.md` |
 | Installed runtime | 宣言なし。install 後に実行する executable runtime は持たない。 |
 | Install portability rule | installable markdown 内の repository-local link は manifest-owned payload の内側で解決できなければならず、install 後の artifact は target repository 内で self-contained に保つ。 |
-| 品質観点 | 文書の clarity、navigability、英日整合の質、operator usability |
+| 品質観点 | 文書の clarity、コードベースとの整合、自然言語としての読みやすさ、図解の適切さ、英日整合の質、operator usability |
 | Audit flow | shared `ecosystem-audit` platform が shared core rules、shared work-quality rubric、この ecosystem の audit pack を on-demand で適用する |
-| Installed-target smoke | [tests/sandbox/run_repository_governance_container_smoke.sh](../../tests/sandbox/run_repository_governance_container_smoke.sh) が、一時 repository へ ecosystem を install し、shipped bilingual template pack を適用したうえで、共有の [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) から build した repo 同梱 Docker sandbox 内で smoke test を実行する。 |
+| Installed-target smoke | [tests/sandbox/run_repository_docs_container_smoke.sh](../../tests/sandbox/run_repository_docs_container_smoke.sh) が、一時 repository へ ecosystem を install し、shipped bilingual template pack を適用したうえで、共有の [tests/sandbox/base/Dockerfile](../../tests/sandbox/base/Dockerfile) から build した repo 同梱 Docker sandbox 内で smoke test を実行する。 |
 
-## CI
+## Validation
 
-[.github/workflows/ci.yml](../../.github/workflows/ci.yml) が repository
-validation 用の GitHub Actions entrypoint です。host runner 上で
-`python -m pytest -q` の full suite を実行したあと、2 本の sandbox
-container smoke runner も続けて実行します。
+この repository は現在 GitHub Actions workflow を install していません。
+検証が必要な場合は local で `python -m pytest -q` を実行します。
+`tests/sandbox/` 配下の sandbox smoke script は、install 済み target の
+手動確認用として残します。
 
 ## 共有 Ecosystem Infrastructure
 

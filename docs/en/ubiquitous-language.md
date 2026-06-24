@@ -39,10 +39,11 @@ wait for explicit maintainer instruction and update the charter instead.
 | rubric summary | The compact audit section that lists quality dimensions, ratings, evidence basis, and confidence before detailed findings. |
 | evidence basis | The label that explains whether a finding is artifact-observed, runtime-observed, or definition-inferred. |
 | upstream improvement feedback | Improvement guidance meant for the source ecosystem rather than only a local target-repository repair. |
+| documentation refactoring | A repository-docs workflow that rewrites stable docs so claims, prose, and diagrams reflect the current codebase without preserving implementation-log or weakly related design-history wording. |
 | sandbox smoke | A repo-contained Docker workflow that prepares and validates installed-target ecosystem behavior. Runtime-free ecosystems can run fully inside the sandbox container, while runtime-enabled ecosystems reuse their installed runtime launcher so the runtime container remains the only execution boundary for runtime behavior. |
 | source repository | The repository where reusable ecosystem assets are authored and validated before delivery. |
 | target repository | A repository that receives an ecosystem's manifest-owned payload through install or remove workflows. |
-| repository-governance | The ecosystem that governs repository docs, documentation update rules, templates, audit guidance, and related orchestration guidance. |
+| repository-docs | The ecosystem that governs repository docs, documentation refactoring, documentation update rules, templates, audit guidance, and related orchestration guidance. |
 | ubiquitous language | This shared vocabulary layer, maintained to improve maintainer-agent context alignment without becoming a policy surface. |
 
 ## Related Documents

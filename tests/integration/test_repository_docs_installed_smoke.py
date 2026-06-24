@@ -20,11 +20,11 @@ def init_git_repo(path: Path) -> None:
     subprocess.run([git_path, "init", "-q", str(path)], check=True, capture_output=True)
 
 
-def install_repository_governance(target_root: Path) -> None:
+def install_repository_docs(target_root: Path) -> None:
     apply_delivery_changes(
         build_install_changeset(
             target_root=target_root,
-            ecosystem_slug="repository-governance",
+            ecosystem_slug="repository-docs",
         )
     )
 
@@ -33,7 +33,7 @@ def apply_bilingual_template_pack(target_root: Path) -> None:
     template_root = (
         target_root
         / ".ai_ecosystems"
-        / "repository-governance"
+        / "repository-docs"
         / "assets"
         / "templates"
         / "bilingual"
@@ -58,14 +58,14 @@ def assert_relative_markdown_links_resolve(path: Path) -> None:
 
 
 @pytest.mark.integration
-def test_installed_repository_governance_bilingual_template_pack_bootstraps_target_repo(
+def test_installed_repository_docs_bilingual_template_pack_bootstraps_target_repo(
     tmp_path: Path,
 ) -> None:
     target_root = tmp_path / "target-repo"
     target_root.mkdir()
     init_git_repo(target_root)
 
-    install_repository_governance(target_root)
+    install_repository_docs(target_root)
     apply_bilingual_template_pack(target_root)
 
     required_paths = [
@@ -89,14 +89,40 @@ def test_installed_repository_governance_bilingual_template_pack_bootstraps_targ
         target_root
         / ".github"
         / "skills"
-        / "repository-governance-bootstrap"
+        / "docs-bootstrap"
         / "SKILL.md"
     ).read_text(encoding="utf-8")
+    sync_skill_path = (
+        target_root
+        / ".github"
+        / "skills"
+        / "docs-sync"
+        / "SKILL.md"
+    )
+    refactoring_skill = (
+        target_root
+        / ".github"
+        / "skills"
+        / "docs-refactor"
+        / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    todo_skill_path = (
+        target_root
+        / ".github"
+        / "skills"
+        / "todo-maintenance"
+        / "SKILL.md"
+    )
+    refactoring_skill_normalized = " ".join(refactoring_skill.split())
 
     assert "docs/README.md" in readme_text
     assert "docs/DOCUMENTATION_UPDATE_RULES.md" in claude_text
     assert "Ecosystem Audit Agent" in bootstrap_skill
     assert "assets/templates/bilingual/README.md" in bootstrap_skill
+    assert sync_skill_path.is_file()
+    assert todo_skill_path.is_file()
+    assert "grounded in the implemented codebase" in refactoring_skill_normalized
+    assert "Mermaid" in refactoring_skill
 
     for path in required_paths[:5]:
         assert_relative_markdown_links_resolve(path)

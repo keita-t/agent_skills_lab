@@ -15,20 +15,20 @@ def test_deliver_ecosystem_cli_prints_dry_run_summary(
     def fake_execute_delivery_plan(**kwargs) -> DeliveryExecutionResult:
         assert kwargs["action"] == "install"
         assert kwargs["target_repo"] == "octo/example-repo"
-        assert kwargs["ecosystem_slug"] == "repository-governance"
+        assert kwargs["ecosystem_slug"] == "repository-docs"
         assert kwargs["agent_hosts"] is None
         return DeliveryExecutionResult(
             action="install",
-            ecosystem_slug="repository-governance",
-            resolved_ecosystems=["ecosystem-audit", "repository-governance"],
+            ecosystem_slug="repository-docs",
+            resolved_ecosystems=["ecosystem-audit", "repository-docs"],
             target_repo="octo/example-repo",
             base_branch="main",
-            branch_name="ecosystem-repository-governance-install",
+            branch_name="ecosystem-repository-docs-install",
             agent_hosts=["github-copilot"],
             working_directory=str(tmp_path),
             clone_path=str(tmp_path / "example-repo"),
             file_actions=["copy /tmp/example/.github/agents/governance-ecosystem-delivery.agent.md"],
-            pr_title="Install repository-governance ecosystem",
+            pr_title="Install repository-docs ecosystem",
             pr_body="body",
             pr_url=None,
             committed=False,
@@ -42,14 +42,14 @@ def test_deliver_ecosystem_cli_prints_dry_run_summary(
         "--target-repo",
         "octo/example-repo",
         "--ecosystem",
-        "repository-governance",
+        "repository-docs",
         "--dry-run",
     )
 
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "Dry run completed without creating a pull request." in captured.out
-    assert "repository-governance" in captured.out
+    assert "repository-docs" in captured.out
     assert "Agent hosts: github-copilot" in captured.out
 
 
@@ -62,16 +62,16 @@ def test_deliver_ecosystem_cli_passes_explicit_agent_hosts(
         assert kwargs["agent_hosts"] == ["claude-code", "codex"]
         return DeliveryExecutionResult(
             action="install",
-            ecosystem_slug="repository-governance",
-            resolved_ecosystems=["ecosystem-audit", "repository-governance"],
+            ecosystem_slug="repository-docs",
+            resolved_ecosystems=["ecosystem-audit", "repository-docs"],
             target_repo="octo/example-repo",
             base_branch="main",
-            branch_name="ecosystem-repository-governance-install",
+            branch_name="ecosystem-repository-docs-install",
             agent_hosts=["claude-code", "codex"],
             working_directory=str(tmp_path),
             clone_path=str(tmp_path / "example-repo"),
             file_actions=[],
-            pr_title="Install repository-governance ecosystem",
+            pr_title="Install repository-docs ecosystem",
             pr_body="body",
             pr_url=None,
             committed=False,
@@ -85,7 +85,7 @@ def test_deliver_ecosystem_cli_passes_explicit_agent_hosts(
         "--target-repo",
         "octo/example-repo",
         "--ecosystem",
-        "repository-governance",
+        "repository-docs",
         "--agent-host",
         "claude-code",
         "--agent-host",
@@ -105,7 +105,7 @@ def test_deliver_ecosystem_cli_returns_error_for_invalid_target_repo(
         "--target-repo",
         "not-a-repo",
         "--ecosystem",
-        "repository-governance",
+        "repository-docs",
         "--dry-run",
     )
 
@@ -129,8 +129,8 @@ def test_deliver_ecosystem_cli_lists_conflicting_paths(
                 ),
                 DeliveryConflict(
                     action="remove",
-                    relative_destination=".github/skills/repository-doc-governance",
-                    destination="/tmp/example/.github/skills/repository-doc-governance",
+                    relative_destination=".github/skills/docs-sync",
+                    destination="/tmp/example/.github/skills/docs-sync",
                 ),
             ]
         )
@@ -143,11 +143,11 @@ def test_deliver_ecosystem_cli_lists_conflicting_paths(
         "--target-repo",
         "octo/example-repo",
         "--ecosystem",
-        "repository-governance",
+        "repository-docs",
     )
 
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "Delivery safety check failed." in captured.out
     assert ".github/agents/governance-ecosystem-delivery.agent.md (overwrite)" in captured.out
-    assert ".github/skills/repository-doc-governance (remove)" in captured.out
+    assert ".github/skills/docs-sync (remove)" in captured.out

@@ -1,22 +1,25 @@
 ---
-name: repository-doc-governance
-description: 'Sync repository documentation with implementation, rewrite docs safely, update documentation maps, and keep repository entry points aligned with code changes.'
-ecosystem: repository-governance
+name: docs-sync
+description: 'Sync repository docs with implementation changes, update docs maps, and keep repository entry points aligned.'
+ecosystem: repository-docs
 argument-hint: 'Describe the changed code, affected contracts or workflows, and the document set that must stay aligned.'
 ---
 
-# Repository Documentation Governance
+# Docs Sync
 
 ## When To Use
 - Update canonical docs after implementation changes.
 - Rewrite or refine repository documentation while keeping navigation aligned.
 - Sync root entry points such as `README.md`, `CLAUDE.md`, and `docs/README.md`
   after document structure changes.
+- Use `docs-refactor` instead when the main request is a
+  docs-only refactor of stale claims, implementation-log prose, mechanical
+  wording, or diagram quality.
 
 ## Role
-You are the canonical policy skill for repository document management.
-Your purpose is to keep repository documentation structurally clear, directly
-traceable to implemented behavior, and easy for humans and AI agents to follow.
+You are the sync skill for repository documentation.
+Your purpose is to keep docs structurally clear, directly traceable to
+implemented behavior, and easy for humans and AI agents to follow.
 
 ## Required Inputs
 - Changed files and affected implementation areas.
@@ -41,14 +44,14 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
 6. Keep rewritten sections at one clear granularity level such as snapshot,
    overview, table, flow, checklist, or reference.
 7. Validate links and structural alignment before finishing.
-8. After the governance doc pack or bootstrap output has been applied to the
+8. After the repository docs pack or bootstrap output has been applied to the
    target repository, ask the Ecosystem Audit Agent to audit the repository
-   using the shared core rules and the shipped repository-governance audit
+   using the shared core rules and the shipped repository-docs audit
    pack. State whether the repository should be checked in bilingual or
    single-language mode. Before bootstrap, or when reviewing a shipped template
    pack or another checkout, inspect the matching template path under
-   `.ai_ecosystems/repository-governance/assets/templates/<mode>` together
-   with the repository-governance audit file.
+   `.ai_ecosystems/repository-docs/assets/templates/<mode>` together
+   with the repository-docs audit file.
 
 ## Rules
 1. Keep overview documents about what the system is and implementation
@@ -64,7 +67,7 @@ traceable to implemented behavior, and easy for humans and AI agents to follow.
 6. If the repository uses paired languages, keep the counterparts structurally
    aligned in the same change.
 7. Do not autonomously restructure TODO or progress documents here; delegate
-   those edits to `todo-progress-governance`.
+   those edits to `todo-maintenance`.
 8. Edit project-charter files only when a maintainer explicitly instructs
    editing the charter.
 9. Route shared vocabulary and context-alignment updates into the

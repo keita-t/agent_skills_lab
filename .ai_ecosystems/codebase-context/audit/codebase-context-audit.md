@@ -19,7 +19,7 @@ source repository or installed target repository.
 4. `CODEBASE_CONTEXT.md` is runtime output, not part of the manifest-owned
    payload, and should not be treated as install/remove ownership.
 5. The ecosystem should remain auditable through the shared `ecosystem-audit`
-   platform rather than repository-governance-specific validation guidance.
+   platform rather than repository-docs-specific validation guidance.
 
 ## Artifact Quality Rubric
 

@@ -56,12 +56,12 @@ def test_legacy_validator_files_are_removed(repo_root: Path) -> None:
         repo_root / ".ai_ecosystems" / "ecosystem_registry_validation_service.py",
         repo_root
         / ".ai_ecosystems"
-        / "repository-governance"
-        / "validate_repository_governance.py",
+        / "repository-docs"
+        / "validate_repository_docs.py",
         repo_root
         / ".ai_ecosystems"
-        / "repository-governance"
-        / "validate_repository_governance.sh",
+        / "repository-docs"
+        / "validate_repository_docs.sh",
     ]
 
     for path in retired_paths:
@@ -189,7 +189,7 @@ def test_repository_docs_no_longer_reference_retired_validators(repo_root: Path)
     for path in paths:
         text = path.read_text(encoding="utf-8")
         assert "validate_ecosystem_registry.sh" not in text
-        assert "validate_repository_governance.sh" not in text
+        assert "validate_repository_docs.sh" not in text
 def test_ecosystem_docs_include_rubric_first_audit_report_example(repo_root: Path) -> None:
     docs_en_text = (repo_root / "docs" / "en" / "ecosystems.md").read_text(encoding="utf-8")
     docs_ja_text = (repo_root / "docs" / "ja" / "ecosystems.ja.md").read_text(encoding="utf-8")
@@ -210,9 +210,9 @@ def test_ecosystem_audit_packs_define_quality_rubrics(repo_root: Path) -> None:
     paths = [
         repo_root
         / ".ai_ecosystems"
-        / "repository-governance"
+        / "repository-docs"
         / "audit"
-        / "repository-governance-audit.md",
+        / "repository-docs-audit.md",
         repo_root
         / ".ai_ecosystems"
         / "codebase-context"
@@ -227,21 +227,46 @@ def test_ecosystem_audit_packs_define_quality_rubrics(repo_root: Path) -> None:
         assert "Upstream Improvement Feedback" in text
 
 
-def test_repository_governance_audit_pack_covers_single_language_ubiquitous_language_doc(
+def test_repository_docs_audit_pack_covers_single_language_ubiquitous_language_doc(
     repo_root: Path,
 ) -> None:
     audit_path = (
         repo_root
         / ".ai_ecosystems"
-        / "repository-governance"
+        / "repository-docs"
         / "audit"
-        / "repository-governance-audit.md"
+        / "repository-docs-audit.md"
     )
     text = audit_path.read_text(encoding="utf-8")
     normalized = " ".join(text.split())
 
     assert "docs/ubiquitous-language.md" in text
     assert "In single-language mode this includes" in normalized
+    assert "codebase-alignment" in text
+    assert "refactoring-behavior" in text
+    assert "diagram-fit" in text
+
+
+def test_repository_doc_refactoring_skill_covers_codebase_and_diagram_cleanup(
+    repo_root: Path,
+) -> None:
+    skill_path = (
+        repo_root
+        / ".ai_ecosystems"
+        / "repository-docs"
+        / "skills"
+        / "docs-refactor"
+        / "SKILL.md"
+    )
+    text = skill_path.read_text(encoding="utf-8")
+    normalized = " ".join(text.split())
+
+    assert "codebase" in text
+    assert "implementation-log" in text
+    assert "mechanical" in text
+    assert "Mermaid diagram" in text
+    assert "ASCII diagrams" in text
+    assert "Build a short crosswalk" in normalized
 
 
 def test_ubiquitous_language_tracks_quality_audit_terms(repo_root: Path) -> None:
@@ -255,6 +280,7 @@ def test_ubiquitous_language_tracks_quality_audit_terms(repo_root: Path) -> None
     assert "rubric summary" in en_text
     assert "evidence basis" in en_text
     assert "upstream improvement feedback" in en_text
+    assert "documentation refactoring" in en_text
     assert "work-quality audit" in ja_text
     assert "installed runtime contract" in ja_text
     assert "runtime launcher" in ja_text
@@ -262,3 +288,4 @@ def test_ubiquitous_language_tracks_quality_audit_terms(repo_root: Path) -> None
     assert "rubric summary" in ja_text
     assert "evidence basis" in ja_text
     assert "upstream improvement feedback" in ja_text
+    assert "documentation refactoring" in ja_text
